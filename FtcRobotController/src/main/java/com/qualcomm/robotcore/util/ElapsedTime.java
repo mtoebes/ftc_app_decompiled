@@ -76,7 +76,7 @@ public class ElapsedTime {
     }
 
     public void log(String label) {
-        RobotLog.m233v(String.format("TIMER: %20s - %1.3f %s", new Object[]{label, Double.valueOf(time()), m219a()}));
+        RobotLog.v(String.format("TIMER: %20s - %1.3f %s", new Object[]{label, Double.valueOf(time()), m219a()}));
     }
 
     public String toString() {

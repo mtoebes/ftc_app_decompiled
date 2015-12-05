@@ -15,22 +15,22 @@ public class RunShellCommand {
 
     public String run(String cmd) {
         if (this.f421a) {
-            RobotLog.m233v("running command: " + cmd);
+            RobotLog.v("running command: " + cmd);
         }
         String a = m235a(cmd, false);
         if (this.f421a) {
-            RobotLog.m233v("         output: " + a);
+            RobotLog.v("         output: " + a);
         }
         return a;
     }
 
     public String runAsRoot(String cmd) {
         if (this.f421a) {
-            RobotLog.m233v("running command: " + cmd);
+            RobotLog.v("running command: " + cmd);
         }
         String a = m235a(cmd, true);
         if (this.f421a) {
-            RobotLog.m233v("         output: " + a);
+            RobotLog.v("         output: " + a);
         }
         return a;
     }
@@ -77,7 +77,7 @@ public class RunShellCommand {
         try {
             int spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             while (spawnedProcessPid != -1) {
-                RobotLog.m233v("Killing PID " + spawnedProcessPid);
+                RobotLog.v("Killing PID " + spawnedProcessPid);
                 shell.run(String.format("kill %d", new Object[]{Integer.valueOf(spawnedProcessPid)}));
                 spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             }

@@ -171,12 +171,12 @@ public class OpModeManager {
     }
 
     public void logOpModes() {
-        RobotLog.m232i("There are " + (this.f209a.size() + this.f210b.size()) + " Op Modes");
+        RobotLog.i("There are " + (this.f209a.size() + this.f210b.size()) + " Op Modes");
         for (Entry key : this.f209a.entrySet()) {
-            RobotLog.m232i("   Op Mode: " + ((String) key.getKey()));
+            RobotLog.i("   Op Mode: " + ((String) key.getKey()));
         }
         for (Entry key2 : this.f210b.entrySet()) {
-            RobotLog.m232i("   Op Mode: " + ((String) key2.getKey()));
+            RobotLog.i("   Op Mode: " + ((String) key2.getKey()));
         }
     }
 
@@ -195,7 +195,7 @@ public class OpModeManager {
     }
 
     private void m186a() {
-        RobotLog.m232i("Attempting to switch to op mode " + this.f213e);
+        RobotLog.i("Attempting to switch to op mode " + this.f213e);
         try {
             if (this.f210b.containsKey(this.f213e)) {
                 this.f212d = (OpMode) this.f210b.get(this.f213e);
@@ -216,7 +216,7 @@ public class OpModeManager {
     }
 
     private void m187a(Exception exception) {
-        RobotLog.m231e("Unable to start op mode " + this.f211c);
+        RobotLog.e("Unable to start op mode " + this.f211c);
         RobotLog.logStacktrace(exception);
         this.f211c = DEFAULT_OP_MODE_NAME;
         this.f212d = DEFAULT_OP_MODE;

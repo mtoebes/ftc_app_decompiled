@@ -35,12 +35,12 @@ public class Hardware {
         String str5 = Build.MANUFACTURER;
         String str6 = Build.MODEL;
         String str7 = Build.PRODUCT;
-        RobotLog.m230d("Platform information: board = " + str + " brand = " + str2 + " device = " + str3 + " hardware = " + str4 + " manufacturer = " + str5 + " model = " + str6 + " product = " + str7);
+        RobotLog.d("Platform information: board = " + str + " brand = " + str2 + " device = " + str3 + " hardware = " + str4 + " manufacturer = " + str5 + " model = " + str6 + " product = " + str7);
         if (str.equals("MSM8960") && str2.equals("qcom") && str3.equals("msm8960") && str4.equals("qcom") && str5.equals("unknown") && str6.equals("msm8960") && str7.equals("msm8960")) {
-            RobotLog.m230d("Detected IFC6410 Device!");
+            RobotLog.d("Detected IFC6410 Device!");
             return true;
         }
-        RobotLog.m230d("Detected regular SmartPhone Device!");
+        RobotLog.d("Detected regular SmartPhone Device!");
         return false;
     }
 }

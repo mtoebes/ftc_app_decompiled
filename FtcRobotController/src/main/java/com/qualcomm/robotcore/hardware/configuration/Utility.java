@@ -85,7 +85,7 @@ public class Utility {
             z = file.mkdir();
         }
         if (!z) {
-            RobotLog.m231e("Can't create the Robot Config Files directory!");
+            RobotLog.e("Can't create the Robot Config Files directory!");
             complainToast("Can't create the Robot Config Files directory!", this.f290a);
         }
     }
@@ -93,7 +93,7 @@ public class Utility {
     public ArrayList<String> getXMLFiles() {
         File[] listFiles = new File(CONFIG_FILES_DIR).listFiles();
         if (listFiles == null) {
-            RobotLog.m232i("robotConfigFiles directory is empty");
+            RobotLog.i("robotConfigFiles directory is empty");
             return new ArrayList();
         }
         ArrayList<String> arrayList = new ArrayList();
@@ -116,7 +116,7 @@ public class Utility {
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Duplicate name")) {
                 complainToast("Found " + e.getMessage(), this.f290a);
-                RobotLog.m231e("Found " + e.getMessage());
+                RobotLog.e("Found " + e.getMessage());
                 return true;
             }
         }

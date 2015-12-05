@@ -10,7 +10,6 @@ import com.ftdi.j2xx.ft4222.FT_4222_Defines.SPI_SLAVE_CMD;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
-import com.qualcomm.robotcore.robocol.RobocolParsable.MsgType;
 import com.qualcomm.robotcore.util.Dimmer;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -109,7 +108,7 @@ public class Gamepad implements RobocolParsable {
         try {
             copy(new Gamepad());
         } catch (RobotCoreException e) {
-            RobotLog.m231e("Gamepad library in an invalid state");
+            RobotLog.e("Gamepad library in an invalid state");
             throw new IllegalStateException("Gamepad library in an invalid state");
         }
     }

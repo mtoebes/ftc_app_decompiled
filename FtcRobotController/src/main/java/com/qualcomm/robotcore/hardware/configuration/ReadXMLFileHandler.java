@@ -77,10 +77,10 @@ public class ReadXMLFileHandler {
                 eventType = this.f287m.next();
             }
         } catch (XmlPullParserException e) {
-            RobotLog.m234w("XmlPullParserException");
+            RobotLog.w("XmlPullParserException");
             e.printStackTrace();
         } catch (IOException e2) {
-            RobotLog.m234w("IOException");
+            RobotLog.w("IOException");
             e2.printStackTrace();
         }
         return this.f286a;
@@ -102,7 +102,7 @@ public class ReadXMLFileHandler {
                     continue;
                 } else {
                     if (f275b) {
-                        RobotLog.m231e("[handleDeviceInterfaceModule] tagname: " + a6);
+                        RobotLog.e("[handleDeviceInterfaceModule] tagname: " + a6);
                     }
                     if (a6.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
                         ControllerConfiguration deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(attributeValue, new SerialNumber(attributeValue2));
@@ -164,7 +164,7 @@ public class ReadXMLFileHandler {
             }
             if (next == 2) {
                 if (f275b) {
-                    RobotLog.m231e("[handleLegacyModule] tagname: " + a2);
+                    RobotLog.e("[handleLegacyModule] tagname: " + a2);
                 }
                 if (a2.equalsIgnoreCase(ConfigurationType.COMPASS.toString()) || a2.equalsIgnoreCase(ConfigurationType.LIGHT_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.IR_SEEKER.toString()) || a2.equalsIgnoreCase(ConfigurationType.ACCELEROMETER.toString()) || a2.equalsIgnoreCase(ConfigurationType.GYRO.toString()) || a2.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.toString()) || a2.equalsIgnoreCase(ConfigurationType.ULTRASONIC_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.NOTHING.toString())) {
                     DeviceConfiguration c = m198c();
@@ -195,7 +195,7 @@ public class ReadXMLFileHandler {
             deviceConfiguration.setEnabled(true);
         }
         if (f275b) {
-            RobotLog.m231e("[handleDevice] name: " + deviceConfiguration.getName() + ", port: " + deviceConfiguration.getPort() + ", type: " + deviceConfiguration.getType());
+            RobotLog.e("[handleDevice] name: " + deviceConfiguration.getName() + ", port: " + deviceConfiguration.getPort() + ", type: " + deviceConfiguration.getType());
         }
         return deviceConfiguration;
     }

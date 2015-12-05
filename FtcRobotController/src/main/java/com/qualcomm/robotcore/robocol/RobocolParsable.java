@@ -27,7 +27,7 @@ public interface RobocolParsable {
             try {
                 return f335a[b];
             } catch (ArrayIndexOutOfBoundsException e) {
-                RobotLog.m234w(String.format("Cannot convert %d to MsgType: %s", new Object[]{Byte.valueOf(b), e.toString()}));
+                RobotLog.w(String.format("Cannot convert %d to MsgType: %s", new Object[]{Byte.valueOf(b), e.toString()}));
                 return msgType;
             }
         }

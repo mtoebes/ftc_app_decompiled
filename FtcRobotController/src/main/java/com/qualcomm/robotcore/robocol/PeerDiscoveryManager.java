@@ -26,14 +26,14 @@ public class PeerDiscoveryManager {
 
         public void run() {
             try {
-                RobotLog.m233v("Sending peer discovery packet");
+                RobotLog.v("Sending peer discovery packet");
                 RobocolDatagram robocolDatagram = new RobocolDatagram(this.f322a.f327e);
                 if (this.f322a.f324b.getInetAddress() == null) {
                     robocolDatagram.setAddress(this.f322a.f323a);
                 }
                 this.f322a.f324b.send(robocolDatagram);
             } catch (RobotCoreException e) {
-                RobotLog.m230d("Unable to send peer discovery packet: " + e.toString());
+                RobotLog.d("Unable to send peer discovery packet: " + e.toString());
             }
         }
     }
@@ -48,9 +48,9 @@ public class PeerDiscoveryManager {
     }
 
     public void start(InetAddress peerDiscoveryDevice) {
-        RobotLog.m233v("Starting peer discovery");
+        RobotLog.v("Starting peer discovery");
         if (peerDiscoveryDevice == this.f324b.getLocalAddress()) {
-            RobotLog.m233v("No need for peer discovery, we are the peer discovery device");
+            RobotLog.v("No need for peer discovery, we are the peer discovery device");
             return;
         }
         if (this.f326d != null) {
@@ -62,7 +62,7 @@ public class PeerDiscoveryManager {
     }
 
     public void stop() {
-        RobotLog.m233v("Stopping peer discovery");
+        RobotLog.v("Stopping peer discovery");
         if (this.f326d != null) {
             this.f326d.cancel(true);
         }

@@ -71,7 +71,7 @@ public class HardwareMap {
                     if (entry.getValue() instanceof HardwareDevice) {
                         String connectionInfo = ((HardwareDevice) entry.getValue()).getConnectionInfo();
                         String str = (String) entry.getKey();
-                        RobotLog.m232i(String.format("%-45s %-30s %s", new Object[]{r1.getDeviceName(), str, connectionInfo}));
+                        RobotLog.i(String.format("%-45s %-30s %s", new Object[]{r1.getDeviceName(), str, connectionInfo}));
                     }
                 }
             }
@@ -106,8 +106,8 @@ public class HardwareMap {
     }
 
     public void logDevices() {
-        RobotLog.m232i("========= Device Information ===================================================");
-        RobotLog.m232i(String.format("%-45s %-30s %s", new Object[]{"Type", "Name", "Connection"}));
+        RobotLog.i("========= Device Information ===================================================");
+        RobotLog.i(String.format("%-45s %-30s %s", new Object[]{"Type", "Name", "Connection"}));
         this.dcMotorController.logDevices();
         this.dcMotor.logDevices();
         this.servoController.logDevices();
