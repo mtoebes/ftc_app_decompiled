@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import com.qualcomm.analyticsmodule.BuildConfig;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.ServoController;
@@ -36,7 +35,6 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -61,120 +59,115 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 public class Analytics extends BroadcastReceiver {
-    public static final String DATA_COLLECTION_PATH = ".ftcdc";
     public static final String DS_COMMAND_STRING = "update_ds";
-    public static final String EXTERNAL_STORAGE_DIRECTORY_PATH;
+    public static final String RC_COMMAND_STRING = "update_rc";
+    public static final String DATA_COLLECTION_PATH = ".ftcdc";
+    public static final String EXTERNAL_STORAGE_DIRECTORY_PATH = Environment.getExternalStorageDirectory() + "/";
     public static final String LAST_UPLOAD_DATE = "last_upload_date";
     public static final String MAX_DEVICES = "max_usb_devices";
-    public static int MAX_ENTRIES_SIZE = 0;
-    public static final String RC_COMMAND_STRING = "update_rc";
-    public static int TRIMMED_SIZE = 0;
+    public static int MAX_ENTRIES_SIZE = 100;
+    public static int TRIMMED_SIZE = 90;
     public static final String UUID_PATH = ".analytics_id";
-    static String f2a;
-    static long f3b;
-    static UUID f4c;
-    static String f5d;
-    static String f6f;
-    static final HostnameVerifier f7l;
-    private static final Charset f8m;
-    String f9e;
-    Context f10g;
-    SharedPreferences f11h;
-    boolean f12i;
-    long f13j;
-    int f14k;
+    private static final Charset CHARSET = Charset.forName("UTF-8");
 
-    /* renamed from: com.qualcomm.analytics.Analytics.1 */
-    static class C00001 implements HostnameVerifier {
-        C00001() {
-        }
+    static String qualcommServer = "https://ftcdc.qualcomm.com/DataApi";
+    static long currentTime;
+    static UUID uuid = null;
+    static String libraryVersion;
 
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    }
+    String commandString;
+    Context context;
+    SharedPreferences sharedPreferences;
 
-    /* renamed from: com.qualcomm.analytics.Analytics.2 */
-    static class C00012 implements X509TrustManager {
-        C00012() {
-        }
-
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-        }
-
-        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        }
-
-        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+    public Analytics(Context context, String commandString, HardwareMap map) {
+        this.context = context;
+        this.commandString = commandString;
+        try {
+            this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            currentTime = System.currentTimeMillis();
+            libraryVersion = Version.getLibraryVersion();
+            handleUUID(UUID_PATH);
+            int calculateUsbDevices = calculateUsbDevices(map);
+            if (this.sharedPreferences.getInt(MAX_DEVICES, 0) < calculateUsbDevices) {
+                Editor edit = this.sharedPreferences.edit();
+                edit.putInt(MAX_DEVICES, calculateUsbDevices);
+                edit.apply();
+            }
+            handleData();
+            register();
+            RobotLog.i("Analytics has completed initialization.");
+        } catch (Exception e) {
+            clearAnalytics();
         }
     }
 
     public static class DataInfo implements Serializable {
-        private final String f0a;
+        private final String data;
         protected int numUsages;
 
-        public DataInfo(String adate, int numUsages) {
-            this.f0a = adate;
+        public DataInfo(String date, int numUsages) {
+            this.data = date;
             this.numUsages = numUsages;
         }
 
-        public String date() {
-            return this.f0a;
-        }
-
-        public int numUsages() {
-            return this.numUsages;
+        public String encode() {
+            String encodedDataInfo = "";
+            try {
+                encodedDataInfo = URLEncoder.encode(data, CHARSET.name()) + "," +
+                        URLEncoder.encode(String.valueOf(numUsages), CHARSET.name());
+            } catch (UnsupportedEncodingException e) {
+                RobotLog.i("Analytics caught an UnsupportedEncodingException");
+            }
+            return encodedDataInfo;
         }
     }
 
-    /* renamed from: com.qualcomm.analytics.Analytics.a */
-    private class C0002a extends AsyncTask {
-        final /* synthetic */ Analytics f1a;
+    private class analyticsTask extends AsyncTask<Void, Void, Void> {
+        final Analytics analytics;
 
-        private C0002a(Analytics analytics) {
-            this.f1a = analytics;
+        private analyticsTask(Analytics analytics) {
+            this.analytics = analytics;
         }
 
-        protected Object doInBackground(Object[] params) {
-            if (this.f1a.isConnected()) {
+        protected Void doInBackground(Void... params)  {
+            if (this.analytics.isConnected()) {
                 try {
-                    URL url = new URL(Analytics.f2a);
-                    if (!Analytics.getDateFromTime(Analytics.f3b).equals(Analytics.getDateFromTime(this.f1a.f11h.getLong(Analytics.LAST_UPLOAD_DATE, this.f1a.f13j)))) {
-                        String ping = Analytics.ping(url, this.f1a.m2a("cmd", "=", "ping"));
+                    URL url = new URL(Analytics.qualcommServer);
+                    if (!Analytics.getDateFromTime(Analytics.currentTime).equals(Analytics.getDateFromTime(this.analytics.sharedPreferences.getLong(Analytics.LAST_UPLOAD_DATE, 0)))) {
+                        String ping = Analytics.ping(url, this.analytics.encodeStat("cmd", "ping"));
                         CharSequence charSequence = "\"rc\": \"OK\"";
                         if (ping == null || !ping.contains(charSequence)) {
                             RobotLog.e("Analytics: Ping failed.");
                         } else {
                             RobotLog.i("Analytics ping succeeded.");
                             ping = Analytics.EXTERNAL_STORAGE_DIRECTORY_PATH + Analytics.DATA_COLLECTION_PATH;
-                            ArrayList readObjectsFromFile = this.f1a.readObjectsFromFile(ping);
+                            ArrayList<DataInfo> readObjectsFromFile = this.analytics.readObjectsFromFile(ping);
                             if (readObjectsFromFile.size() >= Analytics.MAX_ENTRIES_SIZE) {
-                                this.f1a.trimEntries(readObjectsFromFile);
+                                this.analytics.trimEntries(readObjectsFromFile);
                             }
-                            String call = Analytics.call(url, this.f1a.updateStats(Analytics.f4c.toString(), readObjectsFromFile, this.f1a.f9e));
+                            String call = Analytics.call(url, this.analytics.getAnalyticsStats(Analytics.uuid.toString(), readObjectsFromFile, this.analytics.commandString));
                             if (call == null || !call.contains(charSequence)) {
                                 RobotLog.e("Analytics: Upload failed.");
                             } else {
                                 RobotLog.i("Analytics: Upload succeeded.");
-                                Editor edit = this.f1a.f11h.edit();
-                                edit.putLong(Analytics.LAST_UPLOAD_DATE, Analytics.f3b);
+                                Editor edit = this.analytics.sharedPreferences.edit();
+                                edit.putLong(Analytics.LAST_UPLOAD_DATE, Analytics.currentTime);
                                 edit.apply();
                                 edit.putInt(Analytics.MAX_DEVICES, 0);
                                 edit.apply();
-                                new File(ping).delete();
+
+                                File pingFile = new File(ping);
+                                if(!pingFile.delete()) {
+                                    RobotLog.i("Analytics: failed to close file " + pingFile);
+                                }
                             }
                         }
                     }
-                } catch (MalformedURLException e) {
+                } catch (MalformedURLException urlException) {
                     RobotLog.e("Analytics encountered a malformed URL exception");
-                } catch (Exception e2) {
-                    this.f1a.f12i = true;
-                }
-                if (this.f1a.f12i) {
+                } catch (Exception exception) {
                     RobotLog.i("Analytics encountered a problem during communication");
-                    this.f1a.m3a();
-                    this.f1a.f12i = false;
+                    this.analytics.clearAnalytics();
                 }
             }
             return null;
@@ -189,62 +182,16 @@ public class Analytics extends BroadcastReceiver {
         }
     }
 
-    static {
-        f2a = "https://ftcdc.qualcomm.com/DataApi";
-        EXTERNAL_STORAGE_DIRECTORY_PATH = Environment.getExternalStorageDirectory() + "/";
-        MAX_ENTRIES_SIZE = 100;
-        TRIMMED_SIZE = 90;
-        f8m = Charset.forName("UTF-8");
-        f4c = null;
-        f6f = BuildConfig.VERSION_NAME;
-        f7l = new C00001();
-    }
-
     public void unregister() {
-        this.f10g.unregisterReceiver(this);
+        this.context.unregisterReceiver(this);
     }
 
     public void register() {
-        this.f10g.registerReceiver(this, new IntentFilter("android.net.wifi.STATE_CHANGE"));
-    }
-
-    public Analytics(Context context, String commandString, HardwareMap map) {
-        this.f12i = false;
-        this.f13j = 0;
-        this.f14k = 0;
-        this.f10g = context;
-        this.f9e = commandString;
-        try {
-            this.f11h = PreferenceManager.getDefaultSharedPreferences(context);
-            f3b = System.currentTimeMillis();
-            f6f = Version.getLibraryVersion();
-            handleUUID(UUID_PATH);
-            int calculateUsbDevices = calculateUsbDevices(map);
-            if (this.f11h.getInt(MAX_DEVICES, this.f14k) < calculateUsbDevices) {
-                Editor edit = this.f11h.edit();
-                edit.putInt(MAX_DEVICES, calculateUsbDevices);
-                edit.apply();
-            }
-            setApplicationName(context.getApplicationInfo().loadLabel(context.getPackageManager()).toString());
-            handleData();
-            register();
-            RobotLog.i("Analytics has completed initialization.");
-        } catch (Exception e) {
-            this.f12i = true;
-        }
-        try {
-            if (this.f12i) {
-                m3a();
-                this.f12i = false;
-            }
-        } catch (Exception e2) {
-            RobotLog.i("Analytics encountered a problem during initialization");
-            RobotLog.logStacktrace(e2);
-        }
+        this.context.registerReceiver(this, new IntentFilter("android.net.wifi.STATE_CHANGE"));
     }
 
     protected int calculateUsbDevices(HardwareMap map) {
-        int size = (0 + map.legacyModule.size()) + map.deviceInterfaceModule.size();
+        int size = map.legacyModule.size() + map.deviceInterfaceModule.size();
         Iterator it = map.servoController.iterator();
         int i = size;
         while (it.hasNext()) {
@@ -267,7 +214,7 @@ public class Analytics extends BroadcastReceiver {
     protected void handleData() throws IOException, ClassNotFoundException {
         String str = EXTERNAL_STORAGE_DIRECTORY_PATH + DATA_COLLECTION_PATH;
         if (new File(str).exists()) {
-            ArrayList updateExistingFile = updateExistingFile(str, getDateFromTime(f3b));
+            ArrayList<DataInfo> updateExistingFile = updateExistingFile(str, getDateFromTime(currentTime));
             if (updateExistingFile.size() >= MAX_ENTRIES_SIZE) {
                 trimEntries(updateExistingFile);
             }
@@ -283,8 +230,8 @@ public class Analytics extends BroadcastReceiver {
 
     protected ArrayList<DataInfo> updateExistingFile(String filepath, String date) throws ClassNotFoundException, IOException {
         ArrayList<DataInfo> readObjectsFromFile = readObjectsFromFile(filepath);
-        DataInfo dataInfo = (DataInfo) readObjectsFromFile.get(readObjectsFromFile.size() - 1);
-        if (dataInfo.f0a.equalsIgnoreCase(date)) {
+        DataInfo dataInfo = readObjectsFromFile.get(readObjectsFromFile.size() - 1);
+        if (dataInfo.data.equalsIgnoreCase(date)) {
             dataInfo.numUsages++;
         } else {
             readObjectsFromFile.add(new DataInfo(date, 1));
@@ -294,7 +241,7 @@ public class Analytics extends BroadcastReceiver {
 
     protected ArrayList<DataInfo> readObjectsFromFile(String filepath) throws IOException, ClassNotFoundException {
         ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(new File(filepath)));
-        ArrayList<DataInfo> arrayList = new ArrayList();
+        ArrayList<DataInfo> arrayList = new ArrayList<DataInfo>();
         Object obj = 1;
         while (obj != null) {
             try {
@@ -308,121 +255,94 @@ public class Analytics extends BroadcastReceiver {
     }
 
     protected void createInitialFile(String filepath) throws IOException {
-        DataInfo dataInfo = new DataInfo(getDateFromTime(f3b), 1);
-        ArrayList arrayList = new ArrayList();
+        DataInfo dataInfo = new DataInfo(getDateFromTime(currentTime), 1);
+        ArrayList<DataInfo> arrayList = new ArrayList<DataInfo>();
         arrayList.add(dataInfo);
         writeObjectsToFile(filepath, arrayList);
     }
 
-    private void m3a() {
+    private void clearAnalytics() {
         RobotLog.i("Analytics is starting with a clean slate.");
-        Editor edit = this.f11h.edit();
-        edit.putLong(LAST_UPLOAD_DATE, this.f13j);
+        Editor edit = this.sharedPreferences.edit();
+        edit.putLong(LAST_UPLOAD_DATE, 0);
         edit.apply();
         edit.putInt(MAX_DEVICES, 0);
         edit.apply();
-        new File(EXTERNAL_STORAGE_DIRECTORY_PATH + DATA_COLLECTION_PATH).delete();
-        new File(EXTERNAL_STORAGE_DIRECTORY_PATH + UUID_PATH).delete();
-        this.f12i = false;
+
+        File data_collection_dir = new File(EXTERNAL_STORAGE_DIRECTORY_PATH + DATA_COLLECTION_PATH);
+
+        if(!data_collection_dir.delete()) {
+            RobotLog.i("Analytics failed to delete file " + data_collection_dir);
+        }
+
+        File uuid_dir = new File(EXTERNAL_STORAGE_DIRECTORY_PATH + UUID_PATH);
+
+        if(!uuid_dir.delete()) {
+            RobotLog.i("Analytics failed to delete file " + data_collection_dir);
+        }
     }
 
     public void communicateWithServer() {
-        new C0002a().execute((Object[]) new String[]{f2a});
-    }
-
-    public static void setApplicationName(String name) {
-        f5d = name;
+        new analyticsTask(this).execute();
     }
 
     public void handleUUID(String filename) {
         File file = new File(EXTERNAL_STORAGE_DIRECTORY_PATH + filename);
         if (!file.exists()) {
-            f4c = UUID.randomUUID();
-            handleCreateNewFile(EXTERNAL_STORAGE_DIRECTORY_PATH + filename, f4c.toString());
+            uuid = UUID.randomUUID();
+            handleCreateNewFile(EXTERNAL_STORAGE_DIRECTORY_PATH + filename, uuid.toString());
         }
         try {
-            f4c = UUID.fromString(readFromFile(file));
+            uuid = UUID.fromString(readFromFile(file));
         } catch (IllegalArgumentException e) {
             RobotLog.i("Analytics encountered an IllegalArgumentException");
-            f4c = UUID.randomUUID();
-            handleCreateNewFile(EXTERNAL_STORAGE_DIRECTORY_PATH + filename, f4c.toString());
+            uuid = UUID.randomUUID();
+            handleCreateNewFile(EXTERNAL_STORAGE_DIRECTORY_PATH + filename, uuid.toString());
         }
     }
 
     protected String readFromFile(File file) {
+        String data = "";
         try {
-            char[] cArr = new char[4096];
+            char[] fileBuffer = new char[4096];
             FileReader fileReader = new FileReader(file);
-            int read = fileReader.read(cArr);
+            int len = fileReader.read(fileBuffer);
             fileReader.close();
-            return new String(cArr, 0, read).trim();
+            data = new String(fileBuffer, 0, len).trim();
         } catch (FileNotFoundException e) {
             RobotLog.i("Analytics encountered a FileNotFoundException while trying to read a file.");
-            return BuildConfig.VERSION_NAME;
         } catch (IOException e2) {
             RobotLog.i("Analytics encountered an IOException while trying to read.");
-            return BuildConfig.VERSION_NAME;
         }
+        return data;
     }
 
     protected void writeObjectsToFile(String filepath, ArrayList<DataInfo> info) throws IOException {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(filepath));
-        Iterator it = info.iterator();
-        while (it.hasNext()) {
-            objectOutputStream.writeObject((DataInfo) it.next());
+
+        for(DataInfo data : info) {
+            objectOutputStream.writeObject(data);
         }
+
         objectOutputStream.close();
     }
 
     protected void handleCreateNewFile(String filepath, String data) {
-        Writer bufferedWriter;
-        IOException e;
-        Throwable th;
+        Writer bufferedWriter = null;
         try {
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filepath)), "utf-8"));
+            bufferedWriter.write(data);
+            bufferedWriter.close();
+        } catch (IOException ioException) {
+            RobotLog.i("Analytics encountered an IOException: " + ioException.toString());
+        } finally {
             try {
-                bufferedWriter.write(data);
                 if (bufferedWriter != null) {
-                    try {
-                        bufferedWriter.close();
-                    } catch (IOException e2) {
-                    }
+                    bufferedWriter.close();
                 }
-            } catch (IOException e3) {
-                e = e3;
-                try {
-                    RobotLog.i("Analytics encountered an IOException: " + e.toString());
-                    if (bufferedWriter != null) {
-                        try {
-                            bufferedWriter.close();
-                        } catch (IOException e4) {
-                        }
-                    }
-                } catch (Throwable th2) {
-                    th = th2;
-                    if (bufferedWriter != null) {
-                        try {
-                            bufferedWriter.close();
-                        } catch (IOException e5) {
-                        }
-                    }
-                    throw th;
-                }
+            } catch (IOException ioException) {
+                // do nothing
             }
-        } catch (IOException e6) {
-            e = e6;
-            bufferedWriter = null;
-            RobotLog.i("Analytics encountered an IOException: " + e.toString());
-            if (bufferedWriter != null) {
-                bufferedWriter.close();
-            }
-        } catch (Throwable th3) {
-            th = th3;
-            bufferedWriter = null;
-            if (bufferedWriter != null) {
-                bufferedWriter.close();
-            }
-            throw th;
         }
     }
 
@@ -431,72 +351,77 @@ public class Analytics extends BroadcastReceiver {
     }
 
     protected static UUID getUuid() {
-        return f4c;
+        return uuid;
     }
 
-    public String updateStats(String user, ArrayList<DataInfo> dateInfo, String commandString) {
-        String str = m2a("cmd", "=", commandString) + "&" + m2a("uuid", "=", user) + "&" + m2a("device_hw", "=", Build.MANUFACTURER) + "&" + m2a("device_ver", "=", Build.MODEL) + "&" + m2a("chip_type", "=", m5b()) + "&" + m2a("sw_ver", "=", f6f) + "&" + m2a("max_dev", "=", String.valueOf(this.f11h.getInt(MAX_DEVICES, this.f14k))) + "&";
-        String str2 = BuildConfig.VERSION_NAME;
-        int i = 0;
-        while (i < dateInfo.size()) {
-            if (i > 0) {
-                str2 = str2 + ",";
+    public String getAnalyticsStats(String user, ArrayList<DataInfo> dateInfoList, String commandString) {
+        return getHardwareStats(user, commandString) + getDataInfoStats(dateInfoList);
+    }
+
+    private String getHardwareStats(String user, String commandString) {
+        return encodeStat("cmd", commandString) + "&" +
+                encodeStat("uuid", user) + "&" +
+                encodeStat("device_hw", Build.MANUFACTURER) + "&" +
+                encodeStat("device_ver", Build.MODEL) + "&" +
+                encodeStat("chip_type", getChipType()) + "&" +
+                encodeStat("sw_ver", libraryVersion) + "&" +
+                encodeStat("max_dev", String.valueOf(this.sharedPreferences.getInt(MAX_DEVICES, 0))) + "&" +
+                encodeStat("dc", "");
+    }
+
+    private String getDataInfoStats(ArrayList<DataInfo> dateInfoList) {
+        String dataInfoStats = "";
+        for(int i=0; i < dateInfoList.size(); i++) {
+            if(i > 0 ) {
+                dataInfoStats += ",";
             }
-            String str3 = str2 + m2a(((DataInfo) dateInfo.get(i)).date(), ",", String.valueOf(((DataInfo) dateInfo.get(i)).numUsages()));
-            i++;
-            str2 = str3;
+            dataInfoStats += dateInfoList.get(i).encode();
         }
-        return (str + m2a("dc", "=", BuildConfig.VERSION_NAME)) + str2;
+        return dataInfoStats;
     }
 
-    private String m2a(String str, String str2, String str3) {
-        String str4 = BuildConfig.VERSION_NAME;
+    private String encodeStat(String statName, String statValue) {
+        String encodedStat = "";
         try {
-            str4 = URLEncoder.encode(str, f8m.name()) + str2 + URLEncoder.encode(str3, f8m.name());
+            encodedStat = URLEncoder.encode(statName, CHARSET.name()) + "=" +
+                    URLEncoder.encode(statValue, CHARSET.name());
         } catch (UnsupportedEncodingException e) {
             RobotLog.i("Analytics caught an UnsupportedEncodingException");
         }
-        return str4;
+        return encodedStat;
     }
 
-    private String m5b() {
-        String str = "UNKNOWN";
-        String str2 = "/proc/cpuinfo";
-        String[] strArr = new String[]{"CPU implementer", "Hardware"};
-        Map hashMap = new HashMap();
+    private String getChipType() {
+        String cpu = "CPU implementer".toLowerCase();
+        String hardware = "Hardware".toLowerCase();
+
+        String chipType = null;
+
+        Map<String, String> hashMap = new HashMap<String, String>();
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader("/proc/cpuinfo"));
-            for (str2 = bufferedReader.readLine(); str2 != null; str2 = bufferedReader.readLine()) {
-                String[] split = str2.toLowerCase().split(":");
+            for (String line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
+                String[] split = line.toLowerCase().split(":");
                 if (split.length >= 2) {
                     hashMap.put(split[0].trim(), split[1].trim());
                 }
             }
             bufferedReader.close();
-            str2 = BuildConfig.VERSION_NAME;
-            int length = strArr.length;
-            String str3 = str2;
-            int i = 0;
-            while (i < length) {
-                i++;
-                str3 = str3 + ((String) hashMap.get(strArr[i].toLowerCase())) + " ";
-            }
-            str3 = str3.trim();
-            if (str3.isEmpty()) {
-                return str;
-            }
-            return str3;
-        } catch (FileNotFoundException e) {
+            chipType = hashMap.get(cpu) + " " + hashMap.get(hardware);
+        } catch (FileNotFoundException fileException) {
             RobotLog.i("Analytics encountered a FileNotFoundException while looking for CPU info");
-            return str;
-        } catch (IOException e2) {
+        } catch (IOException ioException) {
             RobotLog.i("Analytics encountered an IOException while looking for CPU info");
-            return str;
+        } finally {
+            if (chipType == null || chipType.isEmpty()) {
+                chipType = "UNKNOWN";
+            }
         }
+        return chipType;
     }
 
     public boolean isConnected() {
-        NetworkInfo activeNetworkInfo = ((ConnectivityManager) this.f10g.getSystemService("connectivity")).getActiveNetworkInfo();
+        NetworkInfo activeNetworkInfo = ((ConnectivityManager) this.context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
@@ -505,49 +430,65 @@ public class Analytics extends BroadcastReceiver {
     }
 
     public static String call(URL url, String data) {
-        String str;
+        String str = "";
         if (url == null || data == null) {
             return null;
         }
         try {
-            HttpURLConnection httpURLConnection;
+            HttpsURLConnection httpsURLConnection;
             long currentTimeMillis = System.currentTimeMillis();
             if (url.getProtocol().toLowerCase().equals("https")) {
                 m6c();
-                httpURLConnection = (HttpsURLConnection) url.openConnection();
-                httpURLConnection.setHostnameVerifier(f7l);
+                httpsURLConnection = (HttpsURLConnection) url.openConnection();
+
+                HostnameVerifier hostnameVerifier = new HostnameVerifier() {
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                };
+
+                httpsURLConnection.setHostnameVerifier(hostnameVerifier);
             } else {
-                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpsURLConnection = (HttpsURLConnection) url.openConnection();
             }
-            httpURLConnection.setDoOutput(true);
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
+            httpsURLConnection.setDoOutput(true);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(httpsURLConnection.getOutputStream());
             outputStreamWriter.write(data);
             outputStreamWriter.flush();
             outputStreamWriter.close();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-            str = new String();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpsURLConnection.getInputStream()));
+
             while (true) {
-                try {
-                    String readLine = bufferedReader.readLine();
-                    if (readLine != null) {
-                        str = str + readLine;
-                    } else {
-                        bufferedReader.close();
-                        RobotLog.i("Analytics took: " + (System.currentTimeMillis() - currentTimeMillis) + "ms");
-                        return str;
-                    }
-                } catch (IOException e) {
+                String readLine = bufferedReader.readLine();
+                if (readLine != null) {
+                    str = str + readLine;
+                } else {
+                    bufferedReader.close();
+                    RobotLog.i("Analytics took: " + (System.currentTimeMillis() - currentTimeMillis) + "ms");
+                    return str;
                 }
             }
         } catch (IOException e2) {
-            str = null;
             RobotLog.i("Analytics Failed to process command.");
-            return str;
+            return null;
         }
     }
 
     private static void m6c() {
-        TrustManager[] trustManagerArr = new TrustManager[]{new C00012()};
+        X509TrustManager trustManager = new X509TrustManager() {
+
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            }
+
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            }
+        };
+
+        TrustManager[] trustManagerArr = new TrustManager[]{trustManager};
         try {
             SSLContext instance = SSLContext.getInstance("TLS");
             instance.init(null, trustManagerArr, new SecureRandom());
