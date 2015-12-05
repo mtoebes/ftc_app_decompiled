@@ -41,8 +41,8 @@ public class EventLoopManager {
     private final Set<SyncdDevice> f193k;
     private final Command[] f194l;
     private int f195m;
-    private final Set<Command> f196n;
-    private InetAddress f197o;
+    private final Set<Command> commands;
+    private InetAddress inetAddress;
     public RobotState state;
 
     /* renamed from: com.qualcomm.robotcore.eventloop.EventLoopManager.1 */
@@ -189,88 +189,45 @@ public class EventLoopManager {
             this.f179a = new ElapsedTime();
         }
 
-        /* JADX WARNING: inconsistent code. */
-        /* Code decompiled incorrectly, please refer to instructions dump. */
         public void run() {
-            /*
-            r4 = this;
-        L_0x0000:
-            r0 = r4.f180b;
-            r0 = r0.f186d;
-            r0 = r0.recv();
-            r1 = r4.f180b;
-            r1 = r1.f187e;
-            if (r1 != 0) goto L_0x001e;
-        L_0x0012:
-            r1 = r4.f180b;
-            r1 = r1.f186d;
-            r1 = r1.isClosed();
-            if (r1 == 0) goto L_0x001f;
-        L_0x001e:
-            return;
-        L_0x001f:
-            if (r0 != 0) goto L_0x0025;
-        L_0x0021:
-            java.lang.Thread.yield();
-            goto L_0x0000;
-        L_0x0025:
-            r1 = com.qualcomm.robotcore.util.RobotLog.hasGlobalErrorMsg();
-            if (r1 == 0) goto L_0x0036;
-        L_0x002b:
-            r1 = r4.f180b;
-            r2 = "SYSTEM_TELEMETRY";
-            r3 = com.qualcomm.robotcore.util.RobotLog.getGlobalErrorMsg();
-            r1.buildAndSendTelemetry(r2, r3);
-        L_0x0036:
-            r1 = com.qualcomm.robotcore.eventloop.EventLoopManager.C00261.f176a;	 Catch:{ RobotCoreException -> 0x004b }
-            r2 = r0.getMsgType();	 Catch:{ RobotCoreException -> 0x004b }
-            r2 = r2.ordinal();	 Catch:{ RobotCoreException -> 0x004b }
-            r1 = r1[r2];	 Catch:{ RobotCoreException -> 0x004b }
-            switch(r1) {
-                case 1: goto L_0x0067;
-                case 2: goto L_0x006d;
-                case 3: goto L_0x0073;
-                case 4: goto L_0x0079;
-                case 5: goto L_0x007f;
-                default: goto L_0x0045;
-            };	 Catch:{ RobotCoreException -> 0x004b }
-        L_0x0045:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m178e(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x004b:
-            r0 = move-exception;
-            r1 = new java.lang.StringBuilder;
-            r1.<init>();
-            r2 = "RobotCore event loop cannot process event: ";
-            r1 = r1.append(r2);
-            r0 = r0.toString();
-            r0 = r1.append(r0);
-            r0 = r0.toString();
-            com.qualcomm.robotcore.util.RobotLog.m234w(r0);
-            goto L_0x0000;
-        L_0x0067:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m163a(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x006d:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m168b(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x0073:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m171c(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x0079:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m175d(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x007f:
-            r0 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r0.m169c();	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-            */
-            throw new UnsupportedOperationException("Method not decompiled: com.qualcomm.robotcore.eventloop.EventLoopManager.c.run():void");
+            while(true) {
+                RobocolDatagram var1 = EventLoopManager.this.d.recv();
+                if(EventLoopManager.this.e || EventLoopManager.this.d.isClosed()) {
+                    return;
+                }
+
+                if(var1 == null) {
+                    Thread.yield();
+                } else {
+                    if(RobotLog.hasGlobalErrorMsg()) {
+                        EventLoopManager.this.buildAndSendTelemetry("SYSTEM_TELEMETRY", RobotLog.getGlobalErrorMsg());
+                    }
+
+                    try {
+                        switch(EventLoopManager.SyntheticClass_1.a[var1.getMsgType().ordinal()]) {
+                            case 1:
+                                EventLoopManager.this.a(var1);
+                                break;
+                            case 2:
+                                EventLoopManager.this.b(var1);
+                                break;
+                            case 3:
+                                EventLoopManager.this.c(var1);
+                                break;
+                            case 4:
+                                EventLoopManager.this.d(var1);
+                                break;
+                            case 5:
+                                EventLoopManager.this.c();
+                                break;
+                            default:
+                                EventLoopManager.this.e(var1);
+                        }
+                    } catch (RobotCoreException var3) {
+                        RobotLog.w("RobotCore event loop cannot process event: " + var3.toString());
+                    }
+                }
+            }
         }
     }
 
@@ -340,7 +297,7 @@ public class EventLoopManager {
         this.f193k = new CopyOnWriteArraySet();
         this.f194l = new Command[8];
         this.f195m = 0;
-        this.f196n = new CopyOnWriteArraySet();
+        this.commands = new CopyOnWriteArraySet();
         this.f186d = socket;
         m164a(RobotState.NOT_STARTED);
     }
@@ -420,7 +377,7 @@ public class EventLoopManager {
     }
 
     public void sendCommand(Command command) {
-        this.f196n.add(command);
+        this.commands.add(command);
     }
 
     private void m160a() throws RobotCoreException {
@@ -495,15 +452,15 @@ public class EventLoopManager {
     }
 
     private void m171c(RobocolDatagram robocolDatagram) throws RobotCoreException {
-        if (!robocolDatagram.getAddress().equals(this.f197o)) {
+        if (!robocolDatagram.getAddress().equals(this.inetAddress)) {
             if (this.state == RobotState.DROPPED_CONNECTION) {
                 m164a(RobotState.RUNNING);
             }
             if (this.f189g != f183a) {
-                this.f197o = robocolDatagram.getAddress();
-                RobotLog.m232i("new remote peer discovered: " + this.f197o.getHostAddress());
+                this.inetAddress = robocolDatagram.getAddress();
+                RobotLog.m232i("new remote peer discovered: " + this.inetAddress.getHostAddress());
                 try {
-                    this.f186d.connect(this.f197o);
+                    this.f186d.connect(this.inetAddress);
                 } catch (SocketException e) {
                     RobotLog.m231e("Unable to connect to peer:" + e.toString());
                 }
@@ -511,7 +468,7 @@ public class EventLoopManager {
                 RobotLog.m233v("Sending peer discovery packet");
                 RobocolDatagram robocolDatagram2 = new RobocolDatagram(peerDiscovery);
                 if (this.f186d.getInetAddress() == null) {
-                    robocolDatagram2.setAddress(this.f197o);
+                    robocolDatagram2.setAddress(this.inetAddress);
                 }
                 this.f186d.send(robocolDatagram2);
             }
@@ -521,7 +478,7 @@ public class EventLoopManager {
     private void m175d(RobocolDatagram robocolDatagram) throws RobotCoreException {
         RobocolParsable command = new Command(robocolDatagram.getData());
         if (command.isAcknowledged()) {
-            this.f196n.remove(command);
+            this.commands.remove(command);
             return;
         }
         command.acknowledge();
