@@ -4,86 +4,49 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 public abstract class LinearOpMode extends OpMode {
-    private C0031a f202a;
-    private Thread f203b;
-    private ElapsedTime f204c;
-    private volatile boolean f205d;
+    private LinearOpModeRunnable linearOpModeRunnable = null;
+    private Thread linearOpModeThread = null;
+    private ElapsedTime elapsedTime = new ElapsedTime();
+    private volatile boolean isRunning = false;
 
-    /* renamed from: com.qualcomm.robotcore.eventloop.opmode.LinearOpMode.a */
-    private static class C0031a implements Runnable {
-        private RuntimeException f198a;
-        private boolean f199b;
-        private final LinearOpMode f200c;
-
-        public C0031a(LinearOpMode linearOpMode) {
-            this.f198a = null;
-            this.f199b = false;
-            this.f200c = linearOpMode;
-        }
+    private class LinearOpModeRunnable implements Runnable {
+        private RuntimeException runtimeException = null;
+        private boolean isRunning = false;
 
         public void run() {
-            this.f198a = null;
-            this.f199b = false;
+            isRunning = true;
             try {
-                this.f200c.runOpMode();
+                runOpMode();
             } catch (InterruptedException e) {
                 RobotLog.d("LinearOpMode received an Interrupted Exception; shutting down this linear op mode");
-            } catch (RuntimeException e2) {
-                this.f198a = e2;
+            } catch (RuntimeException runtimeException) {
+                this.runtimeException = runtimeException;
             } finally {
-                this.f199b = true;
+                isRunning = false;
             }
         }
 
-        public boolean m181a() {
-            return this.f198a != null;
+        public boolean encounteredRuntimeException() {
+            return runtimeException != null;
         }
 
-        public RuntimeException m182b() {
-            return this.f198a;
+        public RuntimeException getRuntimeException() {
+            return runtimeException;
         }
 
-        public boolean m183c() {
-            return this.f199b;
+        public boolean isRunning() {
+            return isRunning;
         }
     }
 
     public abstract void runOpMode() throws InterruptedException;
 
-    public LinearOpMode() {
-        this.f202a = null;
-        this.f203b = null;
-        this.f204c = new ElapsedTime();
-        this.f205d = false;
-    }
-
-    /* JADX WARNING: inconsistent code. */
-    /* Code decompiled incorrectly, please refer to instructions dump. */
     public synchronized void waitForStart() throws InterruptedException {
-        /*
-        r1 = this;
-        monitor-enter(r1);
-    L_0x0001:
-        r0 = r1.f205d;	 Catch:{ all -> 0x000e }
-        if (r0 != 0) goto L_0x0011;
-    L_0x0005:
-        monitor-enter(r1);	 Catch:{ all -> 0x000e }
-        r1.wait();	 Catch:{ all -> 0x000b }
-        monitor-exit(r1);	 Catch:{ all -> 0x000b }
-        goto L_0x0001;
-    L_0x000b:
-        r0 = move-exception;
-        monitor-exit(r1);	 Catch:{ all -> 0x000b }
-        throw r0;	 Catch:{ all -> 0x000e }
-    L_0x000e:
-        r0 = move-exception;
-        monitor-exit(r1);
-        throw r0;
-    L_0x0011:
-        monitor-exit(r1);
-        return;
-        */
-        throw new UnsupportedOperationException("Method not decompiled: com.qualcomm.robotcore.eventloop.opmode.LinearOpMode.waitForStart():void");
+        while(!this.isRunning) {
+            synchronized (this) {
+                this.wait();
+            }
+        }
     }
 
     public void waitOneFullHardwareCycle() throws InterruptedException {
@@ -103,40 +66,40 @@ public abstract class LinearOpMode extends OpMode {
     }
 
     public boolean opModeIsActive() {
-        return this.f205d;
+        return this.isRunning;
     }
 
     public final void init() {
-        this.f202a = new C0031a(this);
-        this.f203b = new Thread(this.f202a, "Linear OpMode Helper");
-        this.f203b.start();
+        linearOpModeRunnable = new LinearOpModeRunnable();
+        linearOpModeThread = new Thread(linearOpModeRunnable, "Linear OpMode Helper");
+        linearOpModeThread.start();
     }
 
     public final void init_loop() {
-        m184a();
+        performLoop();
     }
 
     public final void start() {
-        this.f205d = true;
+        isRunning = true;
         synchronized (this) {
             notifyAll();
         }
     }
 
     public final void loop() {
-        m184a();
+        performLoop();
     }
 
     public final void stop() {
-        this.f205d = false;
-        if (!this.f202a.m183c()) {
-            this.f203b.interrupt();
+        isRunning = false;
+        if (linearOpModeRunnable.isRunning()) {
+            linearOpModeThread.interrupt();
         }
-        this.f204c.reset();
-        while (!this.f202a.m183c() && this.f204c.time() < 0.5d) {
+        this.elapsedTime.reset();
+        while (linearOpModeRunnable.isRunning() && elapsedTime.time() < 0.5d) {
             Thread.yield();
         }
-        if (!this.f202a.m183c()) {
+        if (linearOpModeRunnable.isRunning()) {
             RobotLog.e("*****************************************************************");
             RobotLog.e("User Linear Op Mode took too long to exit; emergency killing app.");
             RobotLog.e("Possible infinite loop in user code?");
@@ -145,9 +108,9 @@ public abstract class LinearOpMode extends OpMode {
         }
     }
 
-    private void m184a() {
-        if (this.f202a.m181a()) {
-            throw this.f202a.m182b();
+    private void performLoop() {
+        if (linearOpModeRunnable.encounteredRuntimeException()) {
+            throw linearOpModeRunnable.getRuntimeException();
         }
         synchronized (this) {
             notifyAll();
