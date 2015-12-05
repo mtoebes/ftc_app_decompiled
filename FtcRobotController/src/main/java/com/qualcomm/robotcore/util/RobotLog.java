@@ -9,67 +9,15 @@ import java.io.File;
 
 public class RobotLog {
     public static final String TAG = "RobotCore";
-    private static String f416a;
-    private static boolean f417b;
-
-    /* renamed from: com.qualcomm.robotcore.util.RobotLog.1 */
-    static class C00511 extends Thread {
-        final /* synthetic */ String f411a;
-        final /* synthetic */ String f412b;
-        final /* synthetic */ int f413c;
-
-        C00511(String str, String str2, String str3, int i) {
-            this.f411a = str2;
-            this.f412b = str3;
-            this.f413c = i;
-            super(str);
-        }
-
-        public void run() {
-            try {
-                String str = "UsbRequestJNI:S UsbRequest:S *:V";
-                RobotLog.v("saving logcat to " + this.f411a);
-                RunShellCommand runShellCommand = new RunShellCommand();
-                RunShellCommand.killSpawnedProcess("logcat", this.f412b, runShellCommand);
-                runShellCommand.run(String.format("logcat -f %s -r%d -n%d -v time %s", new Object[]{this.f411a, Integer.valueOf(this.f413c), Integer.valueOf(1), "UsbRequestJNI:S UsbRequest:S *:V"}));
-            } catch (RobotCoreException e) {
-                RobotLog.v("Error while writing log file to disk: " + e.toString());
-            } finally {
-                RobotLog.f417b = false;
-            }
-        }
-    }
-
-    /* renamed from: com.qualcomm.robotcore.util.RobotLog.2 */
-    static class C00522 extends Thread {
-        final /* synthetic */ String f414a;
-        final /* synthetic */ String f415b;
-
-        C00522(String str, String str2) {
-            this.f414a = str;
-            this.f415b = str2;
-        }
-
-        public void run() {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-            }
-            try {
-                RobotLog.v("closing logcat file " + this.f414a);
-                RunShellCommand.killSpawnedProcess("logcat", this.f415b, new RunShellCommand());
-            } catch (RobotCoreException e2) {
-                RobotLog.v("Unable to cancel writing log file to disk: " + e2.toString());
-            }
-        }
-    }
+    private static String globalErrorMessage;
+    private static boolean writeLock;
 
     private RobotLog() {
     }
 
     static {
-        f416a = "";
-        f417b = false;
+        globalErrorMessage = "";
+        writeLock = false;
     }
 
     public static void v(String message) {
@@ -115,8 +63,8 @@ public class RobotLog {
     }
 
     public static void setGlobalErrorMsg(String message) {
-        if (f416a.isEmpty()) {
-            f416a += message;
+        if (globalErrorMessage.isEmpty()) {
+            globalErrorMessage += message;
         }
     }
 
@@ -126,15 +74,15 @@ public class RobotLog {
     }
 
     public static String getGlobalErrorMsg() {
-        return f416a;
+        return globalErrorMessage;
     }
 
     public static boolean hasGlobalErrorMsg() {
-        return !f416a.isEmpty();
+        return !globalErrorMessage.isEmpty();
     }
 
     public static void clearGlobalErrorMsg() {
-        f416a = "";
+        globalErrorMessage = "";
     }
 
     public static void logAndThrow(String errMsg) throws RobotCoreException {
@@ -142,11 +90,29 @@ public class RobotLog {
         throw new RobotCoreException(errMsg);
     }
 
-    public static void writeLogcatToDisk(Context context, int fileSizeKb) {
-        if (!f417b) {
-            f417b = true;
-            String str = "Logging Thread";
-            new C00511(str, new File(getLogFilename(context)).getAbsolutePath(), context.getPackageName(), fileSizeKb).start();
+    public static void writeLogcatToDisk(Context context, final int fileSizeKb) {
+        if (!writeLock) {
+            writeLock = true;
+
+            final String filename = new File(getLogFilename(context)).getAbsolutePath();
+            final String packageName = context.getPackageName();
+
+            Thread writeThread = new Thread() {
+                public void run() {
+                    try {
+                        String usbRequest = "UsbRequestJNI:S UsbRequest:S *:V";
+                        RobotLog.v("saving logcat to " + filename);
+                        RunShellCommand runShellCommand = new RunShellCommand();
+                        RunShellCommand.killSpawnedProcess("logcat", packageName, runShellCommand);
+                        runShellCommand.run(String.format("logcat -f %s -r%d -n%d -v time %s", filename, fileSizeKb, 1, usbRequest));
+                    } catch (RobotCoreException robotCoreException) {
+                        RobotLog.v("Error while writing log file to disk: " + robotCoreException.toString());
+                    } finally {
+                        RobotLog.writeLock = false;
+                    }
+                }
+            };
+            writeThread.start();
         }
     }
 
@@ -155,9 +121,25 @@ public class RobotLog {
     }
 
     public static void cancelWriteLogcatToDisk(Context context) {
-        String packageName = context.getPackageName();
-        String absolutePath = new File(Environment.getExternalStorageDirectory(), packageName).getAbsolutePath();
-        f417b = false;
-        new C00522(absolutePath, packageName).start();
+        final String packageName = context.getPackageName();
+        final String absolutePath = new File(Environment.getExternalStorageDirectory(), packageName).getAbsolutePath();
+        writeLock = false;
+
+        Thread cancelWriteThread = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // do nothing
+                }
+                try {
+                    RobotLog.v("closing logcat file " + absolutePath);
+                    RunShellCommand.killSpawnedProcess("logcat", packageName, new RunShellCommand());
+                } catch (RobotCoreException e2) {
+                    RobotLog.v("Unable to cancel writing log file to disk: " + e2.toString());
+                }
+            }
+        };
+        cancelWriteThread.start();
     }
 }
