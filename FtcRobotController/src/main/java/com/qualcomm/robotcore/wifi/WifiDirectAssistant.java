@@ -18,7 +18,6 @@ import android.net.wifi.p2p.WifiP2pManager.GroupInfoListener;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Looper;
 import com.ftdi.j2xx.protocol.SpiSlaveResponseEvent;
-import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -190,7 +189,7 @@ public class WifiDirectAssistant {
                     this.f438a.f459s = owner.deviceName;
                 }
                 this.f438a.f460t = group.getPassphrase();
-                this.f438a.f460t = this.f438a.f460t != null ? this.f438a.f460t : BuildConfig.VERSION_NAME;
+                this.f438a.f460t = this.f438a.f460t != null ? this.f438a.f460t : "";
                 RobotLog.m233v("Wifi Direct connection information available");
                 this.f438a.m245a(Event.CONNECTION_INFO_AVAILABLE);
             }
@@ -278,12 +277,12 @@ public class WifiDirectAssistant {
         this.f452l = 0;
         this.f453m = ConnectStatus.NOT_CONNECTED;
         this.f454n = null;
-        this.f455o = BuildConfig.VERSION_NAME;
-        this.f456p = BuildConfig.VERSION_NAME;
+        this.f455o = "";
+        this.f456p = "";
         this.f457q = null;
-        this.f458r = BuildConfig.VERSION_NAME;
-        this.f459s = BuildConfig.VERSION_NAME;
-        this.f460t = BuildConfig.VERSION_NAME;
+        this.f458r = "";
+        this.f459s = "";
+        this.f460t = "";
         this.f461u = false;
         this.f462v = 0;
         this.f463w = null;

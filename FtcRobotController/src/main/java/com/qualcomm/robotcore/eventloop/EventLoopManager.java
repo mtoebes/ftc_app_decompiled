@@ -1,6 +1,5 @@
 package com.qualcomm.robotcore.eventloop;
 
-import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -149,7 +148,7 @@ public class EventLoopManager {
                     } catch (Exception e) {
                         RobotLog.m231e("Event loop threw an exception");
                         RobotLog.logStacktrace(e);
-                        RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + (e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : BuildConfig.VERSION_NAME)));
+                        RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + (e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "")));
                         this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                         throw new RobotCoreException("EventLoop Exception in loop()");
                     } catch (Throwable th) {

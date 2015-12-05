@@ -1,6 +1,5 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
-import com.qualcomm.robotcore.BuildConfig;
 import java.io.Serializable;
 
 public class DeviceConfiguration implements Serializable {
@@ -61,7 +60,7 @@ public class DeviceConfiguration implements Serializable {
     public DeviceConfiguration(ConfigurationType type) {
         this.f257a = ConfigurationType.NOTHING;
         this.f259c = false;
-        this.name = BuildConfig.VERSION_NAME;
+        this.name = "";
         this.f257a = type;
         this.f259c = false;
     }
