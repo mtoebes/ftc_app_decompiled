@@ -44,88 +44,66 @@ public class Pose {
     }
 
     public MatrixD getTranslationMatrix() {
-        r0 = new double[3][];
-        r0[0] = new double[]{this.transX};
-        r0[1] = new double[]{this.transY};
-        r0[2] = new double[]{this.transZ};
-        return new MatrixD(r0);
+        double[][] matrixArray = new double[3][];
+        matrixArray[0] = new double[]{this.transX};
+        matrixArray[1] = new double[]{this.transY};
+        matrixArray[2] = new double[]{this.transZ};
+        return new MatrixD(matrixArray);
     }
 
     public static MatrixD makeRotationX(double angle) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
-        dArr[0][0] = Servo.MAX_POSITION;
-        double[] dArr2 = dArr[0];
-        double[] dArr3 = dArr[0];
-        double[] dArr4 = dArr[1];
-        dArr[2][0] = 0.0d;
-        dArr4[0] = 0.0d;
-        dArr3[2] = 0.0d;
-        dArr2[1] = 0.0d;
-        dArr2 = dArr[1];
-        dArr[2][2] = cos;
-        dArr2[1] = cos;
-        dArr[1][2] = -sin;
-        dArr[2][1] = sin;
-        return new MatrixD(dArr);
+        double[][] matrixArray = new double[][]{
+                {Servo.MAX_POSITION, 0, 0},
+                {0, cos, -sin},
+                {0, sin, cos}
+        };
+        return new MatrixD(matrixArray);
     }
 
     public static MatrixD makeRotationY(double angle) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
-        double[] dArr2 = dArr[0];
-        double[] dArr3 = dArr[1];
-        double[] dArr4 = dArr[1];
-        dArr[2][1] = 0.0d;
-        dArr4[2] = 0.0d;
-        dArr3[0] = 0.0d;
-        dArr2[1] = 0.0d;
-        dArr[1][1] = Servo.MAX_POSITION;
-        dArr2 = dArr[0];
-        dArr[2][2] = cos;
-        dArr2[0] = cos;
-        dArr[0][2] = sin;
-        dArr[2][0] = -sin;
-        return new MatrixD(dArr);
+
+        double[][] matrixArray = new double[][]{
+                {cos, 0, sin},
+                {0, Servo.MAX_POSITION, 0},
+                {-sin, 0, cos}
+        };
+        return new MatrixD(matrixArray);
     }
 
     public static MatrixD makeRotationZ(double angle) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
-        dArr[2][2] = Servo.MAX_POSITION;
-        double[] dArr2 = dArr[2];
-        double[] dArr3 = dArr[2];
-        double[] dArr4 = dArr[0];
-        dArr[1][2] = 0.0d;
-        dArr4[2] = 0.0d;
-        dArr3[1] = 0.0d;
-        dArr2[0] = 0.0d;
-        dArr2 = dArr[0];
-        dArr[1][1] = cos;
-        dArr2[0] = cos;
-        dArr[0][1] = -sin;
-        dArr[1][0] = sin;
-        return new MatrixD(dArr);
+
+        double[][] matrixArray = new double[][]{
+                {cos, -sin, 0},
+                {sin, cos, 0},
+                {0, 0, Servo.MAX_POSITION}
+        };
+        return new MatrixD(matrixArray);
     }
 
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         double[] anglesAroundZ = PoseUtils.getAnglesAroundZ(this);
-        stringBuilder.append(String.format("(XYZ %1$,.2f ", new Object[]{Double.valueOf(this.transX)}));
-        stringBuilder.append(String.format(" %1$,.2f ", new Object[]{Double.valueOf(this.transY)}));
-        stringBuilder.append(String.format(" %1$,.2f mm)", new Object[]{Double.valueOf(this.transZ)}));
-        stringBuilder.append(String.format("(Angles %1$,.2f, ", new Object[]{Double.valueOf(anglesAroundZ[0])}));
-        stringBuilder.append(String.format(" %1$,.2f, ", new Object[]{Double.valueOf(anglesAroundZ[1])}));
-        stringBuilder.append(String.format(" %1$,.2f ", new Object[]{Double.valueOf(anglesAroundZ[2])}));
-        stringBuilder.append('\u00b0');
-        stringBuilder.append(")");
+        stringBuilder.append(String.format("(XYZ %1$,.2f ", transX));
+        stringBuilder.append(String.format(" %1$,.2f ", transY));
+        stringBuilder.append(String.format(" %1$,.2f mm)", transZ));
+        if(anglesAroundZ != null && anglesAroundZ.length >= 3) {
+            stringBuilder.append("(Angles");
+            stringBuilder.append(String.format(" %1$,.2f, ", anglesAroundZ[0]));
+            stringBuilder.append(String.format(" %1$,.2f, ", anglesAroundZ[1]));
+            stringBuilder.append(String.format(" %1$,.2f ", anglesAroundZ[2]));
+            stringBuilder.append('\u00b0');
+            stringBuilder.append(")");
+        }
         return stringBuilder.toString();
     }
 
     public double getDistanceInMm() {
-        return Math.sqrt((Math.pow(this.transX, 2.0d) + Math.pow(this.transY, 2.0d)) + Math.pow(this.transZ, 2.0d));
+        return Math.sqrt(Math.pow(transX, 2.0d) + Math.pow(transY, 2.0d) + Math.pow(transZ, 2.0d));
     }
 }
