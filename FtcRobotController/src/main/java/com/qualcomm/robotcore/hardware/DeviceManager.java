@@ -17,53 +17,53 @@ public abstract class DeviceManager {
         MODERN_ROBOTICS_USB_SENSOR_MUX
     }
 
-    public abstract ColorSensor createAdafruitI2cColorSensor(DeviceInterfaceModule deviceInterfaceModule, int i);
+    public abstract ColorSensor createAdafruitI2cColorSensor(DeviceInterfaceModule controller, int channel);
 
-    public abstract AnalogInput createAnalogInputDevice(AnalogInputController analogInputController, int i);
+    public abstract AnalogInput createAnalogInputDevice(AnalogInputController analogInputController, int channel);
 
-    public abstract OpticalDistanceSensor createAnalogOpticalDistanceSensor(DeviceInterfaceModule deviceInterfaceModule, int i);
+    public abstract OpticalDistanceSensor createAnalogOpticalDistanceSensor(DeviceInterfaceModule deviceInterfaceModule, int physicalPort);
 
-    public abstract AnalogOutput createAnalogOutputDevice(AnalogOutputController analogOutputController, int i);
+    public abstract AnalogOutput createAnalogOutputDevice(AnalogOutputController analogOutputController, int channel);
 
     public abstract DeviceInterfaceModule createDeviceInterfaceModule(SerialNumber serialNumber) throws RobotCoreException, InterruptedException;
 
-    public abstract DigitalChannel createDigitalChannelDevice(DigitalChannelController digitalChannelController, int i);
+    public abstract DigitalChannel createDigitalChannelDevice(DigitalChannelController digitalChannelController, int channel);
 
-    public abstract TouchSensor createDigitalTouchSensor(DeviceInterfaceModule deviceInterfaceModule, int i);
+    public abstract TouchSensor createDigitalTouchSensor(DeviceInterfaceModule deviceInterfaceModule, int physicalPort);
 
-    public abstract I2cDevice createI2cDevice(I2cController i2cController, int i);
+    public abstract I2cDevice createI2cDevice(I2cController controller, int channel);
 
-    public abstract IrSeekerSensor createI2cIrSeekerSensorV3(DeviceInterfaceModule deviceInterfaceModule, int i);
+    public abstract IrSeekerSensor createI2cIrSeekerSensorV3(DeviceInterfaceModule deviceInterfaceModule, int physicalPort);
 
-    public abstract LED createLED(DigitalChannelController digitalChannelController, int i);
+    public abstract LED createLED(DigitalChannelController digitalChannelController, int channel);
 
-    public abstract ColorSensor createModernRoboticsI2cColorSensor(DeviceInterfaceModule deviceInterfaceModule, int i);
+    public abstract ColorSensor createModernRoboticsI2cColorSensor(DeviceInterfaceModule controller, int channel);
 
-    public abstract GyroSensor createModernRoboticsI2cGyroSensor(DeviceInterfaceModule deviceInterfaceModule, int i);
+    public abstract GyroSensor createModernRoboticsI2cGyroSensor(DeviceInterfaceModule deviceInterfaceModule, int physicalPort);
 
-    public abstract AccelerationSensor createNxtAccelerationSensor(LegacyModule legacyModule, int i);
+    public abstract AccelerationSensor createNxtAccelerationSensor(LegacyModule legacyModule, int physicalPort);
 
-    public abstract ColorSensor createNxtColorSensor(LegacyModule legacyModule, int i);
+    public abstract ColorSensor createNxtColorSensor(LegacyModule legacyModule, int channel);
 
-    public abstract CompassSensor createNxtCompassSensor(LegacyModule legacyModule, int i);
+    public abstract CompassSensor createNxtCompassSensor(LegacyModule legacyModule, int physicalPort);
 
-    public abstract DcMotorController createNxtDcMotorController(LegacyModule legacyModule, int i);
+    public abstract DcMotorController createNxtDcMotorController(LegacyModule legacyModule, int physicalPort);
 
-    public abstract GyroSensor createNxtGyroSensor(LegacyModule legacyModule, int i);
+    public abstract GyroSensor createNxtGyroSensor(LegacyModule legacyModule, int physicalPort);
 
-    public abstract IrSeekerSensor createNxtIrSeekerSensor(LegacyModule legacyModule, int i);
+    public abstract IrSeekerSensor createNxtIrSeekerSensor(LegacyModule legacyModule, int physicalPort);
 
-    public abstract LightSensor createNxtLightSensor(LegacyModule legacyModule, int i);
+    public abstract LightSensor createNxtLightSensor(LegacyModule legacyModule, int physicalPort);
 
-    public abstract ServoController createNxtServoController(LegacyModule legacyModule, int i);
+    public abstract ServoController createNxtServoController(LegacyModule legacyModule, int physicalPort);
 
-    public abstract TouchSensor createNxtTouchSensor(LegacyModule legacyModule, int i);
+    public abstract TouchSensor createNxtTouchSensor(LegacyModule legacyModule, int physicalPort);
 
-    public abstract TouchSensorMultiplexer createNxtTouchSensorMultiplexer(LegacyModule legacyModule, int i);
+    public abstract TouchSensorMultiplexer createNxtTouchSensorMultiplexer(LegacyModule legacyModule, int port);
 
-    public abstract UltrasonicSensor createNxtUltrasonicSensor(LegacyModule legacyModule, int i);
+    public abstract UltrasonicSensor createNxtUltrasonicSensor(LegacyModule legacyModule, int physicalPort);
 
-    public abstract PWMOutput createPwmOutputDevice(DeviceInterfaceModule deviceInterfaceModule, int i);
+    public abstract PWMOutput createPwmOutputDevice(DeviceInterfaceModule controller, int channel);
 
     public abstract DcMotorController createUsbDcMotorController(SerialNumber serialNumber) throws RobotCoreException, InterruptedException;
 

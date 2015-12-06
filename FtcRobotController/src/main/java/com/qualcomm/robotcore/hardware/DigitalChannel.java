@@ -3,30 +3,28 @@ package com.qualcomm.robotcore.hardware;
 import com.qualcomm.robotcore.hardware.DigitalChannelController.Mode;
 
 public class DigitalChannel implements HardwareDevice {
-    private DigitalChannelController f233a;
-    private int f234b;
+    private DigitalChannelController controller;
+    private int channel;
 
     public DigitalChannel(DigitalChannelController controller, int channel) {
-        this.f233a = null;
-        this.f234b = -1;
-        this.f233a = controller;
-        this.f234b = channel;
+        this.controller = controller;
+        this.channel = channel;
     }
 
     public Mode getMode() {
-        return this.f233a.getDigitalChannelMode(this.f234b);
+        return controller.getDigitalChannelMode(channel);
     }
 
     public void setMode(Mode mode) {
-        this.f233a.setDigitalChannelMode(this.f234b, mode);
+        controller.setDigitalChannelMode(channel, mode);
     }
 
     public boolean getState() {
-        return this.f233a.getDigitalChannelState(this.f234b);
+        return controller.getDigitalChannelState(channel);
     }
 
     public void setState(boolean state) {
-        this.f233a.setDigitalChannelState(this.f234b, state);
+        controller.setDigitalChannelState(channel, state);
     }
 
     public String getDeviceName() {
@@ -34,7 +32,7 @@ public class DigitalChannel implements HardwareDevice {
     }
 
     public String getConnectionInfo() {
-        return this.f233a.getConnectionInfo() + "; digital port " + this.f234b;
+        return controller.getConnectionInfo() + "; digital port " + channel;
     }
 
     public int getVersion() {

@@ -7,7 +7,7 @@ public abstract class ColorSensor implements HardwareDevice {
 
     public abstract int blue();
 
-    public abstract void enableLed(boolean z);
+    public abstract void enableLed(boolean enabled);
 
     public abstract int getI2cAddress();
 
@@ -15,9 +15,9 @@ public abstract class ColorSensor implements HardwareDevice {
 
     public abstract int red();
 
-    public abstract void setI2cAddress(int i);
+    public abstract void setI2cAddress(int newAddress);
 
     public String toString() {
-        return String.format("argb: %d", new Object[]{Integer.valueOf(argb())});
+        return String.format("argb: %d", argb());
     }
 }

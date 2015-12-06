@@ -20,9 +20,6 @@ public class DcMotor implements HardwareDevice {
     }
 
     public DcMotor(DcMotorController controller, int portNumber, Direction direction) {
-        this.direction = Direction.FORWARD;
-        this.controller = null;
-        this.portNumber = -1;
         this.mode = RunMode.RUN_WITHOUT_ENCODERS;
         this.devMode = DeviceMode.WRITE_ONLY;
         this.controller = controller;
@@ -35,7 +32,7 @@ public class DcMotor implements HardwareDevice {
     }
 
     public String getConnectionInfo() {
-        return this.controller.getConnectionInfo() + "; port " + this.portNumber;
+        return controller.getConnectionInfo() + "; port " + portNumber;
     }
 
     public int getVersion() {
@@ -47,7 +44,7 @@ public class DcMotor implements HardwareDevice {
     }
 
     public DcMotorController getController() {
-        return this.controller;
+        return controller;
     }
 
     public void setDirection(Direction direction) {
@@ -55,61 +52,61 @@ public class DcMotor implements HardwareDevice {
     }
 
     public Direction getDirection() {
-        return this.direction;
+        return direction;
     }
 
     public int getPortNumber() {
-        return this.portNumber;
+        return portNumber;
     }
 
     public void setPower(double power) {
-        if (this.direction == Direction.REVERSE) {
+        if (direction == Direction.REVERSE) {
             power *= -1.0d;
         }
-        if (this.mode == RunMode.RUN_TO_POSITION) {
+        if (mode == RunMode.RUN_TO_POSITION) {
             power = Math.abs(power);
         }
-        this.controller.setMotorPower(this.portNumber, power);
+        controller.setMotorPower(portNumber, power);
     }
 
     public double getPower() {
-        double motorPower = this.controller.getMotorPower(this.portNumber);
-        if (this.direction != Direction.REVERSE || motorPower == 0.0d) {
+        double motorPower = controller.getMotorPower(portNumber);
+        if (direction != Direction.REVERSE || motorPower == 0.0d) {
             return motorPower;
         }
         return motorPower * -1.0d;
     }
 
     public boolean isBusy() {
-        return this.controller.isBusy(this.portNumber);
+        return controller.isBusy(portNumber);
     }
 
     public void setPowerFloat() {
-        this.controller.setMotorPowerFloat(this.portNumber);
+        controller.setMotorPowerFloat(portNumber);
     }
 
     public boolean getPowerFloat() {
-        return this.controller.getMotorPowerFloat(this.portNumber);
+        return controller.getMotorPowerFloat(portNumber);
     }
 
     public void setTargetPosition(int position) {
-        if (this.direction == Direction.REVERSE) {
+        if (direction == Direction.REVERSE) {
             position *= -1;
         }
-        this.controller.setMotorTargetPosition(this.portNumber, position);
+        controller.setMotorTargetPosition(portNumber, position);
     }
 
     public int getTargetPosition() {
-        int motorTargetPosition = this.controller.getMotorTargetPosition(this.portNumber);
-        if (this.direction == Direction.REVERSE) {
+        int motorTargetPosition = controller.getMotorTargetPosition(portNumber);
+        if (direction == Direction.REVERSE) {
             return motorTargetPosition * -1;
         }
         return motorTargetPosition;
     }
 
     public int getCurrentPosition() {
-        int motorCurrentPosition = this.controller.getMotorCurrentPosition(this.portNumber);
-        if (this.direction == Direction.REVERSE) {
+        int motorCurrentPosition = controller.getMotorCurrentPosition(portNumber);
+        if (direction == Direction.REVERSE) {
             return motorCurrentPosition * -1;
         }
         return motorCurrentPosition;
@@ -117,11 +114,11 @@ public class DcMotor implements HardwareDevice {
 
     public void setMode(RunMode mode) {
         this.mode = mode;
-        this.controller.setMotorChannelMode(this.portNumber, mode);
+        controller.setMotorChannelMode(portNumber, mode);
     }
 
     public RunMode getMode() {
-        return this.controller.getMotorChannelMode(this.portNumber);
+        return controller.getMotorChannelMode(portNumber);
     }
 
     @Deprecated
