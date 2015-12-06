@@ -23,11 +23,11 @@ public class OpModeManager {
     private Map<String, OpMode> opModes = new LinkedHashMap<String, OpMode>();
     private String activeOpModeName = DEFAULT_OP_MODE_NAME;
     private OpMode activeOpMode = DEFAULT_OP_MODE;
-    private String swapOpModeName;
+    private String newOpModeName = null;
     private HardwareMap hardwareMap;
     private opModeState activeOpModeState = opModeState.INIT;
-    private boolean isSwapOpMode = false;
-    private boolean f219k = false;
+    private boolean isOpModeStarted = false;
+    private boolean waitForStart = true;
 
     private static class DefaultOpMode extends OpMode {
         public void init() {
@@ -106,14 +106,13 @@ public class OpModeManager {
     }
 
     public void initActiveOpMode(String name) {
-        this.swapOpModeName = name;
-        this.isSwapOpMode = true;
+        this.newOpModeName = name;
         this.activeOpModeState = opModeState.INIT;
     }
 
     public void startActiveOpMode() {
         this.activeOpModeState = opModeState.LOOPING;
-        this.f219k = true;
+        this.waitForStart = false;
     }
 
     public void stopActiveOpMode() {
@@ -125,23 +124,27 @@ public class OpModeManager {
         this.activeOpMode.time = this.activeOpMode.getRuntime();
         this.activeOpMode.gamepad1 = gamepads[0];
         this.activeOpMode.gamepad2 = gamepads[1];
-        if (this.isSwapOpMode) {
+        if (newOpModeName != null) {
             this.activeOpMode.stop();
+
             switchActiveOpMode();
+
             this.activeOpModeState = opModeState.INIT;
+
             this.activeOpMode.hardwareMap = this.hardwareMap;
             this.activeOpMode.resetStartTime();
             this.activeOpMode.init();
         }
+
         if (this.activeOpModeState == opModeState.INIT) {
             this.activeOpMode.init_loop();
-            return;
+        } else {
+            if (!isOpModeStarted && !waitForStart) {
+                activeOpMode.start();
+                isOpModeStarted = true;
+            }
+            this.activeOpMode.loop();
         }
-        if (this.f219k) {
-            this.activeOpMode.start();
-            this.f219k = false;
-        }
-        this.activeOpMode.loop();
     }
 
     public void logOpModes() {
@@ -169,18 +172,18 @@ public class OpModeManager {
     }
 
     private void switchActiveOpMode() {
-        RobotLog.i("Attempting to switch to op mode " + this.swapOpModeName);
+        RobotLog.i("Attempting to switch to op mode " + this.newOpModeName);
         try {
-            if (this.opModes.containsKey(this.swapOpModeName)) {
-                this.activeOpMode = this.opModes.get(this.swapOpModeName);
+            if (this.opModes.containsKey(this.newOpModeName)) {
+                this.activeOpMode = this.opModes.get(this.newOpModeName);
             } else {
-                this.activeOpMode = (OpMode) ((Class) this.opModeClasses.get(this.swapOpModeName)).newInstance();
+                this.activeOpMode = (OpMode) ((Class) this.opModeClasses.get(this.newOpModeName)).newInstance();
             }
-            this.activeOpModeName = this.swapOpModeName;
+            this.activeOpModeName = this.newOpModeName;
         } catch (Exception e) {
             switchActiveOpModeFailed(e);
         }
-        this.isSwapOpMode = false;
+        newOpModeName = null;
     }
 
     private boolean isRegistered(String str) {
