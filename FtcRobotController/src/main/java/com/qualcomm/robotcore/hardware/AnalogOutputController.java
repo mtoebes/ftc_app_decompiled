@@ -5,9 +5,9 @@ import com.qualcomm.robotcore.util.SerialNumber;
 public interface AnalogOutputController extends HardwareDevice {
     SerialNumber getSerialNumber();
 
-    void setAnalogOutputFrequency(int i, int i2);
+    void setAnalogOutputFrequency(int port, int freq);
 
-    void setAnalogOutputMode(int i, byte b);
+    void setAnalogOutputMode(int port, byte mode);
 
-    void setAnalogOutputVoltage(int i, int i2);
+    void setAnalogOutputVoltage(int port, int voltage);
 }

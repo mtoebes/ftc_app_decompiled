@@ -2,7 +2,7 @@ package com.qualcomm.robotcore.hardware;
 
 public interface DcMotorController extends HardwareDevice {
 
-    public enum DeviceMode {
+    enum DeviceMode {
         SWITCHING_TO_READ_MODE,
         SWITCHING_TO_WRITE_MODE,
         READ_ONLY,
@@ -10,34 +10,34 @@ public interface DcMotorController extends HardwareDevice {
         READ_WRITE
     }
 
-    public enum RunMode {
+    enum RunMode {
         RUN_USING_ENCODERS,
         RUN_WITHOUT_ENCODERS,
         RUN_TO_POSITION,
         RESET_ENCODERS
     }
 
-    RunMode getMotorChannelMode(int i);
+    RunMode getMotorChannelMode(int motor);
 
     DeviceMode getMotorControllerDeviceMode();
 
-    int getMotorCurrentPosition(int i);
+    int getMotorCurrentPosition(int motor);
 
-    double getMotorPower(int i);
+    double getMotorPower(int motor);
 
-    boolean getMotorPowerFloat(int i);
+    boolean getMotorPowerFloat(int motor);
 
-    int getMotorTargetPosition(int i);
+    int getMotorTargetPosition(int motor);
 
-    boolean isBusy(int i);
+    boolean isBusy(int motor);
 
-    void setMotorChannelMode(int i, RunMode runMode);
+    void setMotorChannelMode(int motor, RunMode mode);
 
-    void setMotorControllerDeviceMode(DeviceMode deviceMode);
+    void setMotorControllerDeviceMode(DeviceMode mode);
 
-    void setMotorPower(int i, double d);
+    void setMotorPower(int motor, double power);
 
-    void setMotorPowerFloat(int i);
+    void setMotorPowerFloat(int motor);
 
-    void setMotorTargetPosition(int i, int i2);
+    void setMotorTargetPosition(int motor, int position);
 }
