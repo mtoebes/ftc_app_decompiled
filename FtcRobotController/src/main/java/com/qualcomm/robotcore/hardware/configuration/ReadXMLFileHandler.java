@@ -59,11 +59,11 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration parseDeviceInterface() throws IOException, XmlPullParserException, RobotCoreException {
         String attributeValue = this.parser.getAttributeValue(null, "name");
         String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
-        ArrayList<DeviceConfiguration> pulseWidthDeviceConfigs = createDeviceConfigList(ConfigurationType.PULSE_WIDTH_DEVICE, false);
-        ArrayList<DeviceConfiguration> i2cDeviceConfigs = createDeviceConfigList(ConfigurationType.I2C_DEVICE, false);
-        ArrayList<DeviceConfiguration> analogInputConfigs = createDeviceConfigList(ConfigurationType.ANALOG_INPUT, false);
-        ArrayList<DeviceConfiguration> digitalDeviceConfigs = createDeviceConfigList(ConfigurationType.DIGITAL_DEVICE, false);
-        ArrayList<DeviceConfiguration> analogOutputConfigs = createDeviceConfigList(ConfigurationType.ANALOG_OUTPUT, false);
+        DeviceConfigurations pulseWidthDeviceConfigs = new DeviceConfigurations(ConfigurationType.PULSE_WIDTH_DEVICE, false);
+        DeviceConfigurations i2cDeviceConfigs = new DeviceConfigurations(ConfigurationType.I2C_DEVICE, false);
+        DeviceConfigurations analogInputConfigs = new DeviceConfigurations(ConfigurationType.ANALOG_INPUT, false);
+        DeviceConfigurations digitalDeviceConfigs = new DeviceConfigurations(ConfigurationType.DIGITAL_DEVICE, false);
+        DeviceConfigurations analogOutputConfigs = new DeviceConfigurations(ConfigurationType.ANALOG_OUTPUT, false);
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
@@ -90,11 +90,11 @@ public class ReadXMLFileHandler {
                 if (type == ConfigurationType.ANALOG_INPUT ||
                         type == ConfigurationType.OPTICAL_DISTANCE_SENSOR) {
                     configuration = parseDeviceConfiguration();
-                    analogInputConfigs.set(configuration.getPort(), configuration);
+                    analogInputConfigs.set(configuration);
                 }
                 if (type == ConfigurationType.PULSE_WIDTH_DEVICE) {
                     configuration = parseDeviceConfiguration();
-                    pulseWidthDeviceConfigs.set(configuration.getPort(), configuration);
+                    pulseWidthDeviceConfigs.set(configuration);
                 }
                 if (type == ConfigurationType.I2C_DEVICE ||
                         type == ConfigurationType.IR_SEEKER_V3 ||
@@ -102,17 +102,17 @@ public class ReadXMLFileHandler {
                         type == ConfigurationType.COLOR_SENSOR ||
                         type == ConfigurationType.GYRO) {
                     configuration = parseDeviceConfiguration();
-                    i2cDeviceConfigs.set(configuration.getPort(), configuration);
+                    i2cDeviceConfigs.set(configuration);
                 }
                 if (type == ConfigurationType.ANALOG_OUTPUT) {
                     configuration = parseDeviceConfiguration();
-                    analogOutputConfigs.set(configuration.getPort(), configuration);
+                    analogOutputConfigs.set(configuration);
                 }
                 if (type == ConfigurationType.DIGITAL_DEVICE ||
                         type == ConfigurationType.TOUCH_SENSOR ||
                         type == ConfigurationType.LED) {
                     DeviceConfiguration c2 = parseDeviceConfiguration();
-                    digitalDeviceConfigs.set(c2.getPort(), c2);
+                    digitalDeviceConfigs.set(c2);
                 }
             }
             next = this.parser.next();
@@ -125,7 +125,7 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration parseLegacyControllerConfiguration() throws IOException, XmlPullParserException, RobotCoreException {
         String controllerName = this.parser.getAttributeValue(null, "name");
         String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
-        List<DeviceConfiguration> deviceConfigs = createDeviceConfigList(ConfigurationType.NOTHING, false);
+        DeviceConfigurations deviceConfigs = new DeviceConfigurations(ConfigurationType.NOTHING, false);
         ControllerConfiguration controllerConfig = null;
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
@@ -144,7 +144,7 @@ public class ReadXMLFileHandler {
                 }
                 if (DeviceConfiguration.isDeviceConfiguration(type)) {
                     DeviceConfiguration deviceConfig = parseDeviceConfiguration();
-                    deviceConfigs.set(deviceConfig.getPort(), deviceConfig);
+                    deviceConfigs.set(deviceConfig);
                 } else if(DeviceConfiguration.isControllerConfiguration(type)){
                     if (type == ConfigurationType.MOTOR_CONTROLLER) {
                         controllerConfig = parseMotorControllerConfiguration(false);
@@ -154,7 +154,7 @@ public class ReadXMLFileHandler {
                         controllerConfig = parseMatrixControllerConfiguration();
                     }
                     if(controllerConfig != null) {
-                        deviceConfigs.set(controllerConfig.getPort(), controllerConfig);
+                        deviceConfigs.set(controllerConfig);
                     }
                 }
             }
@@ -184,8 +184,8 @@ public class ReadXMLFileHandler {
         String controllerName = this.parser.getAttributeValue(null, "name");
         String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
         int controllerPort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-        List<DeviceConfiguration> servoConfigs = createDeviceConfigList(ConfigurationType.SERVO, true);
-        List<DeviceConfiguration> motorConfigs = createDeviceConfigList(ConfigurationType.MOTOR, true);
+        DeviceConfigurations servoConfigs = new DeviceConfigurations(ConfigurationType.SERVO, true);
+        DeviceConfigurations motorConfigs = new DeviceConfigurations(ConfigurationType.MOTOR, true);
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
@@ -202,9 +202,9 @@ public class ReadXMLFileHandler {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 String deviceName = this.parser.getAttributeValue(null, "name");
                 if (type == ConfigurationType.SERVO) {
-                    servoConfigs.set(devicePort - 1, new ServoConfiguration(devicePort, deviceName, true));
+                    servoConfigs.set(new ServoConfiguration(devicePort, deviceName, true));
                 } else if (type == ConfigurationType.MOTOR) {
-                    motorConfigs.set(devicePort - 1, new MotorConfiguration(devicePort, deviceName, true));
+                    motorConfigs.set(new MotorConfiguration(devicePort, deviceName, true));
                 }
             }
             next = this.parser.next();
@@ -228,7 +228,7 @@ public class ReadXMLFileHandler {
         }
 
         ControllerConfiguration controllerConfig;
-        List<DeviceConfiguration> deviceConfigs = createDeviceConfigList(ConfigurationType.SERVO, false);
+        DeviceConfigurations deviceConfigs = new DeviceConfigurations(ConfigurationType.SERVO, false);
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
@@ -244,7 +244,7 @@ public class ReadXMLFileHandler {
             } else if (next == XmlPullParser.START_TAG && type == ConfigurationType.SERVO) {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 String deviceName = this.parser.getAttributeValue(null, "name");
-                deviceConfigs.set(devicePort - 1, new ServoConfiguration(devicePort, deviceName, true));
+                deviceConfigs.set(new ServoConfiguration(devicePort, deviceName, true));
             }
             next = this.parser.next();
             type = getConfigurationType(this.parser.getName());
@@ -267,7 +267,7 @@ public class ReadXMLFileHandler {
         }
 
         ControllerConfiguration controllerConfig;
-        List<DeviceConfiguration> deviceConfigs = createDeviceConfigList(ConfigurationType.MOTOR, false);
+        DeviceConfigurations deviceConfigs = new DeviceConfigurations(ConfigurationType.MOTOR, false);
 
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
@@ -284,30 +284,13 @@ public class ReadXMLFileHandler {
             } else if (next == XmlPullParser.START_TAG && type == ConfigurationType.MOTOR) {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 String deviceName = this.parser.getAttributeValue(null, "name");
-                deviceConfigs.set(devicePort - 1, new MotorConfiguration(devicePort, deviceName, true));
+                deviceConfigs.set(new MotorConfiguration(devicePort, deviceName, true));
             }
             next = this.parser.next();
             type = getConfigurationType(this.parser.getName());
         }
         RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
         return null;
-    }
-
-    private ArrayList<DeviceConfiguration> createDeviceConfigList(ConfigurationType configurationType, boolean isMatrix) {
-        int ports = DeviceConfiguration.getTotalPorts(configurationType, isMatrix);
-
-        int offset;
-        if(configurationType == ConfigurationType.SERVO || configurationType == ConfigurationType.MOTOR) {
-            offset = 1;
-        } else {
-            offset = 0;
-        }
-        ArrayList<DeviceConfiguration> deviceConfigs = new ArrayList<DeviceConfiguration>(ports + offset);
-
-        for (int port = 0; port < ports; port++) {
-            deviceConfigs.add(new DeviceConfiguration(port + offset, configurationType, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
-        }
-        return deviceConfigs;
     }
 
     private class DeviceConfigurations extends ArrayList<DeviceConfiguration> {
