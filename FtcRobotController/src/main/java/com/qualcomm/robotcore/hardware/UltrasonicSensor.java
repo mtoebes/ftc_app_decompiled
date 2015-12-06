@@ -6,6 +6,6 @@ public abstract class UltrasonicSensor implements HardwareDevice {
     public abstract String status();
 
     public String toString() {
-        return String.format("Ultrasonic: %6.1f", new Object[]{Double.valueOf(getUltrasonicLevel())});
+        return String.format("Ultrasonic: %6.1f", getUltrasonicLevel());
     }
 }

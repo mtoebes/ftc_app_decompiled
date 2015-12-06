@@ -6,6 +6,6 @@ public abstract class TouchSensor implements HardwareDevice {
     public abstract boolean isPressed();
 
     public String toString() {
-        return String.format("Touch Sensor: %1.2f", new Object[]{Double.valueOf(getValue())});
+        return String.format("Touch Sensor: %1.2f", getValue());
     }
 }

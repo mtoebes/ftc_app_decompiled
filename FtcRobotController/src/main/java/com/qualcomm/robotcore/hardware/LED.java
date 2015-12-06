@@ -3,19 +3,17 @@ package com.qualcomm.robotcore.hardware;
 import com.qualcomm.robotcore.hardware.DigitalChannelController.Mode;
 
 public class LED implements HardwareDevice {
-    private DigitalChannelController f251a;
-    private int f252b;
+    private DigitalChannelController controller;
+    private int physicalPort;
 
     public LED(DigitalChannelController controller, int physicalPort) {
-        this.f251a = null;
-        this.f252b = -1;
-        this.f251a = controller;
-        this.f252b = physicalPort;
+        this.controller = controller;
+        this.physicalPort = physicalPort;
         controller.setDigitalChannelMode(physicalPort, Mode.OUTPUT);
     }
 
     public void enable(boolean set) {
-        this.f251a.setDigitalChannelState(this.f252b, set);
+        controller.setDigitalChannelState(physicalPort, set);
     }
 
     public String getDeviceName() {

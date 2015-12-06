@@ -1,30 +1,28 @@
 package com.qualcomm.robotcore.hardware;
 
 public class PWMOutput implements HardwareDevice {
-    private PWMOutputController f253a;
-    private int f254b;
+    private PWMOutputController controller;
+    private int port;
 
     public PWMOutput(PWMOutputController controller, int port) {
-        this.f253a = null;
-        this.f254b = -1;
-        this.f253a = controller;
-        this.f254b = port;
+        this.controller = controller;
+        this.port = port;
     }
 
     public void setPulseWidthOutputTime(int time) {
-        this.f253a.setPulseWidthOutputTime(this.f254b, time);
+        controller.setPulseWidthOutputTime(port, time);
     }
 
     public int getPulseWidthOutputTime() {
-        return this.f253a.getPulseWidthOutputTime(this.f254b);
+        return controller.getPulseWidthOutputTime(port);
     }
 
     public void setPulseWidthPeriod(int period) {
-        this.f253a.setPulseWidthPeriod(this.f254b, period);
+        controller.setPulseWidthPeriod(port, period);
     }
 
     public int getPulseWidthPeriod() {
-        return this.f253a.getPulseWidthPeriod(this.f254b);
+        return controller.getPulseWidthPeriod(port);
     }
 
     public String getDeviceName() {
@@ -32,7 +30,7 @@ public class PWMOutput implements HardwareDevice {
     }
 
     public String getConnectionInfo() {
-        return this.f253a.getConnectionInfo() + "; port " + this.f254b;
+        return controller.getConnectionInfo() + "; port " + port;
     }
 
     public int getVersion() {

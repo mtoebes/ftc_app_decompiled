@@ -5,90 +5,88 @@ import com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants;
 import java.util.concurrent.locks.Lock;
 
 public class I2cDevice implements HardwareDevice {
-    private I2cController f244a;
-    private int f245b;
+    private I2cController controller;
+    private int port;
 
     public I2cDevice(I2cController controller, int port) {
-        this.f244a = null;
-        this.f245b = -1;
-        this.f244a = controller;
-        this.f245b = port;
+        this.controller = controller;
+        this.port = port;
     }
 
     public void enableI2cReadMode(int i2cAddress, int memAddress, int length) {
-        this.f244a.enableI2cReadMode(this.f245b, i2cAddress, memAddress, length);
+        controller.enableI2cReadMode(port, i2cAddress, memAddress, length);
     }
 
     public void enableI2cWriteMode(int i2cAddress, int memAddress, int length) {
-        this.f244a.enableI2cWriteMode(this.f245b, i2cAddress, memAddress, length);
+        controller.enableI2cWriteMode(port, i2cAddress, memAddress, length);
     }
 
     public byte[] getCopyOfReadBuffer() {
-        return this.f244a.getCopyOfReadBuffer(this.f245b);
+        return controller.getCopyOfReadBuffer(port);
     }
 
     public byte[] getCopyOfWriteBuffer() {
-        return this.f244a.getCopyOfWriteBuffer(this.f245b);
+        return controller.getCopyOfWriteBuffer(port);
     }
 
     public void copyBufferIntoWriteBuffer(byte[] buffer) {
-        this.f244a.copyBufferIntoWriteBuffer(this.f245b, buffer);
+        controller.copyBufferIntoWriteBuffer(port, buffer);
     }
 
     public void setI2cPortActionFlag() {
-        this.f244a.setI2cPortActionFlag(this.f245b);
+        controller.setI2cPortActionFlag(port);
     }
 
     public boolean isI2cPortActionFlagSet() {
-        return this.f244a.isI2cPortActionFlagSet(this.f245b);
+        return controller.isI2cPortActionFlagSet(port);
     }
 
     public void readI2cCacheFromController() {
-        this.f244a.readI2cCacheFromController(this.f245b);
+        controller.readI2cCacheFromController(port);
     }
 
     public void writeI2cCacheToController() {
-        this.f244a.writeI2cCacheToController(this.f245b);
+        controller.writeI2cCacheToController(port);
     }
 
     public void writeI2cPortFlagOnlyToController() {
-        this.f244a.writeI2cPortFlagOnlyToController(this.f245b);
+        controller.writeI2cPortFlagOnlyToController(port);
     }
 
     public boolean isI2cPortInReadMode() {
-        return this.f244a.isI2cPortInReadMode(this.f245b);
+        return controller.isI2cPortInReadMode(port);
     }
 
     public boolean isI2cPortInWriteMode() {
-        return this.f244a.isI2cPortInWriteMode(this.f245b);
+        return controller.isI2cPortInWriteMode(port);
     }
 
     public boolean isI2cPortReady() {
-        return this.f244a.isI2cPortReady(this.f245b);
+        return controller.isI2cPortReady(port);
     }
 
     public Lock getI2cReadCacheLock() {
-        return this.f244a.getI2cReadCacheLock(this.f245b);
+        return controller.getI2cReadCacheLock(port);
     }
 
     public Lock getI2cWriteCacheLock() {
-        return this.f244a.getI2cWriteCacheLock(this.f245b);
+        return controller.getI2cWriteCacheLock(port);
     }
 
     public byte[] getI2cReadCache() {
-        return this.f244a.getI2cReadCache(this.f245b);
+        return controller.getI2cReadCache(port);
     }
 
     public byte[] getI2cWriteCache() {
-        return this.f244a.getI2cWriteCache(this.f245b);
+        return controller.getI2cWriteCache(port);
     }
 
     public void registerForI2cPortReadyCallback(I2cPortReadyCallback callback) {
-        this.f244a.registerForI2cPortReadyCallback(callback, this.f245b);
+        controller.registerForI2cPortReadyCallback(callback, port);
     }
 
     public void deregisterForPortReadyCallback() {
-        this.f244a.deregisterForPortReadyCallback(this.f245b);
+        controller.deregisterForPortReadyCallback(port);
     }
 
     public String getDeviceName() {
@@ -96,7 +94,7 @@ public class I2cDevice implements HardwareDevice {
     }
 
     public String getConnectionInfo() {
-        return this.f244a.getConnectionInfo() + "; port " + this.f245b;
+        return controller.getConnectionInfo() + "; port " + port;
     }
 
     public int getVersion() {
