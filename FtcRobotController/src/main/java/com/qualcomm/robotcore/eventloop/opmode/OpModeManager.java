@@ -147,11 +147,11 @@ public class OpModeManager {
 
     public void logOpModes() {
         RobotLog.i("There are " + (opModeClasses.size() + opModes.size()) + " Op Modes");
-        for (Entry key : opModeClasses.entrySet()) {
-            RobotLog.i("   Op Mode: " + key.getKey());
+        for (Entry opModeClass : opModeClasses.entrySet()) {
+            RobotLog.i("   Op Mode: " + opModeClass.getKey());
         }
-        for (Entry key2 : opModes.entrySet()) {
-            RobotLog.i("   Op Mode: " + key2.getKey());
+        for (Entry opMode : opModes.entrySet()) {
+            RobotLog.i("   Op Mode: " + opMode.getKey());
         }
     }
 

@@ -19,20 +19,18 @@ public class RobocolConfig {
     public static final int WIFI_P2P_SUBNET_MASK = -256;
 
     public static InetAddress determineBindAddress(InetAddress destAddress) {
-        ArrayList removeIPv6Addresses = Network.removeIPv6Addresses(Network.removeLoopbackAddresses(Network.getLocalIpAddresses()));
-        Iterator it = removeIPv6Addresses.iterator();
-        while (it.hasNext()) {
+        ArrayList<InetAddress> removeIPv6Addresses = Network.removeIPv6Addresses(Network.removeLoopbackAddresses(Network.getLocalIpAddresses()));
+        for(InetAddress remoteInetAddress : removeIPv6Addresses) {
             try {
-                Enumeration inetAddresses = NetworkInterface.getByInetAddress((InetAddress) it.next()).getInetAddresses();
+                Enumeration inetAddresses = NetworkInterface.getByInetAddress(remoteInetAddress).getInetAddresses();
                 while (inetAddresses.hasMoreElements()) {
                     InetAddress inetAddress = (InetAddress) inetAddresses.nextElement();
                     if (inetAddress.equals(destAddress)) {
                         return inetAddress;
                     }
                 }
-                continue;
             } catch (SocketException e) {
-                RobotLog.v(String.format("socket exception while trying to get network interface of %s", new Object[]{r0.getHostAddress()}));
+                RobotLog.v(String.format("socket exception while trying to get network interface of %s", remoteInetAddress));
             }
         }
         return determineBindAddressBasedOnWifiP2pSubnet(removeIPv6Addresses, destAddress);
@@ -40,9 +38,7 @@ public class RobocolConfig {
 
     public static InetAddress determineBindAddressBasedOnWifiP2pSubnet(ArrayList<InetAddress> localIpAddresses, InetAddress destAddress) {
         int byteArrayToInt = TypeConversion.byteArrayToInt(destAddress.getAddress());
-        Iterator it = localIpAddresses.iterator();
-        while (it.hasNext()) {
-            InetAddress inetAddress = (InetAddress) it.next();
+        for(InetAddress inetAddress : localIpAddresses) {
             if ((TypeConversion.byteArrayToInt(inetAddress.getAddress()) & WIFI_P2P_SUBNET_MASK) == (byteArrayToInt & WIFI_P2P_SUBNET_MASK)) {
                 return inetAddress;
             }
@@ -51,17 +47,15 @@ public class RobocolConfig {
     }
 
     public static InetAddress determineBindAddressBasedOnIsReachable(ArrayList<InetAddress> localIpAddresses, InetAddress destAddress) {
-        Iterator it = localIpAddresses.iterator();
-        while (it.hasNext()) {
-            InetAddress inetAddress = (InetAddress) it.next();
+        for(InetAddress inetAddress : localIpAddresses) {
             try {
                 if (inetAddress.isReachable(NetworkInterface.getByInetAddress(inetAddress), TTL, TIMEOUT)) {
                     return inetAddress;
                 }
             } catch (SocketException e) {
-                RobotLog.v(String.format("socket exception while trying to get network interface of %s", new Object[]{inetAddress.getHostAddress()}));
+                RobotLog.v(String.format("socket exception while trying to get network interface of %s", inetAddress.getHostAddress()));
             } catch (IOException e2) {
-                RobotLog.v(String.format("IO exception while trying to determine if %s is reachable via %s", new Object[]{destAddress.getHostAddress(), inetAddress.getHostAddress()}));
+                RobotLog.v(String.format("IO exception while trying to determine if %s is reachable via %s", destAddress.getHostAddress(), inetAddress.getHostAddress()));
             }
         }
         return Network.getLoopbackAddress();

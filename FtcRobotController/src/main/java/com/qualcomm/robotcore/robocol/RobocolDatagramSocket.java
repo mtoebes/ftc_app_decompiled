@@ -11,11 +11,10 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 
 public class RobocolDatagramSocket {
-    private final byte[] f330a;
-    private DatagramSocket f331b;
-    private final DatagramPacket f332c;
-    private final RobocolDatagram f333d;
-    private volatile State f334e;
+    private DatagramSocket socket;
+    private final DatagramPacket packet;
+    private final RobocolDatagram datagram;
+    private volatile State state;
 
     public enum State {
         LISTENING,
@@ -24,10 +23,10 @@ public class RobocolDatagramSocket {
     }
 
     public RobocolDatagramSocket() {
-        this.f330a = new byte[RobocolConfig.MAX_PACKET_SIZE];
-        this.f332c = new DatagramPacket(this.f330a, this.f330a.length);
-        this.f333d = new RobocolDatagram();
-        this.f334e = State.CLOSED;
+        byte[] buffer = new byte[RobocolConfig.MAX_PACKET_SIZE];
+        this.packet = new DatagramPacket(buffer, buffer.length);
+        this.datagram = new RobocolDatagram();
+        this.state = State.CLOSED;
     }
 
     public void listen(InetAddress destAddress) throws SocketException {
@@ -35,31 +34,31 @@ public class RobocolDatagramSocket {
     }
 
     public void bind(InetSocketAddress bindAddress) throws SocketException {
-        if (this.f334e != State.CLOSED) {
+        if (this.state != State.CLOSED) {
             close();
         }
-        this.f334e = State.LISTENING;
+        this.state = State.LISTENING;
         RobotLog.d("RobocolDatagramSocket binding to " + bindAddress.toString());
-        this.f331b = new DatagramSocket(bindAddress);
+        this.socket = new DatagramSocket(bindAddress);
     }
 
     public void connect(InetAddress connectAddress) throws SocketException {
         SocketAddress inetSocketAddress = new InetSocketAddress(connectAddress, RobocolConfig.PORT_NUMBER);
         RobotLog.d("RobocolDatagramSocket connected to " + inetSocketAddress.toString());
-        this.f331b.connect(inetSocketAddress);
+        this.socket.connect(inetSocketAddress);
     }
 
     public void close() {
-        this.f334e = State.CLOSED;
-        if (this.f331b != null) {
-            this.f331b.close();
+        this.state = State.CLOSED;
+        if (this.socket != null) {
+            this.socket.close();
         }
         RobotLog.d("RobocolDatagramSocket is closed");
     }
 
     public void send(RobocolDatagram message) {
         try {
-            this.f331b.send(message.getPacket());
+            this.socket.send(message.getPacket());
         } catch (IllegalArgumentException e) {
             RobotLog.w("Unable to send RobocolDatagram: " + e.toString());
             RobotLog.w("               " + message.toString());
@@ -74,7 +73,7 @@ public class RobocolDatagramSocket {
 
     public RobocolDatagram recv() {
         try {
-            this.f331b.receive(this.f332c);
+            this.socket.receive(this.packet);
         } catch (PortUnreachableException e) {
             RobotLog.d("RobocolDatagramSocket receive error: remote port unreachable");
             return null;
@@ -84,33 +83,33 @@ public class RobocolDatagramSocket {
         } catch (NullPointerException e3) {
             RobotLog.d("RobocolDatagramSocket receive error: " + e3.toString());
         }
-        this.f333d.setPacket(this.f332c);
-        return this.f333d;
+        this.datagram.setPacket(this.packet);
+        return this.datagram;
     }
 
     public State getState() {
-        return this.f334e;
+        return this.state;
     }
 
     public InetAddress getInetAddress() {
-        if (this.f331b == null) {
+        if (this.socket == null) {
             return null;
         }
-        return this.f331b.getInetAddress();
+        return this.socket.getInetAddress();
     }
 
     public InetAddress getLocalAddress() {
-        if (this.f331b == null) {
+        if (this.socket == null) {
             return null;
         }
-        return this.f331b.getLocalAddress();
+        return this.socket.getLocalAddress();
     }
 
     public boolean isRunning() {
-        return this.f334e == State.LISTENING;
+        return this.state == State.LISTENING;
     }
 
     public boolean isClosed() {
-        return this.f334e == State.CLOSED;
+        return this.state == State.CLOSED;
     }
 }

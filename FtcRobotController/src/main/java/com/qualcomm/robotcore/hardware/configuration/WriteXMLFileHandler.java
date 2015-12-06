@@ -12,7 +12,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -45,7 +44,7 @@ public class WriteXMLFileHandler {
                     writeMotorServoControllerXml(controllerConfiguration, true);
                 }
                 if (configurationType.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
-                    writeLegecyControllerXml(controllerConfiguration);
+                    writeLegacyControllerXml(controllerConfiguration);
                 }
                 if (configurationType.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
                     writeInterfaceModuleXml(controllerConfiguration);
@@ -106,7 +105,7 @@ public class WriteXMLFileHandler {
         this.serializer.ignorableWhitespace("\n");
     }
 
-    private void writeLegecyControllerXml(ControllerConfiguration controllerConfiguration) throws IOException {
+    private void writeLegacyControllerXml(ControllerConfiguration controllerConfiguration) throws IOException {
         this.serializer.ignorableWhitespace(this.indentation[this.indent]);
         this.serializer.startTag("", toUpperCamelCase(controllerConfiguration.getType().toString()));
         checkForDuplicates(controllerConfiguration.getName());
@@ -200,21 +199,21 @@ public class WriteXMLFileHandler {
             }
         }
 
-            FileOutputStream fileOutputStream = null;
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(new File(folderName + filename + Utility.FILE_EXT));
+            fileOutputStream.write(data.getBytes());
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        } finally {
             try {
-                fileOutputStream = new FileOutputStream(new File(folderName + filename + Utility.FILE_EXT));
-                fileOutputStream.write(data.getBytes());
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            } finally {
-                try {
-                    if(fileOutputStream != null) {
-                        fileOutputStream.close();
-                    }
-                } catch(Exception exception) {
-                    exception.printStackTrace();
+                if(fileOutputStream != null) {
+                    fileOutputStream.close();
                 }
+            } catch(Exception exception) {
+                exception.printStackTrace();
             }
+        }
     }
 
     private String toUpperCamelCase(String sourceString) {

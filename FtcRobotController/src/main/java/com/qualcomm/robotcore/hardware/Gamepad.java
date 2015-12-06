@@ -50,8 +50,7 @@ public class Gamepad implements RobocolParsable {
     private static float MAX_MOTION_VALUE = 1.0f;
 
     private static short DATA_LENGTH = 42;
-    private static short HEADER_LENGTH = RobocolParsable.HEADER_LENGTH;
-    private static short BUFFER_SIZE = (short) (DATA_LENGTH + HEADER_LENGTH);
+    private static short BUFFER_SIZE = (short) (DATA_LENGTH + RobocolParsable.HEADER_LENGTH);
     private static byte MESSAGE_VERSION = 2;
 
     public interface GamepadCallback {
@@ -195,7 +194,7 @@ public class Gamepad implements RobocolParsable {
         if (byteArray.length < BUFFER_SIZE) {
             throw new RobotCoreException("Expected buffer of at least " + BUFFER_SIZE + " bytes, received " + byteArray.length);
         }
-        ByteBuffer message = ByteBuffer.wrap(byteArray, HEADER_LENGTH, DATA_LENGTH);
+        ByteBuffer message = ByteBuffer.wrap(byteArray, RobocolParsable.HEADER_LENGTH, DATA_LENGTH);
         byte version = message.get();
         if (version >= 1) {
             id = message.getInt();

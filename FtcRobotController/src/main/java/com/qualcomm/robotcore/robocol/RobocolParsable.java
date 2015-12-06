@@ -4,10 +4,10 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
 
 public interface RobocolParsable {
-    public static final int HEADER_LENGTH = 3;
-    public static final byte[] EMPTY_HEADER_BUFFER = new byte[HEADER_LENGTH];;
+    int HEADER_LENGTH = 3;
+    byte[] EMPTY_HEADER_BUFFER = new byte[HEADER_LENGTH];;
 
-    public enum MsgType {
+    enum MsgType {
         EMPTY(0),
         HEARTBEAT(1),
         GAMEPAD(2),
@@ -28,7 +28,7 @@ public interface RobocolParsable {
             }
         }
 
-        private MsgType(int type) {
+        MsgType(int type) {
             this.type = type;
         }
 

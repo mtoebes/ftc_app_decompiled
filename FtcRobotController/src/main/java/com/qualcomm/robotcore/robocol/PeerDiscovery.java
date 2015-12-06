@@ -1,6 +1,5 @@
 package com.qualcomm.robotcore.robocol;
 
-import com.ftdi.j2xx.protocol.SpiSlaveResponseEvent;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.nio.ByteBuffer;
@@ -9,45 +8,45 @@ public class PeerDiscovery implements RobocolParsable {
     public static final short BUFFER_SIZE = (short) 13;
     public static final short PAYLOAD_SIZE = (short) 10;
     public static final byte ROBOCOL_VERSION = (byte) 1;
-    private PeerType f321a;
+    private PeerType peerType;
 
     public enum PeerType {
         NOT_SET(0),
         PEER(1),
         GROUP_OWNER(2);
         
-        private static final PeerType[] f318a;
-        private int f320b;
+        private static final PeerType[] peerTypes;
+        private int type;
 
         static {
-            f318a = values();
+            peerTypes = values();
         }
 
         public static PeerType fromByte(byte b) {
             PeerType peerType = NOT_SET;
             try {
-                return f318a[b];
+                return peerTypes[b];
             } catch (ArrayIndexOutOfBoundsException e) {
-                RobotLog.w(String.format("Cannot convert %d to Peer: %s", new Object[]{Byte.valueOf(b), e.toString()}));
+                RobotLog.w(String.format("Cannot convert %d to Peer: %s", b, e.toString()));
                 return peerType;
             }
         }
 
-        private PeerType(int type) {
-            this.f320b = type;
+        PeerType(int type) {
+            this.type = type;
         }
 
         public byte asByte() {
-            return (byte) this.f320b;
+            return (byte) type;
         }
     }
 
     public PeerDiscovery(PeerType peerType) {
-        this.f321a = peerType;
+        this.peerType = peerType;
     }
 
     public PeerType getPeerType() {
-        return this.f321a;
+        return peerType;
     }
 
     public MsgType getRobocolMsgType() {
@@ -55,12 +54,12 @@ public class PeerDiscovery implements RobocolParsable {
     }
 
     public byte[] toByteArray() throws RobotCoreException {
-        ByteBuffer allocate = ByteBuffer.allocate(13);
+        ByteBuffer allocate = ByteBuffer.allocate(BUFFER_SIZE);
         try {
             allocate.put(getRobocolMsgType().asByte());
             allocate.putShort(PAYLOAD_SIZE);
             allocate.put(ROBOCOL_VERSION);
-            allocate.put(this.f321a.asByte());
+            allocate.put(peerType.asByte());
         } catch (Exception e) {
             RobotLog.logStacktrace(e);
         }
@@ -68,18 +67,20 @@ public class PeerDiscovery implements RobocolParsable {
     }
 
     public void fromByteArray(byte[] byteArray) throws RobotCoreException {
-        if (byteArray.length < 13) {
-            throw new RobotCoreException("Expected buffer of at least 13 bytes, received " + byteArray.length);
+        if (byteArray.length < BUFFER_SIZE) {
+            throw new RobotCoreException("Expected buffer of at least " + BUFFER_SIZE + " bytes, received " + byteArray.length);
         }
-        ByteBuffer wrap = ByteBuffer.wrap(byteArray, 3, 10);
-        switch (wrap.get()) {
-            case SpiSlaveResponseEvent.DATA_CORRUPTED /*1*/:
-                this.f321a = PeerType.fromByte(wrap.get());
+        ByteBuffer wrap = ByteBuffer.wrap(byteArray, HEADER_LENGTH, PAYLOAD_SIZE);
+
+        switch (PeerType.fromByte(wrap.get())) {
+            case PEER :
+                peerType = PeerType.fromByte(wrap.get());
+                break;
             default:
         }
     }
 
     public String toString() {
-        return String.format("Peer Discovery - peer type: %s", new Object[]{this.f321a.name()});
+        return String.format("Peer Discovery - peer type: %s", peerType.name());
     }
 }

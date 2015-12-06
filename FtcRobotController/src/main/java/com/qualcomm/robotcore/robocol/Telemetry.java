@@ -10,83 +10,70 @@ import java.util.Map.Entry;
 
 public class Telemetry implements RobocolParsable {
     public static final String DEFAULT_TAG = "TELEMETRY_DATA";
-    private static final Charset f338a;
-    private final Map<String, String> f339b;
-    private final Map<String, Float> f340c;
-    private String f341d;
-    private long f342e;
-
-    static {
-        f338a = Charset.forName("UTF-8");
-    }
+    private static final int BASE_PAYLOAD_SIZE = 8;
+    private static final Charset charset = Charset.forName("UTF-8");
+    private final Map<String, String> dataStrings = new HashMap<String, String>();
+    private final Map<String, Float> dataNumbers = new HashMap<String, Float>();
+    private String tag = "";
+    private long timestamp = 0;
 
     public Telemetry() {
-        this.f339b = new HashMap();
-        this.f340c = new HashMap();
-        this.f341d = "";
-        this.f342e = 0;
     }
 
     public Telemetry(byte[] byteArray) throws RobotCoreException {
-        this.f339b = new HashMap();
-        this.f340c = new HashMap();
-        this.f341d = "";
-        this.f342e = 0;
         fromByteArray(byteArray);
     }
 
     public synchronized long getTimestamp() {
-        return this.f342e;
+        return timestamp;
     }
 
     public synchronized void setTag(String tag) {
-        this.f341d = tag;
+        this.tag = tag;
     }
 
     public synchronized String getTag() {
         String str;
-        if (this.f341d.length() == 0) {
+        if (this.tag.length() == 0) {
             str = DEFAULT_TAG;
         } else {
-            str = this.f341d;
+            str = this.tag;
         }
         return str;
     }
 
     public synchronized void addData(String key, String msg) {
-        this.f339b.put(key, msg);
+        this.dataStrings.put(key, msg);
     }
 
     public synchronized void addData(String key, Object msg) {
-        this.f339b.put(key, msg.toString());
+        this.dataStrings.put(key, msg.toString());
     }
 
     public synchronized void addData(String key, float msg) {
-        this.f340c.put(key, Float.valueOf(msg));
+        this.dataNumbers.put(key, msg);
     }
 
     public synchronized void addData(String key, double msg) {
-        this.f340c.put(key, Float.valueOf((float) msg));
+        this.dataNumbers.put(key, (float) msg);
     }
 
     public synchronized Map<String, String> getDataStrings() {
-        return this.f339b;
+        return this.dataStrings;
     }
 
     public synchronized Map<String, Float> getDataNumbers() {
-        return this.f340c;
+        return this.dataNumbers;
     }
 
     public synchronized boolean hasData() {
-        boolean z;
-        z = (this.f339b.isEmpty() && this.f340c.isEmpty()) ? false : true;
-        return z;
+        return !(this.dataStrings.isEmpty() && this.dataNumbers.isEmpty());
     }
 
     public synchronized void clearData() {
-        this.f342e = 0;
-        this.f339b.clear();
-        this.f340c.clear();
+        this.timestamp = 0;
+        this.dataStrings.clear();
+        this.dataNumbers.clear();
     }
 
     public MsgType getRobocolMsgType() {
@@ -95,53 +82,53 @@ public class Telemetry implements RobocolParsable {
 
     public synchronized byte[] toByteArray() throws RobotCoreException {
         ByteBuffer allocate;
-        this.f342e = System.currentTimeMillis();
-        if (this.f339b.size() > Command.MAX_COMMAND_LENGTH) {
-            throw new RobotCoreException("Cannot have more than 256 string data points");
-        } else if (this.f340c.size() > Command.MAX_COMMAND_LENGTH) {
-            throw new RobotCoreException("Cannot have more than 256 number data points");
+        this.timestamp = System.currentTimeMillis();
+        if (this.dataStrings.size() > Command.MAX_COMMAND_LENGTH) {
+            throw new RobotCoreException("Cannot have more than " + Command.MAX_COMMAND_LENGTH + " string data points");
+        } else if (this.dataNumbers.size() > Command.MAX_COMMAND_LENGTH) {
+            throw new RobotCoreException("Cannot have more than " + Command.MAX_COMMAND_LENGTH + " number data points");
         } else {
-            int a = m211a() + 8;
-            int i = a + 3;
-            if (i > RobocolConfig.MAX_PACKET_SIZE) {
-                throw new RobotCoreException(String.format("Cannot send telemetry data of %d bytes; max is %d", new Object[]{Integer.valueOf(i), Integer.valueOf(RobocolConfig.MAX_PACKET_SIZE)}));
+            int payloadSize = getMessageLength() + BASE_PAYLOAD_SIZE;
+            int totalSize = payloadSize + HEADER_LENGTH;
+            if (totalSize > RobocolConfig.MAX_PACKET_SIZE) {
+                throw new RobotCoreException(String.format("Cannot send telemetry data of %d bytes; max is %d", totalSize, RobocolConfig.MAX_PACKET_SIZE));
             }
-            byte[] bytes;
-            allocate = ByteBuffer.allocate(i);
+            byte[] keyBuffer;
+            allocate = ByteBuffer.allocate(totalSize);
             allocate.put(getRobocolMsgType().asByte());
-            allocate.putShort((short) a);
-            allocate.putLong(this.f342e);
-            if (this.f341d.length() == 0) {
+            allocate.putShort((short) payloadSize);
+            allocate.putLong(this.timestamp);
+            if (this.tag.length() == 0) {
                 allocate.put((byte) 0);
             } else {
-                byte[] bytes2 = this.f341d.getBytes(f338a);
-                if (bytes2.length > Command.MAX_COMMAND_LENGTH) {
-                    throw new RobotCoreException(String.format("Telemetry tag cannot exceed 256 bytes [%s]", new Object[]{this.f341d}));
+                byte[] charsetBuffer = this.tag.getBytes(charset);
+                if (charsetBuffer.length > Command.MAX_COMMAND_LENGTH) {
+                    throw new RobotCoreException(String.format("Telemetry tag cannot exceed %d bytes [%s]", Command.MAX_COMMAND_LENGTH, tag));
                 }
-                allocate.put((byte) bytes2.length);
-                allocate.put(bytes2);
+                allocate.put((byte) charsetBuffer.length);
+                allocate.put(charsetBuffer);
             }
-            allocate.put((byte) this.f339b.size());
-            for (Entry entry : this.f339b.entrySet()) {
-                bytes = ((String) entry.getKey()).getBytes(f338a);
-                byte[] bytes3 = ((String) entry.getValue()).getBytes(f338a);
-                if (bytes.length > Command.MAX_COMMAND_LENGTH || bytes3.length > Command.MAX_COMMAND_LENGTH) {
-                    throw new RobotCoreException(String.format("Telemetry elements cannot exceed 256 bytes [%s:%s]", new Object[]{entry.getKey(), entry.getValue()}));
+            allocate.put((byte) this.dataStrings.size());
+            for (Entry<String, String> entry : this.dataStrings.entrySet()) {
+                keyBuffer = entry.getKey().getBytes(charset);
+                byte[] valueBuffer = entry.getValue().getBytes(charset);
+                if (keyBuffer.length > Command.MAX_COMMAND_LENGTH || valueBuffer.length > Command.MAX_COMMAND_LENGTH) {
+                    throw new RobotCoreException(String.format("Telemetry elements cannot exceed %d bytes [%s:%s]", Command.MAX_COMMAND_LENGTH, entry.getKey(), entry.getValue()));
                 }
-                allocate.put((byte) bytes.length);
-                allocate.put(bytes);
-                allocate.put((byte) bytes3.length);
-                allocate.put(bytes3);
+                allocate.put((byte) keyBuffer.length);
+                allocate.put(keyBuffer);
+                allocate.put((byte) valueBuffer.length);
+                allocate.put(valueBuffer);
             }
-            allocate.put((byte) this.f340c.size());
-            for (Entry entry2 : this.f340c.entrySet()) {
-                bytes = ((String) entry2.getKey()).getBytes(f338a);
-                float floatValue = ((Float) entry2.getValue()).floatValue();
-                if (bytes.length > Command.MAX_COMMAND_LENGTH) {
-                    throw new RobotCoreException(String.format("Telemetry elements cannot exceed 256 bytes [%s:%f]", new Object[]{entry2.getKey(), Float.valueOf(floatValue)}));
+            allocate.put((byte) this.dataNumbers.size());
+            for (Entry<String, Float> entry : this.dataNumbers.entrySet()) {
+                keyBuffer = entry.getKey().getBytes(charset);
+                float floatValue = entry.getValue();
+                if (keyBuffer.length > Command.MAX_COMMAND_LENGTH) {
+                    throw new RobotCoreException(String.format("Telemetry elements cannot exceed %d bytes [%s:%f]", Command.MAX_COMMAND_LENGTH, entry.getKey(), floatValue));
                 }
-                allocate.put((byte) bytes.length);
-                allocate.put(bytes);
+                allocate.put((byte) keyBuffer.length);
+                allocate.put(keyBuffer);
                 allocate.putFloat(floatValue);
             }
         }
@@ -154,14 +141,14 @@ public class Telemetry implements RobocolParsable {
             byte b2;
             clearData();
             ByteBuffer wrap = ByteBuffer.wrap(byteArray, 3, byteArray.length - 3);
-            this.f342e = wrap.getLong();
+            this.timestamp = wrap.getLong();
             int unsignedByteToInt = TypeConversion.unsignedByteToInt(wrap.get());
             if (unsignedByteToInt == 0) {
-                this.f341d = "";
+                this.tag = "";
             } else {
                 byte[] bArr = new byte[unsignedByteToInt];
                 wrap.get(bArr);
-                this.f341d = new String(bArr, f338a);
+                this.tag = new String(bArr, charset);
             }
             byte b3 = wrap.get();
             for (b2 = (byte) 0; b2 < b3; b2++) {
@@ -169,29 +156,30 @@ public class Telemetry implements RobocolParsable {
                 wrap.get(bArr2);
                 byte[] bArr3 = new byte[TypeConversion.unsignedByteToInt(wrap.get())];
                 wrap.get(bArr3);
-                this.f339b.put(new String(bArr2, f338a), new String(bArr3, f338a));
+                this.dataStrings.put(new String(bArr2, charset), new String(bArr3, charset));
             }
             b2 = wrap.get();
             while (b < b2) {
                 byte[] bArr4 = new byte[TypeConversion.unsignedByteToInt(wrap.get())];
                 wrap.get(bArr4);
-                this.f340c.put(new String(bArr4, f338a), Float.valueOf(wrap.getFloat()));
+                this.dataNumbers.put(new String(bArr4, charset), wrap.getFloat());
                 b++;
             }
         }
     }
 
-    private int m211a() {
-        int length = (0 + (this.f341d.getBytes(f338a).length + 1)) + 1;
-        int i = length;
-        for (Entry entry : this.f339b.entrySet()) {
-            i = (((String) entry.getValue()).getBytes(f338a).length + 1) + ((((String) entry.getKey()).getBytes(f338a).length + 1) + i);
+    private int getMessageLength() {
+        int length = this.tag.getBytes(charset).length + 2;
+
+        for (Entry<String, String> entry : this.dataStrings.entrySet()) {
+            length += entry.getValue().getBytes(charset).length + 1;
+            length += entry.getKey().getBytes(charset).length + 1;
         }
-        length = i + 1;
-        int i2 = length;
-        for (Entry entry2 : this.f340c.entrySet()) {
-            i2 = ((((String) entry2.getKey()).getBytes(f338a).length + 1) + i2) + 4;
+
+        for (Entry<String, Float> entry : this.dataNumbers.entrySet()) {
+            length += entry.getKey().getBytes(charset).length + 1;
+            length += 4;
         }
-        return i2;
+        return length;
     }
 }
