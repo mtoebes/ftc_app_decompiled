@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.robocol.Telemetry;
 import java.util.concurrent.TimeUnit;
 
 public abstract class OpMode {
-    private long f201a;
+    private long startTime;
     public Gamepad gamepad1;
     public Gamepad gamepad2;
     public HardwareMap hardwareMap;
@@ -23,8 +23,8 @@ public abstract class OpMode {
         this.telemetry = new Telemetry();
         this.hardwareMap = new HardwareMap();
         this.time = 0.0d;
-        this.f201a = 0;
-        this.f201a = System.nanoTime();
+        this.startTime = 0;
+        this.startTime = System.nanoTime();
     }
 
     public void init_loop() {
@@ -37,10 +37,10 @@ public abstract class OpMode {
     }
 
     public double getRuntime() {
-        return ((double) (System.nanoTime() - this.f201a)) / ((double) TimeUnit.SECONDS.toNanos(1));
+        return ((double) (System.nanoTime() - this.startTime)) / ((double) TimeUnit.SECONDS.toNanos(1));
     }
 
     public void resetStartTime() {
-        this.f201a = System.nanoTime();
+        this.startTime = System.nanoTime();
     }
 }
