@@ -138,6 +138,7 @@ public class ReadXMLFileHandler {
         ControllerConfiguration controllerConfig = null;
         int next = this.parser.next();
         String tag = getTag(this.parser.getName());
+        ConfigurationType type = DeviceConfiguration.typeFromString(tag);
         while (next != XmlPullParser.END_DOCUMENT) {
             if (next == XmlPullParser.END_TAG) {
                 if (tag == null) {
@@ -151,24 +152,15 @@ public class ReadXMLFileHandler {
                 if (DEBUG) {
                     RobotLog.e("[handleLegacyModule] tagname: " + tag);
                 }
-                if (tag.equalsIgnoreCase(ConfigurationType.COMPASS.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.LIGHT_SENSOR.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.IR_SEEKER.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.ACCELEROMETER.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.GYRO.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.ULTRASONIC_SENSOR.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) ||
-                        tag.equalsIgnoreCase(ConfigurationType.NOTHING.toString())) {
+                if (DeviceConfiguration.isDeviceConfiguration(type)) {
                     DeviceConfiguration deviceConfig = parseDeviceConfiguration();
                     deviceConfigs.set(deviceConfig.getPort(), deviceConfig);
-                } else {
-                    if (tag.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+                } else if(DeviceConfiguration.isControllerConfiguration(type)){
+                    if (type == ConfigurationType.MOTOR_CONTROLLER) {
                         controllerConfig = parseMotorControllerConfiguration(false);
-                    } else if (tag.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+                    } else if (type == ConfigurationType.SERVO_CONTROLLER) {
                         controllerConfig = parseServoControllerConfiguration(false);
-                    } else if (tag.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
+                    } else if (type == ConfigurationType.MATRIX_CONTROLLER) {
                         controllerConfig = parseMatrixControllerConfiguration();
                     }
                     if(controllerConfig != null) {
@@ -186,7 +178,7 @@ public class ReadXMLFileHandler {
     private DeviceConfiguration parseDeviceConfiguration() {
         String tag = getTag(this.parser.getName());
         DeviceConfiguration deviceConfiguration = new DeviceConfiguration(Integer.parseInt(this.parser.getAttributeValue(null, "port")));
-        deviceConfiguration.setType(deviceConfiguration.typeFromString(tag));
+        deviceConfiguration.setType(DeviceConfiguration.typeFromString(tag));
         deviceConfiguration.setName(this.parser.getAttributeValue(null, "name"));
         if (!deviceConfiguration.getName().equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
             deviceConfiguration.setEnabled(true);

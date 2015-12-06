@@ -104,12 +104,31 @@ public class DeviceConfiguration implements Serializable {
         this.port = port;
     }
 
-    public ConfigurationType typeFromString(String type) {
+    public static ConfigurationType typeFromString(String type) {
         for (ConfigurationType configurationType : ConfigurationType.values()) {
             if (type.equalsIgnoreCase(configurationType.toString())) {
                 return configurationType;
             }
         }
         return ConfigurationType.NOTHING;
+    }
+
+    public static boolean isDeviceConfiguration(ConfigurationType type) {
+        return (type == ConfigurationType.COMPASS ||
+                type == ConfigurationType.LIGHT_SENSOR ||
+                type == ConfigurationType.IR_SEEKER ||
+                type == ConfigurationType.ACCELEROMETER ||
+                type == ConfigurationType.GYRO ||
+                type == ConfigurationType.TOUCH_SENSOR ||
+                type == ConfigurationType.TOUCH_SENSOR_MULTIPLEXER ||
+                type == ConfigurationType.ULTRASONIC_SENSOR ||
+                type == ConfigurationType.COLOR_SENSOR ||
+                type == ConfigurationType.NOTHING);
+    }
+
+    public static boolean isControllerConfiguration(ConfigurationType type) {
+        return (type == ConfigurationType.MOTOR_CONTROLLER ||
+                type == ConfigurationType.SERVO_CONTROLLER ||
+                type == ConfigurationType.MATRIX_CONTROLLER);
     }
 }
