@@ -8,6 +8,9 @@ public class MatrixControllerConfiguration extends ControllerConfiguration {
     private List<DeviceConfiguration> servos;
     private List<DeviceConfiguration> motors;
 
+    public static final int MATRIX_SERVO_TOTAL_PORTS = 4;
+    public static final int MATRIX_MOTOR_TOTAL_PORTS = 4;
+
     public MatrixControllerConfiguration(String name, List<DeviceConfiguration> motors, List<DeviceConfiguration> servos, SerialNumber serialNumber) {
         super(name, serialNumber, ConfigurationType.MATRIX_CONTROLLER);
         this.servos = servos;

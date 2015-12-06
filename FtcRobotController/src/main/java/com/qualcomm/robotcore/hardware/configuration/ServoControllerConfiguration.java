@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServoControllerConfiguration extends ControllerConfiguration {
+    public static final int SERVO_TOTAL_PORTS = 6;
+
     public ServoControllerConfiguration() {
         super("", new ArrayList(), new SerialNumber(ControllerConfiguration.NO_SERIAL_NUMBER.getSerialNumber()), ConfigurationType.SERVO_CONTROLLER);
     }

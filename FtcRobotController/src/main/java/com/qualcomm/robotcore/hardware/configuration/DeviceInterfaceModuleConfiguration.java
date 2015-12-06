@@ -10,6 +10,12 @@ public class DeviceInterfaceModuleConfiguration extends ControllerConfiguration 
     private List<DeviceConfiguration> digitalDevices;
     private List<DeviceConfiguration> analogOutputDevices;
 
+    public static final int PWD_TOTAL_PORTS = 2;
+    public static final int I2C_TOTAL_PORTS = 6;
+    public static final int ANALOG_INPUT_TOTAL_PORTS = 8;
+    public static final int ANALOG_OUTPUT_TOTAL_PORTS = 2;
+    public static final int DIGITAL_TOTAL_PORTS = 8;
+
     public DeviceInterfaceModuleConfiguration(String name, SerialNumber serialNumber) {
         super(name, serialNumber, ConfigurationType.DEVICE_INTERFACE_MODULE);
     }

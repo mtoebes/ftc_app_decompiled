@@ -1,5 +1,7 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
+import android.content.res.Configuration;
+
 import java.io.Serializable;
 
 public class DeviceConfiguration implements Serializable {
@@ -130,5 +132,35 @@ public class DeviceConfiguration implements Serializable {
         return (type == ConfigurationType.MOTOR_CONTROLLER ||
                 type == ConfigurationType.SERVO_CONTROLLER ||
                 type == ConfigurationType.MATRIX_CONTROLLER);
+    }
+
+    public static int getTotalPorts(ConfigurationType type, boolean isMatrix) {
+        if(type == ConfigurationType.PULSE_WIDTH_DEVICE) {
+            return DeviceInterfaceModuleConfiguration.PWD_TOTAL_PORTS;
+        } else if(type == ConfigurationType.I2C_DEVICE) {
+            return DeviceInterfaceModuleConfiguration.I2C_TOTAL_PORTS;
+        } else if(type == ConfigurationType.ANALOG_INPUT) {
+            return DeviceInterfaceModuleConfiguration.ANALOG_INPUT_TOTAL_PORTS;
+        } else if(type == ConfigurationType.ANALOG_OUTPUT) {
+            return DeviceInterfaceModuleConfiguration.ANALOG_OUTPUT_TOTAL_PORTS;
+        } else if(type == ConfigurationType.DIGITAL_DEVICE) {
+            return DeviceInterfaceModuleConfiguration.DIGITAL_TOTAL_PORTS;
+        } else if(type == ConfigurationType.NOTHING) {
+            return LegacyModuleControllerConfiguration.LEGACY_TOTAL_PORTS;
+        } else if(type == ConfigurationType.MOTOR) {
+            if (isMatrix) {
+                return MatrixControllerConfiguration.MATRIX_MOTOR_TOTAL_PORTS;
+            } else {
+                return MotorControllerConfiguration.MOTOR_TOTAL_PORTS;
+            }
+        } else if(type == ConfigurationType.SERVO) {
+            if (isMatrix) {
+                return MatrixControllerConfiguration.MATRIX_SERVO_TOTAL_PORTS;
+            } else {
+                return ServoControllerConfiguration.SERVO_TOTAL_PORTS;
+            }
+        } else {
+            return -1;
+        }
     }
 }
