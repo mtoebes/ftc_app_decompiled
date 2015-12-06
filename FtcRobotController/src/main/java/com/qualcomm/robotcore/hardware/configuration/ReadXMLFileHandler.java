@@ -1,5 +1,7 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
+import android.content.res.Configuration;
+
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.getConfigurationType;
@@ -10,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -30,8 +34,8 @@ public class ReadXMLFileHandler {
             newInstance.setNamespaceAware(true);
             this.parser = newInstance.newPullParser();
             this.parser.setInput(is, null);
-            int eventType = this.parser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
+            int eventType;
+            while ((eventType = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
                 ConfigurationType type = getConfigurationType(this.parser.getName());
                 if (eventType == XmlPullParser.START_TAG) {
                     if (type == ConfigurationType.MOTOR_CONTROLLER) {
@@ -44,7 +48,6 @@ public class ReadXMLFileHandler {
                         this.configurations.add(parseDeviceInterface());
                     }
                 }
-                eventType = this.parser.next();
             }
         } catch (XmlPullParserException e) {
             RobotLog.w("XmlPullParserException");
@@ -64,13 +67,11 @@ public class ReadXMLFileHandler {
         DeviceConfigurations analogInputConfigs = new DeviceConfigurations(ConfigurationType.ANALOG_INPUT, false);
         DeviceConfigurations digitalDeviceConfigs = new DeviceConfigurations(ConfigurationType.DIGITAL_DEVICE, false);
         DeviceConfigurations analogOutputConfigs = new DeviceConfigurations(ConfigurationType.ANALOG_OUTPUT, false);
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
+        int next;
+        while ((next = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
+            ConfigurationType type = getConfigurationType(this.parser.getName());
             if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else {
+                if (type != null) {
                     if (DEBUG) {
                         RobotLog.e("[handleDeviceInterfaceModule] tagname: " + type.toString());
                     }
@@ -115,8 +116,6 @@ public class ReadXMLFileHandler {
                     digitalDeviceConfigs.set(c2);
                 }
             }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
         }
         RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
         return null;
@@ -127,13 +126,12 @@ public class ReadXMLFileHandler {
         String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
         DeviceConfigurations deviceConfigs = new DeviceConfigurations(ConfigurationType.NOTHING, false);
         ControllerConfiguration controllerConfig = null;
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
+        int next;
+        ConfigurationType type;
+        while ((next = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
+            type = getConfigurationType(this.parser.getName());
             if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
+                if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
                     controllerConfig = new LegacyModuleControllerConfiguration(controllerName, deviceConfigs, new SerialNumber(serialNumber));
                     controllerConfig.setEnabled(true);
                     return controllerConfig;
@@ -158,8 +156,6 @@ public class ReadXMLFileHandler {
                     }
                 }
             }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
         }
         RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
         return null;
@@ -168,15 +164,15 @@ public class ReadXMLFileHandler {
     private DeviceConfiguration parseDeviceConfiguration() {
         ConfigurationType type = getConfigurationType(this.parser.getName());
 
-        DeviceConfiguration deviceConfiguration = new DeviceConfiguration(Integer.parseInt(this.parser.getAttributeValue(null, "port")));
-        deviceConfiguration.setType(type);
-        deviceConfiguration.setName(this.parser.getAttributeValue(null, "name"));
-        if (!deviceConfiguration.getName().equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
-            deviceConfiguration.setEnabled(true);
-        }
+        int port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+        String name = this.parser.getAttributeValue(null, "name");
+        boolean enabled = !name.equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME);
+        DeviceConfiguration deviceConfiguration = new DeviceConfiguration(port, type, name, enabled);
+
         if (DEBUG) {
             RobotLog.e("[handleDevice] name: " + deviceConfiguration.getName() + ", port: " + deviceConfiguration.getPort() + ", type: " + deviceConfiguration.getType());
         }
+
         return deviceConfiguration;
     }
 
@@ -186,13 +182,11 @@ public class ReadXMLFileHandler {
         int controllerPort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
         DeviceConfigurations servoConfigs = new DeviceConfigurations(ConfigurationType.SERVO, true);
         DeviceConfigurations motorConfigs = new DeviceConfigurations(ConfigurationType.MOTOR, true);
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
+        int next;
+        while ((next = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
+            ConfigurationType type = getConfigurationType(this.parser.getName());
             if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type == ConfigurationType.MATRIX_CONTROLLER) {
+                if (type == ConfigurationType.MATRIX_CONTROLLER) {
                     ControllerConfiguration matrixControllerConfiguration = new MatrixControllerConfiguration(controllerName, motorConfigs, servoConfigs, new SerialNumber(serialNumber));
                     matrixControllerConfiguration.setPort(controllerPort);
                     matrixControllerConfiguration.setEnabled(true);
@@ -207,8 +201,6 @@ public class ReadXMLFileHandler {
                     motorConfigs.set(new MotorConfiguration(devicePort, deviceName, true));
                 }
             }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
         }
         RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
         return null;
@@ -238,14 +230,12 @@ public class ReadXMLFileHandler {
         ControllerConfiguration controllerConfig;
         DeviceConfigurations deviceConfigs = new DeviceConfigurations(deviceType, false);
 
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
+        int next;
+        while ((next = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
+            ConfigurationType type = getConfigurationType(this.parser.getName());
             if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type == controllerType) {
-                    controllerConfig = new MotorControllerConfiguration(controllerName, deviceConfigs, new SerialNumber(serialNumber));
+                if (type == controllerType) {
+                    controllerConfig = new ControllerConfiguration(controllerName, deviceConfigs, new SerialNumber(serialNumber), controllerType);
                     controllerConfig.setPort(controllerPort);
                     controllerConfig.setEnabled(true);
                     return controllerConfig;
@@ -253,10 +243,8 @@ public class ReadXMLFileHandler {
             } else if (next == XmlPullParser.START_TAG && type == deviceType) {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 String deviceName = this.parser.getAttributeValue(null, "name");
-                deviceConfigs.set(new MotorConfiguration(devicePort, deviceName, true));
+                deviceConfigs.set(new DeviceConfiguration(devicePort, deviceType, deviceName, true));
             }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
         }
         RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
         return null;
