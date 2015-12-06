@@ -35,14 +35,14 @@ public class HardwareMap {
     public DeviceMapping<VoltageSensor> voltageSensor;
 
     public static class DeviceMapping<DEVICE_TYPE> implements Iterable<DEVICE_TYPE> {
-        private Map<String, DEVICE_TYPE> f243a;
+        private Map<String, DEVICE_TYPE> deviceTypes;
 
         public DeviceMapping() {
-            this.f243a = new HashMap();
+            deviceTypes = new HashMap<String, DEVICE_TYPE>();
         }
 
         public DEVICE_TYPE get(String deviceName) {
-            DEVICE_TYPE device_type = this.f243a.get(deviceName);
+            DEVICE_TYPE device_type = deviceTypes.get(deviceName);
             if (device_type != null) {
                 return device_type;
             }
@@ -50,28 +50,29 @@ public class HardwareMap {
         }
 
         public void put(String deviceName, DEVICE_TYPE device) {
-            this.f243a.put(deviceName, device);
+            deviceTypes.put(deviceName, device);
         }
 
         public Iterator<DEVICE_TYPE> iterator() {
-            return this.f243a.values().iterator();
+            return deviceTypes.values().iterator();
         }
 
         public Set<Entry<String, DEVICE_TYPE>> entrySet() {
-            return this.f243a.entrySet();
+            return deviceTypes.entrySet();
         }
 
         public int size() {
-            return this.f243a.size();
+            return deviceTypes.size();
         }
 
         public void logDevices() {
-            if (!this.f243a.isEmpty()) {
-                for (Entry entry : this.f243a.entrySet()) {
+            if (!deviceTypes.isEmpty()) {
+                for (Entry entry : deviceTypes.entrySet()) {
                     if (entry.getValue() instanceof HardwareDevice) {
-                        String connectionInfo = ((HardwareDevice) entry.getValue()).getConnectionInfo();
+                        HardwareDevice device = (HardwareDevice) entry.getValue();
+                        String connectionInfo = device.getConnectionInfo();
                         String str = (String) entry.getKey();
-                        RobotLog.i(String.format("%-45s %-30s %s", new Object[]{r1.getDeviceName(), str, connectionInfo}));
+                        RobotLog.i(String.format("%-45s %-30s %s", device.getDeviceName(), str, connectionInfo));
                     }
                 }
             }
@@ -79,57 +80,57 @@ public class HardwareMap {
     }
 
     public HardwareMap() {
-        this.dcMotorController = new DeviceMapping();
-        this.dcMotor = new DeviceMapping();
-        this.servoController = new DeviceMapping();
-        this.servo = new DeviceMapping();
-        this.legacyModule = new DeviceMapping();
-        this.touchSensorMultiplexer = new DeviceMapping();
-        this.deviceInterfaceModule = new DeviceMapping();
-        this.analogInput = new DeviceMapping();
-        this.digitalChannel = new DeviceMapping();
-        this.opticalDistanceSensor = new DeviceMapping();
-        this.touchSensor = new DeviceMapping();
-        this.pwmOutput = new DeviceMapping();
-        this.i2cDevice = new DeviceMapping();
-        this.analogOutput = new DeviceMapping();
-        this.colorSensor = new DeviceMapping();
-        this.led = new DeviceMapping();
-        this.accelerationSensor = new DeviceMapping();
-        this.compassSensor = new DeviceMapping();
-        this.gyroSensor = new DeviceMapping();
-        this.irSeekerSensor = new DeviceMapping();
-        this.lightSensor = new DeviceMapping();
-        this.ultrasonicSensor = new DeviceMapping();
-        this.voltageSensor = new DeviceMapping();
-        this.appContext = null;
+        dcMotorController = new DeviceMapping<DcMotorController>();
+        dcMotor = new DeviceMapping<DcMotor>();
+        servoController = new DeviceMapping<ServoController>();
+        servo = new DeviceMapping<Servo>();
+        legacyModule = new DeviceMapping<LegacyModule>();
+        touchSensorMultiplexer = new DeviceMapping<TouchSensorMultiplexer>();
+        deviceInterfaceModule = new DeviceMapping<DeviceInterfaceModule>();
+        analogInput = new DeviceMapping<AnalogInput>();
+        digitalChannel = new DeviceMapping<DigitalChannel>();
+        opticalDistanceSensor = new DeviceMapping<OpticalDistanceSensor>();
+        touchSensor = new DeviceMapping<TouchSensor>();
+        pwmOutput = new DeviceMapping<PWMOutput>();
+        i2cDevice = new DeviceMapping<I2cDevice>();
+        analogOutput = new DeviceMapping<AnalogOutput>();
+        colorSensor = new DeviceMapping<ColorSensor>();
+        led = new DeviceMapping<LED>();
+        accelerationSensor = new DeviceMapping<AccelerationSensor>();
+        compassSensor = new DeviceMapping<CompassSensor>();
+        gyroSensor = new DeviceMapping<GyroSensor>();
+        irSeekerSensor = new DeviceMapping<IrSeekerSensor>();
+        lightSensor = new DeviceMapping<LightSensor>();
+        ultrasonicSensor = new DeviceMapping<UltrasonicSensor>();
+        voltageSensor = new DeviceMapping<VoltageSensor>();
+        appContext = null;
     }
 
     public void logDevices() {
         RobotLog.i("========= Device Information ===================================================");
-        RobotLog.i(String.format("%-45s %-30s %s", new Object[]{"Type", "Name", "Connection"}));
-        this.dcMotorController.logDevices();
-        this.dcMotor.logDevices();
-        this.servoController.logDevices();
-        this.servo.logDevices();
-        this.legacyModule.logDevices();
-        this.touchSensorMultiplexer.logDevices();
-        this.deviceInterfaceModule.logDevices();
-        this.analogInput.logDevices();
-        this.digitalChannel.logDevices();
-        this.opticalDistanceSensor.logDevices();
-        this.touchSensor.logDevices();
-        this.pwmOutput.logDevices();
-        this.i2cDevice.logDevices();
-        this.analogOutput.logDevices();
-        this.colorSensor.logDevices();
-        this.led.logDevices();
-        this.accelerationSensor.logDevices();
-        this.compassSensor.logDevices();
-        this.gyroSensor.logDevices();
-        this.irSeekerSensor.logDevices();
-        this.lightSensor.logDevices();
-        this.ultrasonicSensor.logDevices();
-        this.voltageSensor.logDevices();
+        RobotLog.i(String.format("%-45s %-30s %s", "Type", "Name", "Connection"));
+        dcMotorController.logDevices();
+        dcMotor.logDevices();
+        servoController.logDevices();
+        servo.logDevices();
+        legacyModule.logDevices();
+        touchSensorMultiplexer.logDevices();
+        deviceInterfaceModule.logDevices();
+        analogInput.logDevices();
+        digitalChannel.logDevices();
+        opticalDistanceSensor.logDevices();
+        touchSensor.logDevices();
+        pwmOutput.logDevices();
+        i2cDevice.logDevices();
+        analogOutput.logDevices();
+        colorSensor.logDevices();
+        led.logDevices();
+        accelerationSensor.logDevices();
+        compassSensor.logDevices();
+        gyroSensor.logDevices();
+        irSeekerSensor.logDevices();
+        lightSensor.logDevices();
+        ultrasonicSensor.logDevices();
+        voltageSensor.logDevices();
     }
 }
