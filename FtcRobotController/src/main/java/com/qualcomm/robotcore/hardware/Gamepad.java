@@ -7,7 +7,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
-import com.qualcomm.robotcore.util.Dimmer;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.nio.ByteBuffer;
@@ -49,7 +48,6 @@ public class Gamepad implements RobocolParsable {
     private static Set<whitelistDevice> whitelistDevices = null;
 
     private static float MAX_MOTION_VALUE = 1.0f;
-    private static float MIN_MOTION_VALUE = -1.0f;
 
     private static short DATA_LENGTH = 42;
     private static short HEADER_LENGTH = RobocolParsable.HEADER_LENGTH;
@@ -302,12 +300,12 @@ public class Gamepad implements RobocolParsable {
             return 0;
         } else if (number > MAX_MOTION_VALUE) {
             return MAX_MOTION_VALUE;
-        } else if (number < MIN_MOTION_VALUE) {
-            return MIN_MOTION_VALUE;
+        } else if (number < -MAX_MOTION_VALUE) {
+            return -MAX_MOTION_VALUE;
         } else if (number < 0) {
             return (float) Range.scale((double) number, (double) joystickDeadzone, Servo.MAX_POSITION, 0, Servo.MAX_POSITION);
         } else if (number > 0) {
-            return (float) Range.scale((double) number, (double) (-joystickDeadzone), MIN_MOTION_VALUE, 0, MIN_MOTION_VALUE);
+            return (float) Range.scale((double) number, (double) (-joystickDeadzone), -MAX_MOTION_VALUE, 0, -MAX_MOTION_VALUE);
         } else {
             return number;
         }
