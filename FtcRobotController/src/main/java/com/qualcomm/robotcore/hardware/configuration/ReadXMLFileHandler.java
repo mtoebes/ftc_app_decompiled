@@ -1,6 +1,5 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
-import android.content.Context;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -14,67 +13,47 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 public class ReadXMLFileHandler {
-    private static boolean f275b;
-    private static int f276c;
-    private static int f277d;
-    private static int f278e;
-    private static int f279f;
-    private static int f280g;
-    private static int f281h;
-    private static int f282i;
-    private static int f283j;
-    private static int f284k;
-    private static int f285l;
-    List<ControllerConfiguration> f286a;
-    private XmlPullParser f287m;
+    private static boolean DEBUG = false;
+    private static final int pulseWidthPorts = 2;
+    private static final int digitalPorts = 8;
+    private static final int analogInputPorts = 8;
+    private static final int analogOutputPorts = 2;
+    private static final int i2cPorts = 6;
+    private static final int legacyPorts = 6;
+    private static final int servoPorts = 6;
+    private static final int motorPorts = 2;
+    private static final int f284k = 4;
+    private static final int f285l = 4;
+    List<ControllerConfiguration> configurations = new ArrayList<ControllerConfiguration>();
+    private XmlPullParser parser;
 
-    static {
-        f275b = false;
-        f276c = 2;
-        f277d = 8;
-        f278e = 8;
-        f279f = 2;
-        f280g = 6;
-        f281h = 6;
-        f282i = 6;
-        f283j = 2;
-        f284k = 4;
-        f285l = 4;
-    }
-
-    public ReadXMLFileHandler(Context context) {
-        this.f286a = new ArrayList();
-    }
 
     public List<ControllerConfiguration> getDeviceControllers() {
-        return this.f286a;
+        return this.configurations;
     }
 
     public List<ControllerConfiguration> parse(InputStream is) throws RobotCoreException {
-        this.f287m = null;
+        this.parser = null;
         try {
             XmlPullParserFactory newInstance = XmlPullParserFactory.newInstance();
             newInstance.setNamespaceAware(true);
-            this.f287m = newInstance.newPullParser();
-            this.f287m.setInput(is, null);
-            int eventType = this.f287m.getEventType();
-            while (eventType != 1) {
-                String a = m194a(this.f287m.getName());
-                if (eventType == 2) {
-                    if (a.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
-                        this.f286a.add(m197b(true));
-                    }
-                    if (a.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
-                        this.f286a.add(m193a(true));
-                    }
-                    if (a.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
-                        this.f286a.add(m196b());
-                    }
-                    if (a.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
-                        this.f286a.add(m192a());
+            this.parser = newInstance.newPullParser();
+            this.parser.setInput(is, null);
+            int eventType = this.parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                String tag = getTag(this.parser.getName());
+                if (eventType == XmlPullParser.START_TAG) {
+                    if (tag.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+                        this.configurations.add(parseMotorControllerConfiguration(true));
+                    } else if (tag.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+                        this.configurations.add(parseServoControllerConfiguration(true));
+                    } else if (tag.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
+                        this.configurations.add(parseLegacyControllerConfiguration());
+                    } else if (tag.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
+                        this.configurations.add(parseDeviceInterface());
                     }
                 }
-                eventType = this.f287m.next();
+                eventType = this.parser.next();
             }
         } catch (XmlPullParserException e) {
             RobotLog.w("XmlPullParserException");
@@ -83,246 +62,269 @@ public class ReadXMLFileHandler {
             RobotLog.w("IOException");
             e2.printStackTrace();
         }
-        return this.f286a;
+        return this.configurations;
     }
 
-    private ControllerConfiguration m192a() throws IOException, XmlPullParserException, RobotCoreException {
-        String attributeValue = this.f287m.getAttributeValue(null, "name");
-        String attributeValue2 = this.f287m.getAttributeValue(null, "serialNumber");
-        Object a = m195a(f276c, ConfigurationType.PULSE_WIDTH_DEVICE);
-        Object a2 = m195a(f280g, ConfigurationType.I2C_DEVICE);
-        Object a3 = m195a(f278e, ConfigurationType.ANALOG_INPUT);
-        Object a4 = m195a(f277d, ConfigurationType.DIGITAL_DEVICE);
-        Object a5 = m195a(f279f, ConfigurationType.ANALOG_OUTPUT);
-        int next = this.f287m.next();
-        String a6 = m194a(this.f287m.getName());
-        while (next != 1) {
-            if (next == 3) {
-                if (a6 == null) {
+    private ControllerConfiguration parseDeviceInterface() throws IOException, XmlPullParserException, RobotCoreException {
+        String attributeValue = this.parser.getAttributeValue(null, "name");
+        String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+        ArrayList<DeviceConfiguration> pulseWidthDeviceConfigs = createDeviceConfigList(pulseWidthPorts, ConfigurationType.PULSE_WIDTH_DEVICE);
+        ArrayList<DeviceConfiguration> i2cDeviceConfigs = createDeviceConfigList(i2cPorts, ConfigurationType.I2C_DEVICE);
+        ArrayList<DeviceConfiguration> analogInputConfigs = createDeviceConfigList(analogInputPorts, ConfigurationType.ANALOG_INPUT);
+        ArrayList<DeviceConfiguration> digitalDeviceConfigs = createDeviceConfigList(digitalPorts, ConfigurationType.DIGITAL_DEVICE);
+        ArrayList<DeviceConfiguration> analogOutputConfigs = createDeviceConfigList(analogOutputPorts, ConfigurationType.ANALOG_OUTPUT);
+        int next = this.parser.next();
+        String tag = getTag(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
+                if (tag == null) {
                     continue;
                 } else {
-                    if (f275b) {
-                        RobotLog.e("[handleDeviceInterfaceModule] tagname: " + a6);
+                    if (DEBUG) {
+                        RobotLog.e("[handleDeviceInterfaceModule] tagname: " + tag);
                     }
-                    if (a6.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
-                        ControllerConfiguration deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(attributeValue, new SerialNumber(attributeValue2));
-                        deviceInterfaceModuleConfiguration.setPwmDevices(a);
-                        deviceInterfaceModuleConfiguration.setI2cDevices(a2);
-                        deviceInterfaceModuleConfiguration.setAnalogInputDevices(a3);
-                        deviceInterfaceModuleConfiguration.setDigitalDevices(a4);
-                        deviceInterfaceModuleConfiguration.setAnalogOutputDevices(a5);
-                        deviceInterfaceModuleConfiguration.setEnabled(true);
-                        return deviceInterfaceModuleConfiguration;
+                    if (tag.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
+                        DeviceInterfaceModuleConfiguration configuration = new DeviceInterfaceModuleConfiguration(attributeValue, new SerialNumber(serialNumber));
+                        configuration.setPwmDevices(pulseWidthDeviceConfigs);
+                        configuration.setI2cDevices(i2cDeviceConfigs);
+                        configuration.setAnalogInputDevices(analogInputConfigs);
+                        configuration.setDigitalDevices(digitalDeviceConfigs);
+                        configuration.setAnalogOutputDevices(analogOutputConfigs);
+                        configuration.setEnabled(true);
+                        return configuration;
                     }
+                }
+            } else if (next == XmlPullParser.START_TAG) {
+                DeviceConfiguration configuration;
+                if (tag.equalsIgnoreCase(ConfigurationType.ANALOG_INPUT.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.OPTICAL_DISTANCE_SENSOR.toString())) {
+                    configuration = parseDeviceConfiguration();
+                    analogInputConfigs.set(configuration.getPort(), configuration);
+                }
+                if (tag.equalsIgnoreCase(ConfigurationType.PULSE_WIDTH_DEVICE.toString())) {
+                    configuration = parseDeviceConfiguration();
+                    pulseWidthDeviceConfigs.set(configuration.getPort(), configuration);
+                }
+                if (tag.equalsIgnoreCase(ConfigurationType.I2C_DEVICE.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.IR_SEEKER_V3.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.ADAFRUIT_COLOR_SENSOR.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.GYRO.toString())) {
+                    configuration = parseDeviceConfiguration();
+                    i2cDeviceConfigs.set(configuration.getPort(), configuration);
+                }
+                if (tag.equalsIgnoreCase(ConfigurationType.ANALOG_OUTPUT.toString())) {
+                    configuration = parseDeviceConfiguration();
+                    analogOutputConfigs.set(configuration.getPort(), configuration);
+                }
+                if (tag.equalsIgnoreCase(ConfigurationType.DIGITAL_DEVICE.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.LED.toString())) {
+                    DeviceConfiguration c2 = parseDeviceConfiguration();
+                    digitalDeviceConfigs.set(c2.getPort(), c2);
                 }
             }
-            if (next == 2) {
-                DeviceConfiguration c;
-                if (a6.equalsIgnoreCase(ConfigurationType.ANALOG_INPUT.toString()) || a6.equalsIgnoreCase(ConfigurationType.OPTICAL_DISTANCE_SENSOR.toString())) {
-                    c = m198c();
-                    a3.set(c.getPort(), c);
-                }
-                if (a6.equalsIgnoreCase(ConfigurationType.PULSE_WIDTH_DEVICE.toString())) {
-                    c = m198c();
-                    a.set(c.getPort(), c);
-                }
-                if (a6.equalsIgnoreCase(ConfigurationType.I2C_DEVICE.toString()) || a6.equalsIgnoreCase(ConfigurationType.IR_SEEKER_V3.toString()) || a6.equalsIgnoreCase(ConfigurationType.ADAFRUIT_COLOR_SENSOR.toString()) || a6.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) || a6.equalsIgnoreCase(ConfigurationType.GYRO.toString())) {
-                    c = m198c();
-                    a2.set(c.getPort(), c);
-                }
-                if (a6.equalsIgnoreCase(ConfigurationType.ANALOG_OUTPUT.toString())) {
-                    c = m198c();
-                    a5.set(c.getPort(), c);
-                }
-                if (a6.equalsIgnoreCase(ConfigurationType.DIGITAL_DEVICE.toString()) || a6.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) || a6.equalsIgnoreCase(ConfigurationType.LED.toString())) {
-                    DeviceConfiguration c2 = m198c();
-                    a4.set(c2.getPort(), c2);
-                }
-            }
-            next = this.f287m.next();
-            a6 = m194a(this.f287m.getName());
+            next = this.parser.next();
+            tag = getTag(this.parser.getName());
         }
         RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
         return null;
     }
 
-    private ControllerConfiguration m196b() throws IOException, XmlPullParserException, RobotCoreException {
-        String attributeValue = this.f287m.getAttributeValue(null, "name");
-        String attributeValue2 = this.f287m.getAttributeValue(null, "serialNumber");
-        List a = m195a(f281h, ConfigurationType.NOTHING);
-        int next = this.f287m.next();
-        String a2 = m194a(this.f287m.getName());
-        while (next != 1) {
-            if (next == 3) {
-                if (a2 == null) {
+    private ControllerConfiguration parseLegacyControllerConfiguration() throws IOException, XmlPullParserException, RobotCoreException {
+        String controllerName = this.parser.getAttributeValue(null, "name");
+        String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+        List<DeviceConfiguration> deviceConfigs = createDeviceConfigList(legacyPorts, ConfigurationType.NOTHING);
+        ControllerConfiguration controllerConfig = null;
+        int next = this.parser.next();
+        String tag = getTag(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
+                if (tag == null) {
                     continue;
-                } else if (a2.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
-                    ControllerConfiguration legacyModuleControllerConfiguration = new LegacyModuleControllerConfiguration(attributeValue, a, new SerialNumber(attributeValue2));
-                    legacyModuleControllerConfiguration.setEnabled(true);
-                    return legacyModuleControllerConfiguration;
+                } else if (tag.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
+                    controllerConfig = new LegacyModuleControllerConfiguration(controllerName, deviceConfigs, new SerialNumber(serialNumber));
+                    controllerConfig.setEnabled(true);
+                    return controllerConfig;
+                }
+            } else if (next == XmlPullParser.START_TAG) {
+                if (DEBUG) {
+                    RobotLog.e("[handleLegacyModule] tagname: " + tag);
+                }
+                if (tag.equalsIgnoreCase(ConfigurationType.COMPASS.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.LIGHT_SENSOR.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.IR_SEEKER.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.ACCELEROMETER.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.GYRO.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.ULTRASONIC_SENSOR.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) ||
+                        tag.equalsIgnoreCase(ConfigurationType.NOTHING.toString())) {
+                    DeviceConfiguration deviceConfig = parseDeviceConfiguration();
+                    deviceConfigs.set(deviceConfig.getPort(), deviceConfig);
+                } else {
+                    if (tag.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+                        controllerConfig = parseMotorControllerConfiguration(false);
+                    } else if (tag.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+                        controllerConfig = parseServoControllerConfiguration(false);
+                    } else if (tag.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
+                        controllerConfig = parseMatrixControllerConfiguration();
+                    }
+                    if(controllerConfig != null) {
+                        deviceConfigs.set(controllerConfig.getPort(), controllerConfig);
+                    }
                 }
             }
-            if (next == 2) {
-                if (f275b) {
-                    RobotLog.e("[handleLegacyModule] tagname: " + a2);
-                }
-                if (a2.equalsIgnoreCase(ConfigurationType.COMPASS.toString()) || a2.equalsIgnoreCase(ConfigurationType.LIGHT_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.IR_SEEKER.toString()) || a2.equalsIgnoreCase(ConfigurationType.ACCELEROMETER.toString()) || a2.equalsIgnoreCase(ConfigurationType.GYRO.toString()) || a2.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.toString()) || a2.equalsIgnoreCase(ConfigurationType.ULTRASONIC_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.NOTHING.toString())) {
-                    DeviceConfiguration c = m198c();
-                    a.set(c.getPort(), c);
-                } else if (a2.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
-                    legacyModuleControllerConfiguration = m197b(false);
-                    a.set(legacyModuleControllerConfiguration.getPort(), legacyModuleControllerConfiguration);
-                } else if (a2.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
-                    legacyModuleControllerConfiguration = m193a(false);
-                    a.set(legacyModuleControllerConfiguration.getPort(), legacyModuleControllerConfiguration);
-                } else if (a2.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
-                    legacyModuleControllerConfiguration = m199d();
-                    a.set(legacyModuleControllerConfiguration.getPort(), legacyModuleControllerConfiguration);
-                }
-            }
-            next = this.f287m.next();
-            a2 = m194a(this.f287m.getName());
+            next = this.parser.next();
+            tag = getTag(this.parser.getName());
         }
-        return new LegacyModuleControllerConfiguration(attributeValue, a, new SerialNumber(attributeValue2));
+        RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
+        return null;
     }
 
-    private DeviceConfiguration m198c() {
-        String a = m194a(this.f287m.getName());
-        DeviceConfiguration deviceConfiguration = new DeviceConfiguration(Integer.parseInt(this.f287m.getAttributeValue(null, "port")));
-        deviceConfiguration.setType(deviceConfiguration.typeFromString(a));
-        deviceConfiguration.setName(this.f287m.getAttributeValue(null, "name"));
+    private DeviceConfiguration parseDeviceConfiguration() {
+        String tag = getTag(this.parser.getName());
+        DeviceConfiguration deviceConfiguration = new DeviceConfiguration(Integer.parseInt(this.parser.getAttributeValue(null, "port")));
+        deviceConfiguration.setType(deviceConfiguration.typeFromString(tag));
+        deviceConfiguration.setName(this.parser.getAttributeValue(null, "name"));
         if (!deviceConfiguration.getName().equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
             deviceConfiguration.setEnabled(true);
         }
-        if (f275b) {
+        if (DEBUG) {
             RobotLog.e("[handleDevice] name: " + deviceConfiguration.getName() + ", port: " + deviceConfiguration.getPort() + ", type: " + deviceConfiguration.getType());
         }
         return deviceConfiguration;
     }
 
-    private ArrayList<DeviceConfiguration> m195a(int i, ConfigurationType configurationType) {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
-        for (int i2 = 0; i2 < i; i2++) {
+    private ArrayList<DeviceConfiguration> createDeviceConfigList(int ports, ConfigurationType configurationType) {
+        ArrayList<DeviceConfiguration> deviceConfigs = new ArrayList<DeviceConfiguration>();
+        for (int port = 0; port < ports; port++) {
             if (configurationType == ConfigurationType.SERVO) {
-                arrayList.add(new ServoConfiguration(i2 + 1, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
+                deviceConfigs.add(new ServoConfiguration(port + 1, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
             } else if (configurationType == ConfigurationType.MOTOR) {
-                arrayList.add(new MotorConfiguration(i2 + 1, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
+                deviceConfigs.add(new MotorConfiguration(port + 1, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
             } else {
-                arrayList.add(new DeviceConfiguration(i2, configurationType, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
+                deviceConfigs.add(new DeviceConfiguration(port, configurationType, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
             }
         }
-        return arrayList;
+        return deviceConfigs;
     }
 
-    private ControllerConfiguration m199d() throws IOException, XmlPullParserException, RobotCoreException {
-        String attributeValue = this.f287m.getAttributeValue(null, "name");
+    private ControllerConfiguration parseMatrixControllerConfiguration() throws IOException, XmlPullParserException, RobotCoreException {
+        String controllerName = this.parser.getAttributeValue(null, "name");
         String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
-        int parseInt = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
-        Object a = m195a(f285l, ConfigurationType.SERVO);
-        Object a2 = m195a(f284k, ConfigurationType.MOTOR);
-        int next = this.f287m.next();
-        String a3 = m194a(this.f287m.getName());
-        while (next != 1) {
-            if (next == 3) {
-                if (a3 == null) {
+        int controllerPort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+        List<DeviceConfiguration> servoConfigs = createDeviceConfigList(f285l, ConfigurationType.SERVO);
+        List<DeviceConfiguration> motorConfigs = createDeviceConfigList(f284k, ConfigurationType.MOTOR);
+        int next = this.parser.next();
+        String tag = getTag(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
+                if (tag == null) {
                     continue;
-                } else if (a3.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
-                    ControllerConfiguration matrixControllerConfiguration = new MatrixControllerConfiguration(attributeValue, a2, a, new SerialNumber(serialNumber));
-                    matrixControllerConfiguration.setPort(parseInt);
+                } else if (tag.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
+                    ControllerConfiguration matrixControllerConfiguration = new MatrixControllerConfiguration(controllerName, motorConfigs, servoConfigs, new SerialNumber(serialNumber));
+                    matrixControllerConfiguration.setPort(controllerPort);
                     matrixControllerConfiguration.setEnabled(true);
                     return matrixControllerConfiguration;
                 }
-            }
-            if (next == 2) {
-                int parseInt2;
-                if (a3.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
-                    parseInt2 = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
-                    a.set(parseInt2 - 1, new ServoConfiguration(parseInt2, this.f287m.getAttributeValue(null, "name"), true));
-                } else if (a3.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
-                    parseInt2 = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
-                    a2.set(parseInt2 - 1, new MotorConfiguration(parseInt2, this.f287m.getAttributeValue(null, "name"), true));
+            } else if (next == XmlPullParser.START_TAG) {
+                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+                String deviceName = this.parser.getAttributeValue(null, "name");
+                if (tag.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
+                    servoConfigs.set(devicePort - 1, new ServoConfiguration(devicePort, deviceName, true));
+                } else if (tag.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
+                    motorConfigs.set(devicePort - 1, new MotorConfiguration(devicePort, deviceName, true));
                 }
             }
-            next = this.f287m.next();
-            a3 = m194a(this.f287m.getName());
+            next = this.parser.next();
+            tag = getTag(this.parser.getName());
         }
         RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
         return null;
     }
 
-    private ControllerConfiguration m193a(boolean z) throws IOException, XmlPullParserException {
-        ControllerConfiguration servoControllerConfiguration;
-        String attributeValue = this.f287m.getAttributeValue(null, "name");
-        int i = -1;
-        String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
-        if (z) {
-            serialNumber = this.f287m.getAttributeValue(null, "serialNumber");
+    private ControllerConfiguration parseServoControllerConfiguration(boolean enabled) throws IOException, XmlPullParserException, RobotCoreException {
+        String controllerName = this.parser.getAttributeValue(null, "name");
+        int controllerPort;
+        String serialNumber;
+
+        if (enabled) {
+            controllerPort = -1;
+            serialNumber = this.parser.getAttributeValue(null, "serialNumber");
         } else {
-            i = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
+            controllerPort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+            serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
         }
-        List a = m195a(f282i, ConfigurationType.SERVO);
-        int next = this.f287m.next();
-        String a2 = m194a(this.f287m.getName());
-        while (next != 1) {
-            if (next == 3) {
-                if (a2 == null) {
+
+        ControllerConfiguration controllerConfig;
+        List<DeviceConfiguration> deviceConfigs = createDeviceConfigList(servoPorts, ConfigurationType.SERVO);
+        int next = this.parser.next();
+        String tag = getTag(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
+                if (tag == null) {
                     continue;
-                } else if (a2.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
-                    servoControllerConfiguration = new ServoControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-                    servoControllerConfiguration.setPort(i);
-                    servoControllerConfiguration.setEnabled(true);
-                    return servoControllerConfiguration;
+                } else if (tag.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+                    controllerConfig = new ServoControllerConfiguration(controllerName, deviceConfigs, new SerialNumber(serialNumber));
+                    controllerConfig.setPort(controllerPort);
+                    controllerConfig.setEnabled(true);
+                    return controllerConfig;
                 }
+            } else if (next == XmlPullParser.START_TAG && tag.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
+                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+                String deviceName = this.parser.getAttributeValue(null, "name");
+                deviceConfigs.set(devicePort - 1, new ServoConfiguration(devicePort, deviceName, true));
             }
-            if (next == 2 && a2.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
-                int parseInt = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
-                a.set(parseInt - 1, new ServoConfiguration(parseInt, this.f287m.getAttributeValue(null, "name"), true));
-            }
-            next = this.f287m.next();
-            a2 = m194a(this.f287m.getName());
+            next = this.parser.next();
+            tag = getTag(this.parser.getName());
         }
-        servoControllerConfiguration = new ServoControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-        servoControllerConfiguration.setPort(i);
-        return servoControllerConfiguration;
+        RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
+        return null;
     }
 
-    private ControllerConfiguration m197b(boolean z) throws IOException, XmlPullParserException {
-        ControllerConfiguration motorControllerConfiguration;
-        String attributeValue = this.f287m.getAttributeValue(null, "name");
-        int i = -1;
-        String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
-        if (z) {
-            serialNumber = this.f287m.getAttributeValue(null, "serialNumber");
+    private ControllerConfiguration parseMotorControllerConfiguration(boolean enabled) throws IOException, XmlPullParserException, RobotCoreException{
+        String controllerName = this.parser.getAttributeValue(null, "name");
+        int controllerPort;
+        String serialNumber;
+
+        if (enabled) {
+            controllerPort = -1;
+            serialNumber = this.parser.getAttributeValue(null, "serialNumber");
         } else {
-            i = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
+            controllerPort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+            serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
         }
-        List a = m195a(f283j, ConfigurationType.MOTOR);
-        int next = this.f287m.next();
-        String a2 = m194a(this.f287m.getName());
-        while (next != 1) {
-            if (next == 3) {
-                if (a2 == null) {
+
+        ControllerConfiguration controllerConfig;
+        List<DeviceConfiguration> deviceConfigs = createDeviceConfigList(motorPorts, ConfigurationType.MOTOR);
+
+        int next = this.parser.next();
+        String tag = getTag(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
+                if (tag == null) {
                     continue;
-                } else if (a2.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
-                    motorControllerConfiguration = new MotorControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-                    motorControllerConfiguration.setPort(i);
-                    motorControllerConfiguration.setEnabled(true);
-                    return motorControllerConfiguration;
+                } else if (tag.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+                    controllerConfig = new MotorControllerConfiguration(controllerName, deviceConfigs, new SerialNumber(serialNumber));
+                    controllerConfig.setPort(controllerPort);
+                    controllerConfig.setEnabled(true);
+                    return controllerConfig;
                 }
+            } else if (next == XmlPullParser.START_TAG && tag.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
+                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+                String deviceName = this.parser.getAttributeValue(null, "name");
+                deviceConfigs.set(devicePort - 1, new MotorConfiguration(devicePort, deviceName, true));
             }
-            if (next == 2 && a2.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
-                int parseInt = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
-                a.set(parseInt - 1, new MotorConfiguration(parseInt, this.f287m.getAttributeValue(null, "name"), true));
-            }
-            next = this.f287m.next();
-            a2 = m194a(this.f287m.getName());
+            next = this.parser.next();
+            tag = getTag(this.parser.getName());
         }
-        motorControllerConfiguration = new MotorControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-        motorControllerConfiguration.setPort(i);
-        return motorControllerConfiguration;
+        RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
+        return null;
     }
 
-    private String m194a(String str) {
+    private String getTag(String str) {
         if (str == null) {
             return null;
         }
