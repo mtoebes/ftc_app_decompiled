@@ -309,4 +309,34 @@ public class ReadXMLFileHandler {
         }
         return deviceConfigs;
     }
+
+    private class DeviceConfigurations extends ArrayList<DeviceConfiguration> {
+        private int ports;
+        private ConfigurationType deviceType;
+        private int portOffset;
+
+        public DeviceConfigurations(ConfigurationType deviceType, boolean isMatrix) {
+            super();
+
+            this.deviceType = deviceType;
+            if(deviceType == ConfigurationType.SERVO || deviceType == ConfigurationType.MOTOR) {
+                portOffset = 1;
+            } else {
+                portOffset = 0;
+            }
+
+            this.ports = DeviceConfiguration.getTotalPorts(deviceType, isMatrix);
+            initPorts();
+        }
+
+        private void initPorts() {
+            for (int port = 0; port < ports; port++) {
+                this.add(new DeviceConfiguration(port + portOffset, deviceType, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
+            }
+        }
+
+        public DeviceConfiguration set(DeviceConfiguration deviceConfig) {
+            return super.set(deviceConfig.getPort() - portOffset, deviceConfig);
+        }
+    }
 }
