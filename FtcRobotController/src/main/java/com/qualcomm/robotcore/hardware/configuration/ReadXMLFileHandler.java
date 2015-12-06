@@ -215,51 +215,14 @@ public class ReadXMLFileHandler {
     }
 
     private ControllerConfiguration parseServoControllerConfiguration(boolean enabled) throws IOException, XmlPullParserException, RobotCoreException {
-        ConfigurationType deviceType = ConfigurationType.SERVO;
-        ConfigurationType controllerType = ConfigurationType.SERVO_CONTROLLER;
-
-        String controllerName = this.parser.getAttributeValue(null, "name");
-        int controllerPort;
-        String serialNumber;
-
-        if (enabled) {
-            controllerPort = -1;
-            serialNumber = this.parser.getAttributeValue(null, "serialNumber");
-        } else {
-            controllerPort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-            serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
-        }
-
-        ControllerConfiguration controllerConfig;
-        DeviceConfigurations deviceConfigs = new DeviceConfigurations(deviceType, false);
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
-            if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type == controllerType) {
-                    controllerConfig = new ServoControllerConfiguration(controllerName, deviceConfigs, new SerialNumber(serialNumber));
-                    controllerConfig.setPort(controllerPort);
-                    controllerConfig.setEnabled(true);
-                    return controllerConfig;
-                }
-            } else if (next == XmlPullParser.START_TAG && type == deviceType) {
-                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-                String deviceName = this.parser.getAttributeValue(null, "name");
-                deviceConfigs.set(new ServoConfiguration(devicePort, deviceName, true));
-            }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
-        }
-        RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
-        return null;
+        return parseControllerConfiguration(ConfigurationType.SERVO_CONTROLLER, ConfigurationType.SERVO, enabled);
     }
 
-    private ControllerConfiguration parseMotorControllerConfiguration(boolean enabled) throws IOException, XmlPullParserException, RobotCoreException{
-        ConfigurationType deviceType = ConfigurationType.MOTOR;
-        ConfigurationType controllerType = ConfigurationType.MOTOR_CONTROLLER;
+    private ControllerConfiguration parseMotorControllerConfiguration(boolean enabled) throws IOException, XmlPullParserException, RobotCoreException {
+        return parseControllerConfiguration(ConfigurationType.MOTOR_CONTROLLER, ConfigurationType.MOTOR, enabled);
+    }
 
+    private ControllerConfiguration parseControllerConfiguration(ConfigurationType controllerType, ConfigurationType deviceType, boolean enabled) throws IOException, XmlPullParserException, RobotCoreException{
         String controllerName = this.parser.getAttributeValue(null, "name");
         int controllerPort;
         String serialNumber;
