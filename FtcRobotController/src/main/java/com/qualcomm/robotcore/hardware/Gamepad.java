@@ -332,14 +332,17 @@ public class Gamepad implements RobocolParsable {
 
     @TargetApi(19)
     public static synchronized boolean isGamepadDevice(int deviceId) {
-        //TODO look more into this, looks odd
         synchronized (Gamepad.class) {
-            if (!gamepadDevices.contains(Integer.valueOf(deviceId))) {
+            // check cache for deviceId
+            if (gamepadDevices.contains(Integer.valueOf(deviceId))) {
+                return true;
+            } else {
+                // update cache to check for new devices
                 gamepadDevices = new HashSet<Integer>();
                 for (int id : InputDevice.getDeviceIds()) {
                     InputDevice device = InputDevice.getDevice(id);
                     int sources = device.getSources();
-                    if ((sources & 1025) == 1025 || (sources & 16777232) == 16777232) {
+                    if ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD || (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
                         if (VERSION.SDK_INT < 19) {
                             gamepadDevices.add(id);
                         } else if (whitelistDevices == null || whitelistDevices.contains(new whitelistDevice(device.getVendorId(), device.getProductId()))) {
@@ -347,9 +350,9 @@ public class Gamepad implements RobocolParsable {
                         }
                     }
                 }
+                // check updated cache for deviceId
                 return gamepadDevices.contains(Integer.valueOf(deviceId));
             }
         }
-        return true;
     }
 }
