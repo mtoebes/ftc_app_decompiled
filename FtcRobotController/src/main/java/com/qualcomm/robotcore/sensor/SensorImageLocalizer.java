@@ -11,10 +11,11 @@ import java.util.Map;
 public class SensorImageLocalizer extends SensorBase<Pose> implements SensorListener<List<TrackedTargetInfo>> {
     private final static boolean DEBUG = false;
     private final String TAG = "SensorImageLocalizer";
+
     private final Map<String, TargetInfo> targetInfoMap = new HashMap<String, TargetInfo>();
-    private Pose mRobotwrtCamera;
     private final HashMap<String, TrackedTargetData> targetDataMap = new HashMap<String, TrackedTargetData>();
-    private TrackedTargetData lastestData;
+    private Pose mRobotwrtCamera;
+    private TrackedTargetData latestData;
 
     private class TrackedTargetData {
         public final static int RESET_COUNT_TIME_LIMIT = 120;
@@ -131,10 +132,10 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
             data = new TrackedTargetData(trackedTargetInfo);
             this.targetDataMap.put(trackedTargetInfo.mTargetInfo.mTargetName, data);
         }
-        if (this.lastestData != null &&
-                !lastestData.id.equals(data.id) &&
-                currentTimeMillis - this.lastestData.lastUpdateTime < TrackedTargetData.TARGET_SWITCH_INTERVAL) {
-            Log.d(TAG, "Ignoring target " + trackedTargetInfo.mTargetInfo.mTargetName + " Time diff " + (currentTimeMillis - this.lastestData.lastUpdateTime));
+        if (this.latestData != null &&
+                !latestData.id.equals(data.id) &&
+                currentTimeMillis - this.latestData.lastUpdateTime < TrackedTargetData.TARGET_SWITCH_INTERVAL) {
+            Log.d(TAG, "Ignoring target " + trackedTargetInfo.mTargetInfo.mTargetName + " Time diff " + (currentTimeMillis - this.latestData.lastUpdateTime));
             return false;
         }
         return true;
@@ -169,7 +170,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
            return null;
        } else {
            bestTargetData.lastUpdateTime = currentTimeMillis;
-           lastestData = bestTargetData;
+           latestData = bestTargetData;
            Log.d(TAG, "Selected target " + bestPose.mTargetInfo.mTargetName + " time " + currentTimeMillis);
            return bestPose;
        }
