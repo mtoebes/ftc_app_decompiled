@@ -4,9 +4,9 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 public interface RobotUsbManager {
-    String getDeviceDescriptionByIndex(int i) throws RobotCoreException;
+    String getDeviceDescriptionByIndex(int index) throws RobotCoreException;
 
-    SerialNumber getDeviceSerialNumberByIndex(int i) throws RobotCoreException;
+    SerialNumber getDeviceSerialNumberByIndex(int index) throws RobotCoreException;
 
     RobotUsbDevice openBySerialNumber(SerialNumber serialNumber) throws RobotCoreException;
 
