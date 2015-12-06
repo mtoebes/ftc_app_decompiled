@@ -17,66 +17,25 @@ public class LogitechGamepadF310 extends Gamepad {
     }
 
     public void update(MotionEvent event) {
-        boolean z = true;
         this.id = event.getDeviceId();
         this.timestamp = event.getEventTime();
         if (VERSION.RELEASE.startsWith("5")) {
-            m206a(event);
-            return;
-        }
-        boolean z2;
-        this.left_stick_x = cleanMotionValues(event.getAxisValue(0));
-        this.left_stick_y = cleanMotionValues(event.getAxisValue(1));
-        this.right_stick_x = cleanMotionValues(event.getAxisValue(12));
-        this.right_stick_y = cleanMotionValues(event.getAxisValue(13));
-        this.left_trigger = (event.getAxisValue(11) + Dimmer.MAXIMUM_BRIGHTNESS) / 2.0f;
-        this.right_trigger = (event.getAxisValue(14) + Dimmer.MAXIMUM_BRIGHTNESS) / 2.0f;
-        this.dpad_down = event.getAxisValue(16) > this.dpadThreshold;
-        if (event.getAxisValue(16) < (-this.dpadThreshold)) {
-            z2 = true;
+            right_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Z));
+            right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RZ));
+            left_trigger = event.getAxisValue(MotionEvent.AXIS_BRAKE);
+            right_trigger = event.getAxisValue(MotionEvent.AXIS_GAS);
         } else {
-            z2 = false;
+            right_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RX));
+            right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RY));
+            left_trigger = (event.getAxisValue(MotionEvent.AXIS_Z) + 1/2.0f);
+            right_trigger = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1/2.0f);
         }
-        this.dpad_up = z2;
-        if (event.getAxisValue(15) > this.dpadThreshold) {
-            z2 = true;
-        } else {
-            z2 = false;
-        }
-        this.dpad_right = z2;
-        if (event.getAxisValue(15) >= (-this.dpadThreshold)) {
-            z = false;
-        }
-        this.dpad_left = z;
-        callCallback();
-    }
-
-    private void m206a(MotionEvent motionEvent) {
-        boolean z;
-        boolean z2 = true;
-        this.left_stick_x = cleanMotionValues(motionEvent.getAxisValue(0));
-        this.left_stick_y = cleanMotionValues(motionEvent.getAxisValue(1));
-        this.right_stick_x = cleanMotionValues(motionEvent.getAxisValue(11));
-        this.right_stick_y = cleanMotionValues(motionEvent.getAxisValue(14));
-        this.left_trigger = motionEvent.getAxisValue(23);
-        this.right_trigger = motionEvent.getAxisValue(22);
-        this.dpad_down = motionEvent.getAxisValue(16) > this.dpadThreshold;
-        if (motionEvent.getAxisValue(16) < (-this.dpadThreshold)) {
-            z = true;
-        } else {
-            z = false;
-        }
-        this.dpad_up = z;
-        if (motionEvent.getAxisValue(15) > this.dpadThreshold) {
-            z = true;
-        } else {
-            z = false;
-        }
-        this.dpad_right = z;
-        if (motionEvent.getAxisValue(15) >= (-this.dpadThreshold)) {
-            z2 = false;
-        }
-        this.dpad_left = z2;
+        left_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_X));
+        left_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Y));
+        dpad_down = event.getAxisValue(MotionEvent.AXIS_HAT_Y) > dpadThreshold;
+        dpad_up = (event.getAxisValue(MotionEvent.AXIS_HAT_Y) < (-dpadThreshold));
+        dpad_right = (event.getAxisValue(MotionEvent.AXIS_HAT_X) > dpadThreshold);
+        dpad_left = (event.getAxisValue(MotionEvent.AXIS_HAT_X) < (-dpadThreshold));
         callCallback();
     }
 
