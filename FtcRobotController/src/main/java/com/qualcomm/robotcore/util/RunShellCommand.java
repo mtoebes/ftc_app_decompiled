@@ -3,74 +3,68 @@ package com.qualcomm.robotcore.util;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 
 public class RunShellCommand {
-    boolean f421a;
+    private final static int BUFFER_SIZE = 524288;
+    boolean logging = false;
 
     public RunShellCommand() {
-        this.f421a = false;
     }
 
     public void enableLogging(boolean enable) {
-        this.f421a = enable;
+        this.logging = enable;
     }
 
     public String run(String cmd) {
-        if (this.f421a) {
+        if (this.logging) {
             RobotLog.v("running command: " + cmd);
         }
-        String a = m235a(cmd, false);
-        if (this.f421a) {
-            RobotLog.v("         output: " + a);
+        String output = runCommand(cmd, false);
+        if (this.logging) {
+            RobotLog.v("         output: " + output);
         }
-        return a;
+        return output;
     }
 
     public String runAsRoot(String cmd) {
-        if (this.f421a) {
+        if (this.logging) {
             RobotLog.v("running command: " + cmd);
         }
-        String a = m235a(cmd, true);
-        if (this.f421a) {
+        String a = runCommand(cmd, true);
+        if (this.logging) {
             RobotLog.v("         output: " + a);
         }
         return a;
     }
 
-    private String m235a(String str, boolean z) {
-        byte[] bArr = new byte[524288];
-        String str2 = "";
-        ProcessBuilder processBuilder = new ProcessBuilder(new String[0]);
+    private String runCommand(String command, boolean isRoot) {
+        String output = "";
+        ProcessBuilder processBuilder = new ProcessBuilder();
         Process process = null;
-        if (z) {
-            try {
-                processBuilder.command(new String[]{"su", "-c", str}).redirectErrorStream(true);
-            } catch (Exception e) {
-                RobotLog.logStacktrace(e);
-                if (process != null) {
-                    process.destroy();
-                }
-            } catch (InterruptedException e2) {
-                e2.printStackTrace();
-                if (process != null) {
-                    process.destroy();
-                }
-            } catch (Throwable th) {
-                if (process != null) {
-                    process.destroy();
-                }
-            }
+
+        // send command
+        if (isRoot) {
+            processBuilder.command("su", "-c", command).redirectErrorStream(true);
         } else {
-            processBuilder.command(new String[]{"sh", "-c", str}).redirectErrorStream(true);
+            processBuilder.command("sh", "-c", command).redirectErrorStream(true);
         }
-        process = processBuilder.start();
-        process.waitFor();
-        int read = process.getInputStream().read(bArr);
-        if (read > 0) {
-            str2 = new String(bArr, 0, read);
+
+        // read output
+        try {
+            process = processBuilder.start();
+            process.waitFor();
+            byte[] buffer = new byte[BUFFER_SIZE];
+
+            int read = process.getInputStream().read(buffer);
+            if (read > 0) {
+                output = new String(buffer, 0, read);
+            }
+        } catch (Exception exception) {
+            // do nothing
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
         }
-        if (process != null) {
-            process.destroy();
-        }
-        return str2;
+        return output;
     }
 
     public static void killSpawnedProcess(String processName, String packageName, RunShellCommand shell) throws RobotCoreException {
@@ -78,32 +72,28 @@ public class RunShellCommand {
             int spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             while (spawnedProcessPid != -1) {
                 RobotLog.v("Killing PID " + spawnedProcessPid);
-                shell.run(String.format("kill %d", new Object[]{Integer.valueOf(spawnedProcessPid)}));
+                shell.run(String.format("kill %d", spawnedProcessPid));
                 spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             }
         } catch (Exception e) {
-            throw new RobotCoreException(String.format("Failed to kill %s instances started by this app", new Object[]{processName}));
+            throw new RobotCoreException(String.format("Failed to kill %s instances started by this app", processName));
         }
     }
 
     public static int getSpawnedProcessPid(String processName, String packageName, RunShellCommand shell) {
-        int i = 0;
         String run = shell.run("ps");
-        CharSequence charSequence = "invalid";
+        CharSequence username = "invalid";
         for (String str : run.split("\n")) {
             if (str.contains(packageName)) {
-                charSequence = str.split("\\s+")[0];
+                username = str.split("\\s+")[0];
                 break;
             }
         }
-        String[] split = run.split("\n");
-        int length = split.length;
-        while (i < length) {
-            String str2 = split[i];
-            if (str2.contains(processName) && str2.contains(r0)) {
-                return Integer.parseInt(str2.split("\\s+")[1]);
+
+        for(String line : run.split("\n")) {
+            if (line.contains(processName) && line.contains(username)) {
+                return Integer.parseInt(line.split("\\s+")[1]);
             }
-            i++;
         }
         return -1;
     }

@@ -6,41 +6,45 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Hardware {
-    private static boolean f381a;
-
-    static {
-        f381a = CheckIfIFC();
-    }
+    private static boolean isIFC = CheckIfIFC();
 
     public static Set<Integer> getGameControllerIds() {
-        Set<Integer> hashSet = new HashSet();
-        for (int i : InputDevice.getDeviceIds()) {
-            int sources = InputDevice.getDevice(i).getSources();
-            if ((sources & 1025) == 1025 || (sources & 16777232) == 16777232) {
-                hashSet.add(Integer.valueOf(i));
+        Set<Integer> hashSet = new HashSet<Integer>();
+        for (int deviceId : InputDevice.getDeviceIds()) {
+            int sources = InputDevice.getDevice(deviceId).getSources();
+            if ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
+                    (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+                hashSet.add(deviceId);
             }
         }
         return hashSet;
     }
 
     public static boolean IsIFC() {
-        return f381a;
+        return isIFC;
     }
 
     public static boolean CheckIfIFC() {
-        String str = Build.BOARD;
-        String str2 = Build.BRAND;
-        String str3 = Build.DEVICE;
-        String str4 = Build.HARDWARE;
-        String str5 = Build.MANUFACTURER;
-        String str6 = Build.MODEL;
-        String str7 = Build.PRODUCT;
-        RobotLog.d("Platform information: board = " + str + " brand = " + str2 + " device = " + str3 + " hardware = " + str4 + " manufacturer = " + str5 + " model = " + str6 + " product = " + str7);
-        if (str.equals("MSM8960") && str2.equals("qcom") && str3.equals("msm8960") && str4.equals("qcom") && str5.equals("unknown") && str6.equals("msm8960") && str7.equals("msm8960")) {
+        RobotLog.d("Platform information: board = " + Build.BOARD +
+                " brand = " + Build.BRAND +
+                " device = " + Build.DEVICE +
+                " hardware = " + Build.HARDWARE +
+                " manufacturer = " + Build.MANUFACTURER +
+                " model = " + Build.MODEL +
+                " product = " + Build.PRODUCT);
+
+        if (Build.BOARD.equals("MSM8960") &&
+                Build.BRAND.equals("qcom") &&
+                Build.DEVICE.equals("msm8960") &&
+                Build.HARDWARE.equals("qcom") &&
+                Build.MANUFACTURER.equals("unknown") &&
+                Build.MODEL.equals("msm8960") &&
+                Build.PRODUCT.equals("msm8960")) {
             RobotLog.d("Detected IFC6410 Device!");
             return true;
+        } else {
+            RobotLog.d("Detected regular SmartPhone Device!");
+            return false;
         }
-        RobotLog.d("Detected regular SmartPhone Device!");
-        return false;
     }
 }

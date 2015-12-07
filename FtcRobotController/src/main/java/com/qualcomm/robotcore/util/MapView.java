@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
@@ -14,200 +15,182 @@ import android.view.View;
 import java.util.HashMap;
 
 public class MapView extends View {
-    MapView f391a;
-    private int f392b;
-    private int f393c;
-    private int f394d;
-    private int f395e;
-    private Paint f396f;
-    private Canvas f397g;
-    private Bitmap f398h;
-    private boolean f399i;
-    private boolean f400j;
-    private int f401k;
-    private float f402l;
-    private float f403m;
-    private BitmapDrawable f404n;
-    private int f405o;
-    private int f406p;
-    private int f407q;
-    private boolean f408r;
-    private HashMap<Integer, C0050a> f409s;
-    private Bitmap f410t;
+    MapView mv;
+    private int width;
+    private int height;
+    private int lineIntervalX;
+    private int lineIntervalY;
+    private Paint linePaint;
+    private Canvas canvas;
+    private Bitmap bitmap;
+    private boolean isSetup = false;
+    private boolean isVisible = false;
+    private int nextId = 1;
+    private float scalerX;
+    private float scalerY;
+    private int robotX;
+    private int robotY;
+    private int robotAngle;
+    private boolean robotExists = false;
+    private HashMap<Integer, Marker> markers;
 
-    /* renamed from: com.qualcomm.robotcore.util.MapView.a */
-    private class C0050a {
-        public int f385a;
-        public int f386b;
-        public int f387c;
-        public int f388d;
-        public boolean f389e;
-        final /* synthetic */ MapView f390f;
+    private Bitmap robotIcon;
 
-        public C0050a(MapView mapView, int i, int i2, int i3, int i4, boolean z) {
-            this.f390f = mapView;
-            this.f385a = i;
-            this.f386b = i2;
-            this.f387c = i3;
-            this.f388d = i4;
-            this.f389e = z;
+    private class Marker {
+        public int id;
+        public int x;
+        public int y;
+        public int resource;
+        public boolean isCircle;
+
+        public Marker(int id, int x, int y, int resource, boolean isCircle) {
+            this.id = id;
+            this.x = x;
+            this.y = y;
+            this.resource = resource;
+            this.isCircle = isCircle;
         }
     }
 
     protected void onSizeChanged(int x, int y, int oldx, int oldy) {
-        this.f402l = ((float) getWidth()) / ((float) this.f392b);
-        this.f403m = ((float) getHeight()) / ((float) this.f393c);
-        this.f400j = true;
+        this.scalerX = ((float) getWidth()) / ((float) this.width);
+        this.scalerY = ((float) getHeight()) / ((float) this.height);
+        this.isVisible = true;
         redraw();
         Log.e("MapView", "Size changed");
     }
 
     public MapView(Context context) {
         super(context);
-        this.f399i = false;
-        this.f400j = false;
-        this.f401k = 1;
-        this.f408r = false;
-        m222a();
+        this.isVisible = false;
+        init();
     }
 
     public MapView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.f399i = false;
-        this.f400j = false;
-        this.f401k = 1;
-        this.f408r = false;
-        m222a();
+        this.isVisible = false;
+        init();
     }
 
     public MapView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        this.f399i = false;
-        this.f400j = false;
-        this.f401k = 1;
-        this.f408r = false;
-        m222a();
+        init();
     }
 
-    private void m222a() {
-        this.f396f = new Paint();
-        this.f396f.setColor(-16777216);
-        this.f396f.setStrokeWidth(Dimmer.MAXIMUM_BRIGHTNESS);
-        this.f396f.setAntiAlias(true);
-        this.f391a = this;
-        this.f409s = new HashMap();
+    private void init() {
+        this.linePaint = new Paint();
+        this.linePaint.setColor(Color.BLACK);
+        this.linePaint.setStrokeWidth(1);
+        this.linePaint.setAntiAlias(true);
+        this.mv = this;
+        this.markers = new HashMap<Integer, Marker>();
     }
 
-    private int m221a(int i) {
+    private int makeEven(int i) {
         return i % 2 == 0 ? i : i + 1;
     }
 
     public void setup(int xMax, int yMax, int numLinesX, int numLinesY, Bitmap robotIcon) {
-        this.f392b = xMax * 2;
-        this.f393c = yMax * 2;
-        this.f394d = this.f392b / m221a(numLinesX);
-        this.f395e = this.f393c / m221a(numLinesY);
-        this.f410t = robotIcon;
-        this.f399i = true;
+        this.width = 2 * xMax;
+        this.height = 2 * yMax;
+        this.lineIntervalX = this.width / makeEven(numLinesX);
+        this.lineIntervalY = this.height / makeEven(numLinesY);
+        this.robotIcon = robotIcon;
+        this.isSetup = true;
     }
 
-    private void m224b() {
-        this.f398h = Bitmap.createBitmap(getWidth(), getHeight(), Config.ARGB_8888);
-        this.f397g = new Canvas(this.f398h);
+    private void drawGrid() {
+        this.bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Config.ARGB_8888);
+        this.canvas = new Canvas(this.bitmap);
         Paint paint = new Paint();
-        paint.setColor(-1);
+        paint.setColor(Color.WHITE);
         paint.setAntiAlias(true);
-        this.f397g.drawRect(0.0f, 0.0f, (float) this.f397g.getWidth(), (float) this.f397g.getHeight(), paint);
-        int i = 0;
-        while (i < this.f393c) {
-            float f = this.f403m * ((float) i);
-            this.f397g.drawLine(0.0f, f, (float) this.f397g.getWidth(), f, this.f396f);
-            i = this.f395e + i;
+        this.canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
+
+        for (int index = 0; index < height; index += lineIntervalY) {
+            float position = scalerY * index;
+            canvas.drawLine(0, position, canvas.getWidth(), position, linePaint);
         }
-        int i2 = 0;
-        while (i2 < this.f392b) {
-            float f2 = this.f402l * ((float) i2);
-            this.f397g.drawLine(f2, 0.0f, f2, (float) this.f397g.getHeight(), this.f396f);
-            i2 += this.f394d;
+
+        for (int index = 0; index < width; index += lineIntervalX) {
+            float position = scalerX * index;
+            canvas.drawLine(position, 0, position, canvas.getHeight(), linePaint);
         }
     }
 
-    private float m223b(int i) {
-        return (((float) i) * this.f402l) + ((float) (getWidth() / 2));
+    private float scaleX(int x) {
+        return ((float) (getWidth() / 2)) + (x * this.scalerX);
     }
 
-    private float m225c(int i) {
-        return ((float) (getHeight() / 2)) - (((float) i) * this.f403m);
+    private float scaleY(int y) {
+        return ((float) (getHeight() / 2)) - (y * this.scalerY);
     }
 
-    private int m227d(int i) {
-        return 360 - i;
+    private int scaleAngle(int angle) {
+        return 360 - angle;
     }
 
     public void setRobotLocation(int x, int y, int angle) {
-        this.f405o = -x;
-        this.f406p = y;
-        this.f407q = angle;
-        this.f408r = true;
+        this.robotX = -x;
+        this.robotY = y;
+        this.robotAngle = angle;
+        this.robotExists = true;
     }
 
     public int addMarker(int x, int y, int color) {
-        int i = this.f401k;
-        this.f401k = i + 1;
-        this.f409s.put(Integer.valueOf(i), new C0050a(this, i, -x, y, color, true));
-        return i;
+        int id = this.nextId++;
+        Marker marker = new Marker(id, -x, y, color, true);
+        this.markers.put(id, marker);
+        return id;
     }
 
     public boolean removeMarker(int id) {
-        if (this.f409s.remove(Integer.valueOf(id)) == null) {
-            return false;
-        }
-        return true;
+        return (this.markers.remove(id) != null);
     }
 
     public int addDrawable(int x, int y, int resource) {
-        int i = this.f401k;
-        this.f401k = i + 1;
-        this.f409s.put(Integer.valueOf(i), new C0050a(this, i, -x, y, resource, false));
-        return i;
+        int id = this.nextId++;
+        Marker drawable = new Marker(id, -x, y, resource, false);
+        this.markers.put(id, drawable);
+        return id;
     }
 
-    private void m226c() {
-        for (C0050a c0050a : this.f409s.values()) {
-            float b = m223b(c0050a.f386b);
-            float c = m225c(c0050a.f387c);
-            if (c0050a.f389e) {
+    private void drawMarkers() {
+        for (Marker marker : this.markers.values()) {
+            float x = scaleX(marker.x);
+            float y = scaleY(marker.y);
+            if (marker.isCircle) {
                 Paint paint = new Paint();
-                paint.setColor(c0050a.f388d);
-                this.f397g.drawCircle(b, c, 5.0f, paint);
+                paint.setColor(marker.resource);
+                this.canvas.drawCircle(x, y, 5, paint);
             } else {
-                Bitmap decodeResource = BitmapFactory.decodeResource(getResources(), c0050a.f388d);
-                this.f397g.drawBitmap(decodeResource, b - ((float) (decodeResource.getWidth() / 2)), c - ((float) (decodeResource.getHeight() / 2)), new Paint());
+                Bitmap decodeResource = BitmapFactory.decodeResource(getResources(), marker.resource);
+                this.canvas.drawBitmap(decodeResource, x - ((float) (decodeResource.getWidth() / 2)), y - ((float) (decodeResource.getHeight() / 2)), new Paint());
             }
         }
     }
 
-    private void m228d() {
-        float b = m223b(this.f405o);
-        float c = m225c(this.f406p);
-        int d = m227d(this.f407q);
+    private void drawRobot() {
+        float x = scaleX(this.robotX);
+        float y = scaleY(this.robotY);
+        int angle = scaleAngle(this.robotAngle);
         Matrix matrix = new Matrix();
-        matrix.postRotate((float) d);
+        matrix.postRotate((float) angle);
         matrix.postScale(0.2f, 0.2f);
-        Bitmap bitmap = this.f410t;
+        Bitmap bitmap = this.robotIcon;
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        this.f397g.drawBitmap(bitmap, b - ((float) (bitmap.getWidth() / 2)), c - ((float) (bitmap.getHeight() / 2)), new Paint());
+        this.canvas.drawBitmap(bitmap, x - ((float) (bitmap.getWidth() / 2)), y - ((float) (bitmap.getHeight() / 2)), new Paint());
     }
 
     public void redraw() {
-        if (this.f399i && this.f400j) {
-            m224b();
-            m226c();
-            if (this.f408r) {
-                m228d();
+        if (this.isSetup && this.isVisible) {
+            drawGrid();
+            drawMarkers();
+            if (this.robotExists) {
+                drawRobot();
             }
         }
-        this.f404n = new BitmapDrawable(getResources(), this.f398h);
-        this.f391a.setBackgroundDrawable(this.f404n);
+        BitmapDrawable drawable = new BitmapDrawable(getResources(), this.bitmap);
+        this.mv.setBackgroundDrawable(drawable);
     }
 }

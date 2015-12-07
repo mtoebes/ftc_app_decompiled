@@ -9,7 +9,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 
 public class Network {
     public static InetAddress getLoopbackAddress() {
@@ -21,34 +23,35 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> getLocalIpAddresses() {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> localIpAddresses = new ArrayList<InetAddress>();
         try {
-            Iterator it = Collections.list(NetworkInterface.getNetworkInterfaces()).iterator();
-            while (it.hasNext()) {
-                arrayList.addAll(Collections.list(((NetworkInterface) it.next()).getInetAddresses()));
+            ArrayList<NetworkInterface> networkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface network : networkInterfaces) {
+                localIpAddresses.addAll(Collections.list((network).getInetAddresses()));
             }
         } catch (SocketException e) {
+            // do nothing
         }
-        return arrayList;
+        return localIpAddresses;
     }
 
     public static ArrayList<InetAddress> getLocalIpAddress(String networkInterface) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> localIpAddresses = new ArrayList<InetAddress>();
         try {
-            Iterator it = Collections.list(NetworkInterface.getNetworkInterfaces()).iterator();
-            while (it.hasNext()) {
-                NetworkInterface networkInterface2 = (NetworkInterface) it.next();
-                if (networkInterface2.getName() == networkInterface) {
-                    arrayList.addAll(Collections.list(networkInterface2.getInetAddresses()));
+            ArrayList<NetworkInterface> networkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface network : networkInterfaces) {
+                if (network.getName().equals(networkInterface)) {
+                    localIpAddresses.addAll(Collections.list(network.getInetAddresses()));
                 }
             }
         } catch (SocketException e) {
+            // do nothing
         }
-        return arrayList;
+        return localIpAddresses;
     }
 
     public static ArrayList<InetAddress> removeIPv6Addresses(Collection<InetAddress> addresses) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         for (InetAddress inetAddress : addresses) {
             if (inetAddress instanceof Inet4Address) {
                 arrayList.add(inetAddress);
@@ -58,7 +61,7 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> removeIPv4Addresses(Collection<InetAddress> addresses) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         for (InetAddress inetAddress : addresses) {
             if (inetAddress instanceof Inet6Address) {
                 arrayList.add(inetAddress);
@@ -68,7 +71,7 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> removeLoopbackAddresses(Collection<InetAddress> addresses) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         for (InetAddress inetAddress : addresses) {
             if (!inetAddress.isLoopbackAddress()) {
                 arrayList.add(inetAddress);
@@ -78,9 +81,9 @@ public class Network {
     }
 
     public static ArrayList<String> getHostAddresses(Collection<InetAddress> addresses) {
-        ArrayList<String> arrayList = new ArrayList();
+        ArrayList<String> arrayList = new ArrayList<String>();
         for (InetAddress hostAddress : addresses) {
-            Object hostAddress2 = hostAddress.getHostAddress();
+            String hostAddress2 = hostAddress.getHostAddress();
             if (hostAddress2.contains("%")) {
                 hostAddress2 = hostAddress2.substring(0, hostAddress2.indexOf(37));
             }

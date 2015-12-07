@@ -14,11 +14,11 @@ public class PoseUtils {
 
     public static double[] getAnglesAroundZ(MatrixD rotMat) {
         if (rotMat.numRows() == 3 && rotMat.numCols() == 3) {
-            r0 = new double[3][];
-            r0[0] = new double[]{0.0d};
-            r0[1] = new double[]{0.0d};
-            r0[2] = new double[]{Servo.MAX_POSITION};
-            MatrixD times = rotMat.times(new MatrixD(r0));
+            double[][] unitVec = new double[3][];
+            unitVec[0] = new double[]{0};
+            unitVec[1] = new double[]{0};
+            unitVec[2] = new double[]{Servo.MAX_POSITION};
+            MatrixD times = rotMat.times(new MatrixD(unitVec));
             double toDegrees = Math.toDegrees(Math.atan2(times.data()[1][0], times.data()[0][0]));
             double toDegrees2 = Math.toDegrees(Math.atan2(times.data()[0][0], times.data()[1][0]));
             double toDegrees3 = Math.toDegrees(Math.asin(times.data()[2][0] / times.length()));
@@ -28,7 +28,7 @@ public class PoseUtils {
     }
 
     public static double smallestAngularDifferenceDegrees(double firstAngleDeg, double secondAngleDeg) {
-        double d = ((firstAngleDeg - secondAngleDeg) * 3.141592653589793d) / 180.0d;
-        return (Math.atan2(Math.sin(d), Math.cos(d)) * 180.0d) / 3.141592653589793d;
+        double d = ((firstAngleDeg - secondAngleDeg) * Math.PI) / 180;
+        return (Math.atan2(Math.sin(d), Math.cos(d)) * 180) / Math.PI;
     }
 }

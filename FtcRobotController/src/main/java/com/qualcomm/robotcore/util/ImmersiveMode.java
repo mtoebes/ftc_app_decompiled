@@ -1,5 +1,6 @@
 package com.qualcomm.robotcore.util;
 
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Handler;
 import android.os.Message;
@@ -7,36 +8,31 @@ import android.view.View;
 import com.qualcomm.robotcore.robocol.RobocolConfig;
 
 public class ImmersiveMode {
-    View f383a;
-    Handler f384b;
+    View view;
+    Handler handler;
 
-    /* renamed from: com.qualcomm.robotcore.util.ImmersiveMode.1 */
-    class C00491 extends Handler {
-        final /* synthetic */ ImmersiveMode f382a;
-
-        C00491(ImmersiveMode immersiveMode) {
-            this.f382a = immersiveMode;
-        }
-
+    class ImmersiveModeHandler extends Handler {
         public void handleMessage(Message msg) {
-            this.f382a.hideSystemUI();
+            hideSystemUI();
         }
     }
 
     public ImmersiveMode(View decorView) {
-        this.f384b = new C00491(this);
-        this.f383a = decorView;
+        this.handler = new ImmersiveModeHandler();
+        this.view = decorView;
     }
 
     public void cancelSystemUIHide() {
-        this.f384b.removeMessages(0);
+        handler.removeMessages(0);
     }
 
     public void hideSystemUI() {
-        this.f383a.setSystemUiVisibility(RobocolConfig.MAX_PACKET_SIZE);
+        view.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     public static boolean apiOver19() {
-        return VERSION.SDK_INT >= 19;
+        return VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     }
 }

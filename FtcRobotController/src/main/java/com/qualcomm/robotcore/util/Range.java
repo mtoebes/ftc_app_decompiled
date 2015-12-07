@@ -24,7 +24,7 @@ public class Range {
 
     public static void throwIfRangeIsInvalid(double number, double min, double max) throws IllegalArgumentException {
         if (number < min || number > max) {
-            throw new IllegalArgumentException(String.format("number %f is invalid; valid ranges are %f..%f", new Object[]{Double.valueOf(number), Double.valueOf(min), Double.valueOf(max)}));
+            throw new IllegalArgumentException(String.format("number %f is invalid; valid ranges are %f..%f", number, min, max));
         }
     }
 }

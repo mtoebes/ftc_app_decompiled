@@ -86,12 +86,12 @@ public class ExtractAssets {
                 File outputFile = new File(outputFileDir, filename);
                 outputStream = new FileOutputStream(outputFile);
 
-                 // Read from input stream and write to output stream
-                        byte[] readBuf = new byte[1024];
-                        int bytesRead;
-                        while ((bytesRead = inputStream.read(readBuf)) != -1) {
-                            outputStream.write(readBuf, 0, bytesRead);
-                        }
+                // Read from input stream and write to output stream
+                byte[] readBuf = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(readBuf)) != -1) {
+                    outputStream.write(readBuf, 0, bytesRead);
+                }
 
                 if (fileList != null) {
                     fileList.add(outFile);

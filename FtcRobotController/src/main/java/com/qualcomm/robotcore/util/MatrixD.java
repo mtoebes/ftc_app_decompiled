@@ -10,7 +10,7 @@ public class MatrixD {
     protected int mRows;
 
     public MatrixD(int rows, int cols) {
-        this((double[][]) Array.newInstance(Double.TYPE, new int[]{rows, cols}));
+        this((double[][]) Array.newInstance(Double.TYPE, rows, cols));
     }
 
     public MatrixD(double[] init, int rows, int cols) {
@@ -20,9 +20,9 @@ public class MatrixD {
         } else if (init.length != rows * cols) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with rows/cols not matching init data");
         } else {
-            for (int i = 0; i < rows; i++) {
-                for (int i2 = 0; i2 < cols; i2++) {
-                    this.mData[i][i2] = init[(cols * i) + i2];
+            for (int row = 0; row < rows; row++) {
+                for (int col = 0; col < cols; col++) {
+                    this.mData[row][col] = init[(cols * row) + col];
                 }
             }
         }
@@ -35,30 +35,30 @@ public class MatrixD {
         } else if (init.length != rows * cols) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with rows/cols not matching init data");
         } else {
-            for (int i = 0; i < rows; i++) {
-                for (int i2 = 0; i2 < cols; i2++) {
-                    this.mData[i][i2] = (double) init[(cols * i) + i2];
+            for (int row = 0; row < rows; row++) {
+                for (int col = 0; col < cols; col++) {
+                    this.mData[row][col] = (double) init[(cols * row) + col];
                 }
             }
         }
     }
 
     public MatrixD(double[][] init) {
-        int i = 0;
         this.mData = init;
         if (this.mData == null) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with null array");
         }
+
         this.mRows = this.mData.length;
         if (this.mRows <= 0) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with 0 rows");
         }
+
         this.mCols = this.mData[0].length;
-        while (i < this.mRows) {
-            if (this.mData[i].length != this.mCols) {
+        for (int row = 0; row < mRows; row++) {
+            if(mData[row].length != mCols) {
                 throw new IllegalArgumentException("Attempted to initialize MatrixF with rows of unequal length");
             }
-            i++;
         }
     }
 
@@ -80,13 +80,13 @@ public class MatrixD {
         } else if (rowOffset + rows > numRows() || colOffset + cols > numCols()) {
             throw new IllegalArgumentException("Attempted to access out of bounds data with row or col offset out of range");
         } else {
-            double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{rows, cols});
-            for (int i = 0; i < rows; i++) {
-                for (int i2 = 0; i2 < cols; i2++) {
-                    dArr[i][i2] = data()[rowOffset + i][colOffset + i2];
+            double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, rows, cols);
+            for (int row = 0; row < rows; row++) {
+                for (int col = 0; col < cols; col++) {
+                    matrixBuffer[row][col] = data()[rowOffset + row][colOffset + col];
                 }
             }
-            return new MatrixD(dArr);
+            return new MatrixD(matrixBuffer);
         }
     }
 
@@ -102,9 +102,9 @@ public class MatrixD {
         } else if (rowOffset + rows > inData.numRows() || colOffset + cols > numCols()) {
             throw new IllegalArgumentException("Input matrix Attempted to access out of bounds data with row or col offset out of range");
         } else {
-            for (int i = 0; i < rows; i++) {
-                for (int i2 = 0; i2 < cols; i2++) {
-                    data()[rowOffset + i][colOffset + i2] = inData.data()[i][i2];
+            for (int row = 0; row < rows; row++) {
+                for (int col = 0; col < cols; col++) {
+                    data()[rowOffset + row][colOffset + col] = inData.data()[row][col];
                 }
             }
             return true;
@@ -112,126 +112,105 @@ public class MatrixD {
     }
 
     public MatrixD transpose() {
-        int i = this.mRows;
-        int i2 = this.mCols;
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{i2, i});
-        for (int i3 = 0; i3 < i2; i3++) {
-            for (int i4 = 0; i4 < i; i4++) {
-                dArr[i3][i4] = this.mData[i4][i3];
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, mCols, mRows);
+        for (int col = 0; col < mCols; col++) {
+            for (int row = 0; row < mRows; row++) {
+                matrixBuffer[col][row] = mData[row][col];
             }
         }
-        return new MatrixD(dArr);
+        return new MatrixD(matrixBuffer);
     }
 
     public MatrixD add(MatrixD other) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
-        int numRows = numRows();
-        int numCols = numCols();
-        for (int i = 0; i < numRows; i++) {
-            for (int i2 = 0; i2 < numCols; i2++) {
-                dArr[i][i2] = data()[i][i2] + other.data()[i][i2];
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
+        for (int row = 0; row < numRows(); row++) {
+            for (int col = 0; col < numCols(); col++) {
+                matrixBuffer[row][col] = data()[row][col] + other.data()[row][col];
             }
         }
-        return new MatrixD(dArr);
+        return new MatrixD(matrixBuffer);
     }
 
     public MatrixD add(double val) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
-        int numRows = numRows();
-        int numCols = numCols();
-        for (int i = 0; i < numRows; i++) {
-            for (int i2 = 0; i2 < numCols; i2++) {
-                dArr[i][i2] = data()[i][i2] + val;
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
+        for (int row = 0; row < numRows(); row++) {
+            for (int col = 0; col < numCols(); col++) {
+                matrixBuffer[row][col] = data()[row][col] + val;
             }
         }
-        return new MatrixD(dArr);
+        return new MatrixD(matrixBuffer);
     }
 
     public MatrixD subtract(MatrixD other) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
-        int numRows = numRows();
-        int numCols = numCols();
-        for (int i = 0; i < numRows; i++) {
-            for (int i2 = 0; i2 < numCols; i2++) {
-                dArr[i][i2] = data()[i][i2] - other.data()[i][i2];
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
+        for (int row = 0; row < numRows(); row++) {
+            for (int col = 0; col < numCols(); col++) {
+                matrixBuffer[row][col] = data()[row][col] - other.data()[row][col];
             }
         }
-        return new MatrixD(dArr);
+        return new MatrixD(matrixBuffer);
     }
 
     public MatrixD subtract(double val) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
-        int numRows = numRows();
-        int numCols = numCols();
-        for (int i = 0; i < numRows; i++) {
-            for (int i2 = 0; i2 < numCols; i2++) {
-                dArr[i][i2] = data()[i][i2] - val;
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
+        for (int row = 0; row < numRows(); row++) {
+            for (int col = 0; col < numCols(); col++) {
+                matrixBuffer[row][col] = data()[row][col] - val;
             }
         }
-        return new MatrixD(dArr);
+        return new MatrixD(matrixBuffer);
     }
 
     public MatrixD times(MatrixD other) {
         if (numCols() != other.numRows()) {
             throw new IllegalArgumentException("Attempted to multiply matrices of invalid dimensions (AB) where A is " + numRows() + "x" + numCols() + ", B is " + other.numRows() + "x" + other.numCols());
         }
-        int numCols = numCols();
-        int numRows = numRows();
-        int numCols2 = other.numCols();
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows, numCols2});
-        for (int i = 0; i < numRows; i++) {
-            for (int i2 = 0; i2 < numCols2; i2++) {
-                for (int i3 = 0; i3 < numCols; i3++) {
-                    double[] dArr2 = dArr[i];
-                    dArr2[i2] = dArr2[i2] + (data()[i][i3] * other.data()[i3][i2]);
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), other.numCols());
+        for (int row = 0; row < numRows(); row++) {
+            for (int otherCol = 0; otherCol < other.numCols(); otherCol++) {
+                for (int col = 0; col < numCols(); col++) {
+                    double[] matrixBufferRow = matrixBuffer[row];
+                    matrixBufferRow[otherCol] = matrixBufferRow[otherCol] + (data()[row][col] * other.data()[col][otherCol]);
                 }
             }
         }
-        return new MatrixD(dArr);
+        return new MatrixD(matrixBuffer);
     }
 
     public MatrixD times(double f) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
-        for (int i = 0; i < numRows(); i++) {
-            for (int i2 = 0; i2 < numCols(); i2++) {
-                dArr[i][i2] = data()[i][i2] * f;
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
+        for (int row = 0; row < numRows(); row++) {
+            for (int col = 0; col < numCols(); col++) {
+                matrixBuffer[row][col] = data()[row][col] * f;
             }
         }
-        return new MatrixD(dArr);
+        return new MatrixD(matrixBuffer);
     }
 
     public double length() {
-        if (numRows() == 1 || numCols() == 1) {
-            double d = 0.0d;
-            for (int i = 0; i < numRows(); i++) {
-                int i2 = 0;
-                while (i2 < numCols()) {
-                    double d2 = (this.mData[i][i2] * this.mData[i][i2]) + d;
-                    i2++;
-                    d = d2;
-                }
-            }
-            return Math.sqrt(d);
+        if (numRows() == 1) {
+            return numRows();
+        } else if (numCols() == 1) {
+            return numRows();
+        } else {
+            throw new IndexOutOfBoundsException("Not a 1D matrix ( " + numRows() + ", " + numCols() + " )");
         }
-        throw new IndexOutOfBoundsException("Not a 1D matrix ( " + numRows() + ", " + numCols() + " )");
     }
 
     public String toString() {
-        String str = new String();
-        for (int i = 0; i < numRows(); i++) {
-            String str2 = new String();
-            for (int i2 = 0; i2 < numCols(); i2++) {
-                str2 = str2 + String.format("%.4f", new Object[]{Double.valueOf(data()[i][i2])});
-                if (i2 < numCols() - 1) {
-                    str2 = str2 + ", ";
+        String string = "";
+        for (int row = 0; row < numRows(); row++) {
+            for (int col = 0; col < numCols(); col++) {
+                string +=  String.format("%.4f", data()[row][col]);
+                if (col < numCols() - 1) {
+                    string = string + ", ";
                 }
             }
-            str = str + str2;
-            if (i < numRows() - 1) {
-                str = str + "\n";
+            if (row < numRows() - 1) {
+                string = string + "\n";
             }
         }
-        return str + "\n";
+        return string + "\n";
     }
 
     public static void test() {
