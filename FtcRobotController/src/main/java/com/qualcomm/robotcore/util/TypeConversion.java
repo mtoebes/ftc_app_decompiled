@@ -1,6 +1,5 @@
 package com.qualcomm.robotcore.util;
 
-import com.ftdi.j2xx.ft4222.FT_4222_Defines;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;

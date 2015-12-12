@@ -1,6 +1,5 @@
 package com.qualcomm.robotcore.util;
 
-import com.qualcomm.robotcore.hardware.Servo;
 import java.lang.reflect.Array;
 
 public class Pose {

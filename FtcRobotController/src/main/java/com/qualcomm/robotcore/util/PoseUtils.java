@@ -1,7 +1,6 @@
 package com.qualcomm.robotcore.util;
 
 import android.util.Log;
-import com.qualcomm.robotcore.hardware.Servo;
 
 public class PoseUtils {
     public static double[] getAnglesAroundZ(Pose inputPose) {

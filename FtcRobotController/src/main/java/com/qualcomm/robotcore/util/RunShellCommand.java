@@ -2,8 +2,6 @@ package com.qualcomm.robotcore.util;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 
-import java.io.IOException;
-
 public class RunShellCommand {
     private final static int BUFFER_SIZE = 0x80000;
     boolean logging;

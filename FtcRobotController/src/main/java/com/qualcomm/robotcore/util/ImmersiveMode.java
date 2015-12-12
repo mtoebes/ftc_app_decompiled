@@ -5,7 +5,6 @@ import android.os.Build.VERSION;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-import com.qualcomm.robotcore.robocol.RobocolConfig;
 
 public class ImmersiveMode {
     View view;
