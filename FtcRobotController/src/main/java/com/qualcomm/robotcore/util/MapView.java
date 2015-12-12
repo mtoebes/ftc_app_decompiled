@@ -53,7 +53,7 @@ public class MapView extends View {
         }
     }
 
-    protected void onSizeChanged(int x, int y, int oldx, int oldy) {
+    protected void onSizeChanged(int x, int y, int oldX, int oldY) {
         this.scalerX = ((float) getWidth()) / ((float) this.width);
         this.scalerY = ((float) getHeight()) / ((float) this.height);
         this.isVisible = true;

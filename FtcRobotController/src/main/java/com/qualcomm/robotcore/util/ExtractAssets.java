@@ -38,7 +38,7 @@ public class ExtractAssets {
         String[] ipFiles;
         InputStream inputStream = null;
         FileOutputStream outputStream = null;
-        Log.d(TAG, "Extracting assests for " + sourceFilePath);
+        Log.d(TAG, "Extracting assets for " + sourceFilePath);
         AssetManager assets = context.getAssets();
         try {
             ipFiles = assets.list(sourceFilePath);

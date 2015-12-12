@@ -17,7 +17,7 @@ Steps:
         - Add checks for missed edge cases
         - Remove superfluous checks
     5: Optimize functions to be easy to flow/reduce complexity
-        - ie: replace iter whiles with foreach loops
+        - ie: replace iterators whiles with foreach loops
         - move class variable initialization out of constructors
     6: Squash/expand functions to reuse/compartmentalize logic
         - localize creation of rarely used classes
