@@ -1,0 +1,28 @@
+12/12:
+Step 1 has been complete for all classes within robotcore. code compiles but have not attempted to run (expectation is that it would fail).
+
+Steps:
+    1: fix compile errors
+        - add missing casting/declaration
+        - implement logic that did not decompile correctly
+        - fix try/catch errors
+    2: refactor class variables names/functions to be readable
+        - fix references to incorrect static variables
+        - Add new static variables
+    3: Correct casting related warnings
+        - Add types to Collections
+        - Remove unnecessary castings
+        - Update variable types to be more specific
+    4: Identify and fix any faulty logic
+        - Add checks for missed edge cases
+        - Remove superfluous checks
+    5: Optimize functions to be easy to flow/reduce complexity
+        - ie: replace iter whiles with foreach loops
+        - move class variable initialization out of constructors
+    6: Squash/expand functions to reuse/compartmentalize logic
+        - localize creation of rarely used classes
+        - move complex/shared logic into helper functions
+    7: Add existing documentation to classes
+        - Some classes have docs that exist in doc/javadoc (copy/paste or write script)
+        - Add qualcomm disclaimer note to top of every file
+
