@@ -3,6 +3,8 @@ package com.qualcomm.robotcore.util;
 import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 
+import java.io.IOException;
+
 public class RunShellCommand {
     boolean f421a;
 
@@ -16,22 +18,22 @@ public class RunShellCommand {
 
     public String run(String cmd) {
         if (this.f421a) {
-            RobotLog.m233v("running command: " + cmd);
+            RobotLog.v("running command: " + cmd);
         }
         String a = m235a(cmd, false);
         if (this.f421a) {
-            RobotLog.m233v("         output: " + a);
+            RobotLog.v("         output: " + a);
         }
         return a;
     }
 
     public String runAsRoot(String cmd) {
         if (this.f421a) {
-            RobotLog.m233v("running command: " + cmd);
+            RobotLog.v("running command: " + cmd);
         }
         String a = m235a(cmd, true);
         if (this.f421a) {
-            RobotLog.m233v("         output: " + a);
+            RobotLog.v("         output: " + a);
         }
         return a;
     }
@@ -46,30 +48,24 @@ public class RunShellCommand {
                 processBuilder.command(new String[]{"su", "-c", str}).redirectErrorStream(true);
             } catch (Exception e) {
                 RobotLog.logStacktrace(e);
-                if (process != null) {
-                    process.destroy();
-                }
-            } catch (InterruptedException e2) {
-                e2.printStackTrace();
-                if (process != null) {
-                    process.destroy();
-                }
-            } catch (Throwable th) {
-                if (process != null) {
-                    process.destroy();
-                }
             }
         } else {
             processBuilder.command(new String[]{"sh", "-c", str}).redirectErrorStream(true);
         }
-        process = processBuilder.start();
-        process.waitFor();
-        int read = process.getInputStream().read(bArr);
-        if (read > 0) {
-            str2 = new String(bArr, 0, read);
-        }
-        if (process != null) {
-            process.destroy();
+
+        try {
+            process = processBuilder.start();
+            process.waitFor();
+            int read = process.getInputStream().read(bArr);
+            if (read > 0) {
+                str2 = new String(bArr, 0, read);
+            }
+        } catch (Exception e) {
+            // do nothing
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
         }
         return str2;
     }
@@ -78,7 +74,7 @@ public class RunShellCommand {
         try {
             int spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             while (spawnedProcessPid != -1) {
-                RobotLog.m233v("Killing PID " + spawnedProcessPid);
+                RobotLog.v("Killing PID " + spawnedProcessPid);
                 shell.run(String.format("kill %d", new Object[]{Integer.valueOf(spawnedProcessPid)}));
                 spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             }
@@ -101,7 +97,7 @@ public class RunShellCommand {
         int length = split.length;
         while (i < length) {
             String str2 = split[i];
-            if (str2.contains(processName) && str2.contains(r0)) {
+            if (str2.contains(processName) && str2.contains(charSequence)) {
                 return Integer.parseInt(str2.split("\\s+")[1]);
             }
             i++;
