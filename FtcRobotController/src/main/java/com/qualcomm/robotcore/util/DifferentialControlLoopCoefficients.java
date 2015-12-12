@@ -1,9 +1,9 @@
 package com.qualcomm.robotcore.util;
 
 public class DifferentialControlLoopCoefficients {
-    public double d = 0.0;
-    public double i = 0.0;
-    public double p = 0.0;
+    public double d;
+    public double i;
+    public double p;
 
     public DifferentialControlLoopCoefficients() {
     }

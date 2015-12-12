@@ -26,7 +26,6 @@ public class RobotLog {
 
         public void run() {
             try {
-                String str = "UsbRequestJNI:S UsbRequest:S *:V";
                 RobotLog.v("saving logcat to " + this.filePath);
                 RunShellCommand runShellCommand = new RunShellCommand();
                 RunShellCommand.killSpawnedProcess("logcat", this.packageName, runShellCommand);
@@ -148,7 +147,7 @@ public class RobotLog {
     }
 
     public static String getLogFilename(Context context) {
-        return (Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + context.getPackageName()) + ".logcat";
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + context.getPackageName() + ".logcat";
     }
 
     public static void cancelWriteLogcatToDisk(Context context) {

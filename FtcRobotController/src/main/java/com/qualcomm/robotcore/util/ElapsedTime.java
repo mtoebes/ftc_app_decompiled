@@ -42,11 +42,11 @@ public class ElapsedTime {
     }
 
     public double startTime() {
-        return ((double) this.startTime) / this.timeResolution;
+        return (double) this.startTime / this.timeResolution;
     }
 
     public double time() {
-        return ((double) (System.nanoTime() - this.startTime)) / this.timeResolution;
+        return (double) (System.nanoTime() - this.startTime) / this.timeResolution;
     }
 
     private String timeResolutionToString() {

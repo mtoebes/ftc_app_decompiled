@@ -35,7 +35,7 @@ public class ExtractAssets {
     }
 
     private static ArrayList<String> ExtractAndCopy(Context context, String sourceFilePath, boolean useInternalStorage, ArrayList<String> fileList) {
-        String[] ipFiles;
+        String[] ipFiles = null;
         InputStream inputStream = null;
         FileOutputStream outputStream = null;
         Log.d(TAG, "Extracting assets for " + sourceFilePath);
@@ -44,7 +44,6 @@ public class ExtractAssets {
             ipFiles = assets.list(sourceFilePath);
         } catch (IOException e) {
             e.printStackTrace();
-            ipFiles = null;
         }
         if (ipFiles.length == 0) {
             try {
@@ -60,8 +59,8 @@ public class ExtractAssets {
                     } else {
                         filesDir = context.getExternalFilesDir(null);
                     }
-                    String outFile = filesDir.getPath().concat(sourceFilePath);
-                    if (fileList == null || !fileList.contains(outFile)) {
+                    String outFile = filesDir.getPath() + sourceFilePath;
+                    if ((fileList == null) || !(fileList.contains(outFile))) {
                         int lastIndexOf = outFile.lastIndexOf(File.separatorChar);
                         String dirName = outFile.substring(0, lastIndexOf);
                         String fileName = outFile.substring(lastIndexOf, outFile.length());
@@ -113,11 +112,11 @@ public class ExtractAssets {
             }
             return fileList;
         }
-        if (!(sourceFilePath.equals("") || sourceFilePath.endsWith(File.separator))) {
-            sourceFilePath = sourceFilePath.concat(File.separator);
+        if (!("".equals(sourceFilePath) || sourceFilePath.endsWith(File.separator))) {
+            sourceFilePath = sourceFilePath + File.separator;
         }
         for (String ipFile : ipFiles) {
-            ExtractAndCopy(context, sourceFilePath.concat(ipFile), useInternalStorage, fileList);
+            ExtractAndCopy(context, sourceFilePath + ipFile, useInternalStorage, fileList);
         }
         return fileList;
     }

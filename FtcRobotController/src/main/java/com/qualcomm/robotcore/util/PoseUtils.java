@@ -4,7 +4,7 @@ import android.util.Log;
 
 public class PoseUtils {
     public static double[] getAnglesAroundZ(Pose inputPose) {
-        if (inputPose != null && inputPose.poseMatrix != null) {
+        if ((inputPose != null) && (inputPose.poseMatrix != null)) {
             return getAnglesAroundZ(inputPose.poseMatrix.submatrix(3, 3, 0, 0));
         }
         Log.e("PoseUtils", "null input");
@@ -12,7 +12,7 @@ public class PoseUtils {
     }
 
     public static double[] getAnglesAroundZ(MatrixD rotMat) {
-        if (rotMat.numRows() == 3 && rotMat.numCols() == 3) {
+        if ((rotMat.numRows() == 3) && (rotMat.numCols() == 3)) {
             double[][] vector = new double[3][];
             vector[0] = new double[]{0.0d};
             vector[1] = new double[]{0.0d};
@@ -28,7 +28,7 @@ public class PoseUtils {
     }
 
     public static double smallestAngularDifferenceDegrees(double firstAngleDeg, double secondAngleDeg) {
-        double deltaDegrees = ((firstAngleDeg - secondAngleDeg) * Math.PI) / 180.0d;
-        return (Math.atan2(Math.sin(deltaDegrees), Math.cos(deltaDegrees)) * 180.0d) / Math.PI;
+        double deltaDegrees = (firstAngleDeg - secondAngleDeg) * Math.PI / 180.0d;
+        return Math.atan2(Math.sin(deltaDegrees), Math.cos(deltaDegrees)) * 180.0d / Math.PI;
     }
 }

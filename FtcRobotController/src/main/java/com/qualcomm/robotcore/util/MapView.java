@@ -54,8 +54,8 @@ public class MapView extends View {
     }
 
     protected void onSizeChanged(int x, int y, int oldX, int oldY) {
-        this.scalerX = ((float) getWidth()) / ((float) this.width);
-        this.scalerY = ((float) getHeight()) / ((float) this.height);
+        this.scalerX = (float) getWidth() / (float) this.width;
+        this.scalerY = (float) getHeight() / (float) this.height;
         this.isVisible = true;
         redraw();
         Log.e("MapView", "Size changed");
@@ -98,7 +98,7 @@ public class MapView extends View {
     }
 
     private int toEvenInt(int i) {
-        return i % 2 == 0 ? i : i + 1;
+        return (i % 2 == 0) ? i : i + 1;
     }
 
     public void setup(int xMax, int yMax, int numLinesX, int numLinesY, Bitmap robotIcon) {
@@ -119,24 +119,24 @@ public class MapView extends View {
         this.canvas.drawRect(0.0f, 0.0f, (float) this.canvas.getWidth(), (float) this.canvas.getHeight(), paint);
         int index = 0;
         while (index < this.height) {
-            float f = this.scalerY * ((float) index);
+            float f = this.scalerY * (float) index;
             this.canvas.drawLine(0.0f, f, (float) this.canvas.getWidth(), f, this.linePaint);
             index = this.lineIntervalY + index;
         }
         index = 0;
         while (index < this.width) {
-            float f2 = this.scalerX * ((float) index);
+            float f2 = this.scalerX * (float) index;
             this.canvas.drawLine(f2, 0.0f, f2, (float) this.canvas.getHeight(), this.linePaint);
             index += this.lineIntervalX;
         }
     }
 
     private float scaleX(int x) {
-        return (((float) x) * this.scalerX) + ((float) (getWidth() / 2));
+        return (float) x * this.scalerX + (float) (getWidth() / 2);
     }
 
     private float scaleY(int y) {
-        return ((float) (getHeight() / 2)) - (((float) y) * this.scalerY);
+        return (float) (getHeight() / 2) - (float) y * this.scalerY;
     }
 
     private int scaleTh(int th) {
@@ -158,7 +158,7 @@ public class MapView extends View {
     }
 
     public boolean removeMarker(int id) {
-        return (this.markers.remove(Integer.valueOf(id)) != null);
+        return this.markers.remove(Integer.valueOf(id)) != null;
     }
 
     public int addDrawable(int x, int y, int resource) {
@@ -178,7 +178,7 @@ public class MapView extends View {
                 this.canvas.drawCircle(x, y, 5.0f, paint);
             } else {
                 Bitmap decodeResource = BitmapFactory.decodeResource(getResources(), marker.resource);
-                this.canvas.drawBitmap(decodeResource, x - ((float) (decodeResource.getWidth() / 2)), y - ((float) (decodeResource.getHeight() / 2)), new Paint());
+                this.canvas.drawBitmap(decodeResource, x - (float) (decodeResource.getWidth() / 2), y - (float) (decodeResource.getHeight() / 2), new Paint());
             }
         }
     }
@@ -192,7 +192,7 @@ public class MapView extends View {
         matrix.postScale(0.2f, 0.2f);
         Bitmap bitmap = this.robotIcon;
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        this.canvas.drawBitmap(bitmap, x - ((float) (bitmap.getWidth() / 2)), y - ((float) (bitmap.getHeight() / 2)), new Paint());
+        this.canvas.drawBitmap(bitmap, x - (float) (bitmap.getWidth() / 2), y - (float) (bitmap.getHeight() / 2), new Paint());
     }
 
     public void redraw() {

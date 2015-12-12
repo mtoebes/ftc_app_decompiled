@@ -47,8 +47,8 @@ public class BatteryChecker {
         if(registerReceiver != null) {
             int level = registerReceiver.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
             int scale = registerReceiver.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-            if (level >= 0 && scale > 0) {
-                batteryLevel = (level * 100) / scale;
+            if ((level >= 0) && (scale > 0)) {
+                batteryLevel = level * 100 / scale;
             }
         }
         return batteryLevel;

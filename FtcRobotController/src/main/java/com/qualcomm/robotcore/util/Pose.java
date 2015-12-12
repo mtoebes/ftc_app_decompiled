@@ -11,7 +11,7 @@ public class Pose {
     public Pose(MatrixD poseMatrix) {
         if (poseMatrix == null) {
             throw new IllegalArgumentException("Attempted to construct Pose from null matrix");
-        } else if (poseMatrix.numRows() == 3 && poseMatrix.numCols() == 4) {
+        } else if ((poseMatrix.numRows() == 3) && (poseMatrix.numCols() == 4)) {
             this.poseMatrix = poseMatrix;
             this.transX = poseMatrix.data()[0][3];
             this.transY = poseMatrix.data()[1][3];
@@ -113,6 +113,6 @@ public class Pose {
     }
 
     public double getDistanceInMm() {
-        return Math.sqrt((Math.pow(this.transX, 2.0d) + Math.pow(this.transY, 2.0d)) + Math.pow(this.transZ, 2.0d));
+        return Math.sqrt(Math.pow(this.transX, 2.0d) + Math.pow(this.transY, 2.0d) + Math.pow(this.transZ, 2.0d));
     }
 }

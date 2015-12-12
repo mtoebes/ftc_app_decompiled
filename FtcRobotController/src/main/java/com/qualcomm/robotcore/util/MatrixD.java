@@ -17,12 +17,12 @@ public class MatrixD {
         this(rows, cols);
         if (dataBuffer == null) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with null array");
-        } else if (dataBuffer.length != rows * cols) {
+        } else if (dataBuffer.length != ((rows * cols))) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with rows/cols not matching init data");
         } else {
             for (int row = 0; row < rows; row++) {
                 for (int col = 0; col < cols; col++) {
-                    this.mData[row][col] = dataBuffer[(cols * row) + col];
+                    this.mData[row][col] = dataBuffer[cols * row + col];
                 }
             }
         }
@@ -32,12 +32,12 @@ public class MatrixD {
         this(rows, cols);
         if (dataBuffer == null) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with null array");
-        } else if (dataBuffer.length != rows * cols) {
+        } else if (dataBuffer.length != (rows * cols)) {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with rows/cols not matching init data");
         } else {
             for (int row = 0; row < rows; row++) {
                 for (int col = 0; col < cols; col++) {
-                    this.mData[row][col] = (double) dataBuffer[(cols * row) + col];
+                    this.mData[row][col] = (double) dataBuffer[cols * row + col];
                 }
             }
         }
@@ -75,9 +75,9 @@ public class MatrixD {
     }
 
     public MatrixD submatrix(int rows, int cols, int rowOffset, int colOffset) {
-        if (rows > numRows() || cols > numCols()) {
+        if ((rows > numRows()) || (cols > numCols())) {
             throw new IllegalArgumentException("Attempted to get submatrix with size larger than original");
-        } else if (rowOffset + rows > numRows() || colOffset + cols > numCols()) {
+        } else if (((rowOffset + rows) > numRows()) || ((colOffset + cols) > numCols())) {
             throw new IllegalArgumentException("Attempted to access out of bounds data with row or col offset out of range");
         } else {
             double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, rows, cols);
@@ -93,13 +93,13 @@ public class MatrixD {
     public boolean setSubmatrix(MatrixD inData, int rows, int cols, int rowOffset, int colOffset) {
         if (inData == null) {
             throw new IllegalArgumentException("Input data to setSubMatrix null");
-        } else if (rows > numRows() || cols > numCols()) {
+        } else if ((rows > numRows()) || (cols > numCols())) {
             throw new IllegalArgumentException("Attempted to get submatrix with size larger than original");
-        } else if (rowOffset + rows > numRows() || colOffset + cols > numCols()) {
+        } else if (((rowOffset + rows) > numRows() || ((colOffset + cols)) > numCols())) {
             throw new IllegalArgumentException("Attempted to access out of bounds data with row or col offset out of range");
-        } else if (rows > inData.numRows() || cols > inData.numCols()) {
+        } else if ((rows > inData.numRows()) || (cols > inData.numCols())) {
             throw new IllegalArgumentException("Input matrix small for setSubMatrix");
-        } else if (rowOffset + rows > inData.numRows() || colOffset + cols > numCols()) {
+        } else if ((rowOffset + rows) > inData.numRows() || colOffset + cols > numCols()) {
             throw new IllegalArgumentException("Input matrix Attempted to access out of bounds data with row or col offset out of range");
         } else {
             for (int row = 0; row < rows; row++) {
@@ -183,7 +183,7 @@ public class MatrixD {
             for (int col2 = 0; col2 < numCols2; col2++) {
                 for (int col = 0; col < numCols; col++) {
                     double[] dataBuffer2 = dataBuffer[row];
-                    dataBuffer2[col2] = dataBuffer2[col2] + (data()[row][col] * other.data()[col][col2]);
+                    dataBuffer2[col2] *= other.data()[col][col2];
                 }
             }
         }
@@ -201,11 +201,11 @@ public class MatrixD {
     }
 
     public double length() {
-        if (numRows() == 1 || numCols() == 1) {
+        if ((numRows() == 1) || (numCols() == 1)) {
             double d = 0.0d;
             for (int row = 0; row < numRows(); row++) {
                 for (int col = 0; col < numCols(); col++) {
-                    d += (this.mData[row][col] * this.mData[row][col]);
+                    d += this.mData[row][col] * this.mData[row][col];
                 }
             }
             return Math.sqrt(d);
@@ -218,14 +218,14 @@ public class MatrixD {
         for (int row = 0; row < numRows(); row++) {
             String colString = new String();
             for (int col = 0; col < numCols(); col++) {
-                colString = colString + String.format("%.4f", data()[row][col]);
-                if (col < numCols() - 1) {
-                    colString = colString + ", ";
+                colString += String.format("%.4f", data()[row][col]);
+                if (col < (numCols() - 1)) {
+                    colString += ", ";
                 }
             }
             matrixString += colString;
-            if (row < numRows() - 1) {
-                matrixString = matrixString + "\n";
+            if (row < (numRows() - 1)) {
+                matrixString += "\n";
             }
         }
         return matrixString + "\n";

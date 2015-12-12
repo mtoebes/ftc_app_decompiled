@@ -37,7 +37,7 @@ public class Network {
         try {
             ArrayList<NetworkInterface> NetworkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
             for(NetworkInterface networkInterface2 : NetworkInterfaces) {
-                if (networkInterface2.getName() == networkInterface) {
+                if (networkInterface2.getName().equals(networkInterface)) {
                     arrayList.addAll(Collections.list(networkInterface2.getInetAddresses()));
                 }
             }

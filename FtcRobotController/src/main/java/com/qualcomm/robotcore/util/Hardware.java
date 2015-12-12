@@ -16,7 +16,8 @@ public class Hardware {
         Set<Integer> hashSet = new HashSet<Integer>();
         for (int deviceId : InputDevice.getDeviceIds()) {
             int sources = InputDevice.getDevice(deviceId).getSources();
-            if ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD || (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+            if (((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
+                    ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)) {
                 hashSet.add(deviceId);
             }
         }
@@ -36,7 +37,7 @@ public class Hardware {
         String model = Build.MODEL;
         String product = Build.PRODUCT;
         RobotLog.d("Platform information: board = " + board + " brand = " + brand + " device = " + device + " hardware = " + hardware + " manufacturer = " + manufacturer + " model = " + model + " product = " + product);
-        if (board.equals("MSM8960") && brand.equals("qcom") && device.equals("msm8960") && hardware.equals("qcom") && manufacturer.equals("unknown") && model.equals("msm8960") && product.equals("msm8960")) {
+        if ("MSM8960".equals(board) && "qcom".equals(brand) && "msm8960".equals(device) && "qcom".equals(hardware) && "unknown".equals(manufacturer) && "msm8960".equals(model) && "msm8960".equals(product)) {
             RobotLog.d("Detected IFC6410 Device!");
             return true;
         }

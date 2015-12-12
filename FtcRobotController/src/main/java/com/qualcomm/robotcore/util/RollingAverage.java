@@ -40,7 +40,7 @@ public class RollingAverage {
         if (this.queue.isEmpty()) {
             return 0;
         }
-        return (int) (this.last / ((long) this.queue.size()));
+        return (int) (this.last / (long) this.queue.size());
     }
 
     public void reset() {

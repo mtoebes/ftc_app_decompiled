@@ -7,12 +7,10 @@ import java.util.Comparator;
 import java.util.Random;
 
 public class Util {
-    public static String ASCII_RECORD_SEPARATOR = null;
+    public static String ASCII_RECORD_SEPARATOR;
     public static final String LOWERCASE_ALPHA_NUM_CHARACTERS = "0123456789qwertyuiopasdfghjklzxcvbnm";
 
     static class fileComparator implements Comparator<File> {
-        fileComparator() {
-        }
 
         public int compare(File obj, File obj2) {
             return obj.getName().compareTo(obj2.getName());

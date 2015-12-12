@@ -28,11 +28,8 @@ public class SerialNumber implements Serializable {
             return true;
         } else if (object instanceof SerialNumber) {
             return this.serialNumber.equals(((SerialNumber) object).getSerialNumber());
-        } else if (object instanceof String) {
-            return this.serialNumber.equals(object);
-        } else {
-            return false;
-        }
+        } else
+            return object instanceof String && this.serialNumber.equals(object);
     }
 
     public int hashCode() {
