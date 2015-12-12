@@ -153,6 +153,7 @@ public class WriteXMLFileHandler {
         }
         if (controllerConfiguration.getType() == ConfigurationType.MATRIX_CONTROLLER) {
             it = ((ArrayList) ((MatrixControllerConfiguration) controllerConfiguration).getMotors()).iterator();
+            DeviceConfiguration deviceConfiguration;
             while (it.hasNext()) {
                 deviceConfiguration = (DeviceConfiguration) it.next();
                 if (deviceConfiguration.isEnabled()) {
@@ -216,7 +217,6 @@ public class WriteXMLFileHandler {
                     }
                 } catch (Exception e3) {
                     e = e3;
-                    try {
                         e.printStackTrace();
                         try {
                             fileOutputStream.close();
@@ -225,15 +225,6 @@ public class WriteXMLFileHandler {
                             e22.printStackTrace();
                             return;
                         }
-                    } catch (Throwable th2) {
-                        th = th2;
-                        try {
-                            fileOutputStream.close();
-                        } catch (IOException e4) {
-                            e4.printStackTrace();
-                        }
-                        throw th;
-                    }
                 }
             } catch (Exception e5) {
                 e = e5;
@@ -241,11 +232,6 @@ public class WriteXMLFileHandler {
                 e.printStackTrace();
                 fileOutputStream.close();
                 return;
-            } catch (Throwable th3) {
-                th = th3;
-                fileOutputStream = null;
-                fileOutputStream.close();
-                throw th;
             }
         }
         throw new RobotCoreException("Unable to create directory");

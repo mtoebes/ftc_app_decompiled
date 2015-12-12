@@ -15,7 +15,7 @@ public class Util {
         C00531() {
         }
 
-        public /* synthetic */ int compare(Object obj, Object obj2) {
+        public int compare(File obj, File obj2) {
             return m236a((File) obj, (File) obj2);
         }
 
@@ -63,7 +63,7 @@ public class Util {
     }
 
     public static byte[] concatenateByteArrays(byte[] first, byte[] second) {
-        Object obj = new byte[(first.length + second.length)];
+        byte[] obj = new byte[(first.length + second.length)];
         System.arraycopy(first, 0, obj, 0, first.length);
         System.arraycopy(second, 0, obj, first.length, second.length);
         return obj;
