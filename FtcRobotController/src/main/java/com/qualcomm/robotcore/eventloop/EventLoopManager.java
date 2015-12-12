@@ -190,88 +190,63 @@ public class EventLoopManager {
             this.f179a = new ElapsedTime();
         }
 
-        /* JADX WARNING: inconsistent code. */
-        /* Code decompiled incorrectly, please refer to instructions dump. */
         public void run() {
-            /*
-            r4 = this;
-        L_0x0000:
-            r0 = r4.f180b;
-            r0 = r0.f186d;
-            r0 = r0.recv();
-            r1 = r4.f180b;
-            r1 = r1.f187e;
-            if (r1 != 0) goto L_0x001e;
-        L_0x0012:
-            r1 = r4.f180b;
-            r1 = r1.f186d;
-            r1 = r1.isClosed();
-            if (r1 == 0) goto L_0x001f;
-        L_0x001e:
-            return;
-        L_0x001f:
-            if (r0 != 0) goto L_0x0025;
-        L_0x0021:
-            java.lang.Thread.yield();
-            goto L_0x0000;
-        L_0x0025:
-            r1 = com.qualcomm.robotcore.util.RobotLog.hasGlobalErrorMsg();
-            if (r1 == 0) goto L_0x0036;
-        L_0x002b:
-            r1 = r4.f180b;
-            r2 = "SYSTEM_TELEMETRY";
-            r3 = com.qualcomm.robotcore.util.RobotLog.getGlobalErrorMsg();
-            r1.buildAndSendTelemetry(r2, r3);
-        L_0x0036:
-            r1 = com.qualcomm.robotcore.eventloop.EventLoopManager.C00261.f176a;	 Catch:{ RobotCoreException -> 0x004b }
-            r2 = r0.getMsgType();	 Catch:{ RobotCoreException -> 0x004b }
-            r2 = r2.ordinal();	 Catch:{ RobotCoreException -> 0x004b }
-            r1 = r1[r2];	 Catch:{ RobotCoreException -> 0x004b }
-            switch(r1) {
-                case 1: goto L_0x0067;
-                case 2: goto L_0x006d;
-                case 3: goto L_0x0073;
-                case 4: goto L_0x0079;
-                case 5: goto L_0x007f;
-                default: goto L_0x0045;
-            };	 Catch:{ RobotCoreException -> 0x004b }
-        L_0x0045:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m178e(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x004b:
-            r0 = move-exception;
-            r1 = new java.lang.StringBuilder;
-            r1.<init>();
-            r2 = "RobotCore event loop cannot process event: ";
-            r1 = r1.append(r2);
-            r0 = r0.toString();
-            r0 = r1.append(r0);
-            r0 = r0.toString();
-            com.qualcomm.robotcore.util.RobotLog.w(r0);
-            goto L_0x0000;
-        L_0x0067:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m163a(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x006d:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m168b(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x0073:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m171c(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x0079:
-            r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r1.m175d(r0);	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-        L_0x007f:
-            r0 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
-            r0.m169c();	 Catch:{ RobotCoreException -> 0x004b }
-            goto L_0x0000;
-            */
-            throw new UnsupportedOperationException("Method not decompiled: com.qualcomm.robotcore.eventloop.EventLoopManager.c.run():void");
+
+            RobotLog.v("EventLoopRunnable has started");
+            try {
+                ElapsedTime runnableElapseTime = new ElapsedTime();
+
+                while (!Thread.interrupted()) {
+                    while (runnableElapseTime.time() < 0.001) {
+                        Thread.sleep(5);
+                    }
+                    runnableElapseTime.reset();
+                    if (RobotLog.hasGlobalErrorMsg()) {
+                        buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+                    }
+                    if (f188f.startTime() == 0.0) {
+                        Thread.sleep(500);
+                    } else if (f188f.time() > 2.0) {
+                        handleDroppedConnection();
+                        f188f = new ElapsedTime(0);
+                    }
+                    for (SyncdDevice syncdDevice : f193k) {
+                        syncdDevice.blockUntilReady();
+                    }
+
+                    try {
+                        f189g.loop();
+                    } catch (Exception e) {
+                        RobotLog.e("Event loop threw an exception");
+                        RobotLog.logStacktrace(e);
+                        RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + (e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "")));
+                        buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+                        throw new RobotCoreException("EventLoop Exception in loop()");
+                    } finally {
+                        for (SyncdDevice syncDevice : f193k) {
+                            syncDevice.startBlockingWork();
+                        }
+                    }
+                }
+
+            } catch (InterruptedException e2) {
+                RobotLog.v("EventLoopRunnable interrupted");
+                m164a(RobotState.STOPPED);
+            } catch (RobotCoreException e3) {
+                RobotLog.v("RobotCoreException in EventLoopManager: " + e3.getMessage());
+                m164a(RobotState.EMERGENCY_STOP);
+                buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+            }
+            try {
+                f189g.teardown();
+            } catch (Exception e4) {
+                RobotLog.w("Caught exception during looper teardown: " + e4.toString());
+                RobotLog.logStacktrace(e4);
+                if (RobotLog.hasGlobalErrorMsg()) {
+                    buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+                }
+            }
+            RobotLog.v("EventLoopRunnable has exited");
         }
     }
 
