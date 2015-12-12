@@ -30,7 +30,7 @@ public class RobotLog {
                 RobotLog.v("saving logcat to " + this.filePath);
                 RunShellCommand runShellCommand = new RunShellCommand();
                 RunShellCommand.killSpawnedProcess("logcat", this.packageName, runShellCommand);
-                runShellCommand.run(String.format("logcat -f %s -r%d -n%d -v time %s", this.filePath, Integer.valueOf(this.fileSizeKb), Integer.valueOf(1), "UsbRequestJNI:S UsbRequest:S *:V"));
+                runShellCommand.run(String.format("logcat -f %s -r%d -n%d -v time %s", this.filePath, this.fileSizeKb, 1, "UsbRequestJNI:S UsbRequest:S *:V"));
             } catch (RobotCoreException e) {
                 RobotLog.v("Error while writing log file to disk: " + e);
             } finally {

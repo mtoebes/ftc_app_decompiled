@@ -102,12 +102,12 @@ public class Pose {
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         double[] anglesAroundZ = PoseUtils.getAnglesAroundZ(this);
-        stringBuilder.append(String.format("(XYZ %1$,.2f ", new Object[]{Double.valueOf(this.transX)}));
-        stringBuilder.append(String.format(" %1$,.2f ", new Object[]{Double.valueOf(this.transY)}));
-        stringBuilder.append(String.format(" %1$,.2f mm)", new Object[]{Double.valueOf(this.transZ)}));
-        stringBuilder.append(String.format("(Angles %1$,.2f, ", new Object[]{Double.valueOf(anglesAroundZ[0])}));
-        stringBuilder.append(String.format(" %1$,.2f, ", new Object[]{Double.valueOf(anglesAroundZ[1])}));
-        stringBuilder.append(String.format(" %1$,.2f ", new Object[]{Double.valueOf(anglesAroundZ[2])}));
+        stringBuilder.append(String.format("(XYZ %1$,.2f ", new Object[]{this.transX}));
+        stringBuilder.append(String.format(" %1$,.2f ", new Object[]{this.transY}));
+        stringBuilder.append(String.format(" %1$,.2f mm)", new Object[]{this.transZ}));
+        stringBuilder.append(String.format("(Angles %1$,.2f, ", new Object[]{anglesAroundZ[0]}));
+        stringBuilder.append(String.format(" %1$,.2f, ", new Object[]{anglesAroundZ[1]}));
+        stringBuilder.append(String.format(" %1$,.2f ", new Object[]{anglesAroundZ[2]}));
         stringBuilder.append('\u00b0');
         stringBuilder.append(")");
         return stringBuilder.toString();

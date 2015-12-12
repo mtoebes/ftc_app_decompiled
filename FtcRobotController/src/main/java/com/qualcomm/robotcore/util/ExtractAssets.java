@@ -26,9 +26,8 @@ public class ExtractAssets {
             }
         }
         ArrayList<String> arrayList = new ArrayList<String>();
-        Iterator it = files.iterator();
-        while (it.hasNext()) {
-            ExtractAndCopy(context, (String) it.next(), useInternalStorage, arrayList);
+        for(String file : files) {
+            ExtractAndCopy(context, file, useInternalStorage, arrayList);
             if (arrayList != null) {
                 Log.d(TAG, "got " + arrayList.size() + " elements");
             }

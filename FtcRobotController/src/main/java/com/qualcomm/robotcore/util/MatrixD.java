@@ -218,7 +218,7 @@ public class MatrixD {
         for (int row = 0; row < numRows(); row++) {
             String colString = new String();
             for (int col = 0; col < numCols(); col++) {
-                colString = colString + String.format("%.4f", Double.valueOf(data()[row][col]));
+                colString = colString + String.format("%.4f", data()[row][col]);
                 if (col < numCols() - 1) {
                     colString = colString + ", ";
                 }

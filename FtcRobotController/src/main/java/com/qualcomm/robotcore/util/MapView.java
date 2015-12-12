@@ -153,7 +153,7 @@ public class MapView extends View {
     public int addMarker(int x, int y, int color) {
         int id = this.nextId;
         this.nextId = id + 1;
-        this.markers.put(Integer.valueOf(id), new Marker(this, id, -x, y, color, true));
+        this.markers.put(id, new Marker(this, id, -x, y, color, true));
         return id;
     }
 
@@ -164,7 +164,7 @@ public class MapView extends View {
     public int addDrawable(int x, int y, int resource) {
         int id = this.nextId;
         this.nextId = id + 1;
-        this.markers.put(Integer.valueOf(id), new Marker(this, id, -x, y, resource, false));
+        this.markers.put(id, new Marker(this, id, -x, y, resource, false));
         return id;
     }
 

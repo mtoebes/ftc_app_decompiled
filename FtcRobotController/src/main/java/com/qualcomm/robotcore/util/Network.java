@@ -23,9 +23,10 @@ public class Network {
     public static ArrayList<InetAddress> getLocalIpAddresses() {
         ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         try {
-            Iterator it = Collections.list(NetworkInterface.getNetworkInterfaces()).iterator();
-            while (it.hasNext()) {
-                arrayList.addAll(Collections.list(((NetworkInterface) it.next()).getInetAddresses()));
+
+            ArrayList<NetworkInterface> NetworkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for(NetworkInterface networkInterface : NetworkInterfaces) {
+                arrayList.addAll(Collections.list(networkInterface.getInetAddresses()));
             }
         } catch (SocketException e) {
         }
@@ -35,9 +36,8 @@ public class Network {
     public static ArrayList<InetAddress> getLocalIpAddress(String networkInterface) {
         ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         try {
-            Iterator it = Collections.list(NetworkInterface.getNetworkInterfaces()).iterator();
-            while (it.hasNext()) {
-                NetworkInterface networkInterface2 = (NetworkInterface) it.next();
+            ArrayList<NetworkInterface> NetworkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for(NetworkInterface networkInterface2 : NetworkInterfaces) {
                 if (networkInterface2.getName() == networkInterface) {
                     arrayList.addAll(Collections.list(networkInterface2.getInetAddresses()));
                 }

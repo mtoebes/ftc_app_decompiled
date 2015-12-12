@@ -73,7 +73,7 @@ public class RunShellCommand {
             int spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             while (spawnedProcessPid != -1) {
                 RobotLog.v("Killing PID " + spawnedProcessPid);
-                shell.run(String.format("kill %d", Integer.valueOf(spawnedProcessPid)));
+                shell.run(String.format("kill %d", spawnedProcessPid));
                 spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             }
         } catch (Exception e) {

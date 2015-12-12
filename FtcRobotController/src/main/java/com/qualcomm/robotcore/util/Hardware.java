@@ -17,7 +17,7 @@ public class Hardware {
         for (int deviceId : InputDevice.getDeviceIds()) {
             int sources = InputDevice.getDevice(deviceId).getSources();
             if ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD || (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
-                hashSet.add(Integer.valueOf(deviceId));
+                hashSet.add(deviceId);
             }
         }
         return hashSet;
