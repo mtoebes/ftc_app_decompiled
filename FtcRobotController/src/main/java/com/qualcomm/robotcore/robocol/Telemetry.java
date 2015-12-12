@@ -1,8 +1,6 @@
 package com.qualcomm.robotcore.robocol;
 
-import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.robocol.RobocolParsable.MsgType;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -25,14 +23,14 @@ public class Telemetry implements RobocolParsable {
     public Telemetry() {
         this.f339b = new HashMap();
         this.f340c = new HashMap();
-        this.f341d = BuildConfig.VERSION_NAME;
+        this.f341d = "";
         this.f342e = 0;
     }
 
     public Telemetry(byte[] byteArray) throws RobotCoreException {
         this.f339b = new HashMap();
         this.f340c = new HashMap();
-        this.f341d = BuildConfig.VERSION_NAME;
+        this.f341d = "";
         this.f342e = 0;
         fromByteArray(byteArray);
     }
@@ -159,7 +157,7 @@ public class Telemetry implements RobocolParsable {
             this.f342e = wrap.getLong();
             int unsignedByteToInt = TypeConversion.unsignedByteToInt(wrap.get());
             if (unsignedByteToInt == 0) {
-                this.f341d = BuildConfig.VERSION_NAME;
+                this.f341d = "";
             } else {
                 byte[] bArr = new byte[unsignedByteToInt];
                 wrap.get(bArr);

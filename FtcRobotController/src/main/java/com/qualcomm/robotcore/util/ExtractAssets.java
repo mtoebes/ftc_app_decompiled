@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
 import android.util.Log;
-import com.qualcomm.robotcore.BuildConfig;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -115,7 +115,7 @@ public class ExtractAssets {
             }
             return arrayList;
         }
-        if (!(str.equals(BuildConfig.VERSION_NAME) || str.endsWith(File.separator))) {
+        if (!(str.equals("") || str.endsWith(File.separator))) {
             str = str.concat(File.separator);
         }
         for (String concat2 : list) {

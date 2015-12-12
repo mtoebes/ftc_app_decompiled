@@ -2,7 +2,7 @@ package com.qualcomm.robotcore.hardware.configuration;
 
 import android.content.Context;
 import android.util.Xml;
-import com.qualcomm.robotcore.BuildConfig;
+
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 import java.io.File;
@@ -38,7 +38,7 @@ public class WriteXMLFileHandler {
             this.f294a.setOutput(stringWriter);
             this.f294a.startDocument("UTF-8", Boolean.valueOf(true));
             this.f294a.ignorableWhitespace("\n");
-            this.f294a.startTag(BuildConfig.VERSION_NAME, "Robot");
+            this.f294a.startTag("", "Robot");
             this.f294a.ignorableWhitespace("\n");
             Iterator it = deviceControllerConfigurations.iterator();
             while (it.hasNext()) {
@@ -54,7 +54,7 @@ public class WriteXMLFileHandler {
                     m200a(controllerConfiguration);
                 }
             }
-            this.f294a.endTag(BuildConfig.VERSION_NAME, "Robot");
+            this.f294a.endTag("", "Robot");
             this.f294a.ignorableWhitespace("\n");
             this.f294a.endDocument();
             return stringWriter.toString();
@@ -75,10 +75,10 @@ public class WriteXMLFileHandler {
 
     private void m200a(ControllerConfiguration controllerConfiguration) throws IOException {
         this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.startTag(BuildConfig.VERSION_NAME, m204b(controllerConfiguration.getType().toString()));
+        this.f294a.startTag("", m204b(controllerConfiguration.getType().toString()));
         m203a(controllerConfiguration.getName());
-        this.f294a.attribute(BuildConfig.VERSION_NAME, "name", controllerConfiguration.getName());
-        this.f294a.attribute(BuildConfig.VERSION_NAME, "serialNumber", controllerConfiguration.getSerialNumber().toString());
+        this.f294a.attribute("", "name", controllerConfiguration.getName());
+        this.f294a.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
         this.f294a.ignorableWhitespace("\n");
         this.f298e++;
         DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = (DeviceInterfaceModuleConfiguration) controllerConfiguration;
@@ -104,16 +104,16 @@ public class WriteXMLFileHandler {
         }
         this.f298e--;
         this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.endTag(BuildConfig.VERSION_NAME, m204b(controllerConfiguration.getType().toString()));
+        this.f294a.endTag("", m204b(controllerConfiguration.getType().toString()));
         this.f294a.ignorableWhitespace("\n");
     }
 
     private void m205b(ControllerConfiguration controllerConfiguration) throws IOException {
         this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.startTag(BuildConfig.VERSION_NAME, m204b(controllerConfiguration.getType().toString()));
+        this.f294a.startTag("", m204b(controllerConfiguration.getType().toString()));
         m203a(controllerConfiguration.getName());
-        this.f294a.attribute(BuildConfig.VERSION_NAME, "name", controllerConfiguration.getName());
-        this.f294a.attribute(BuildConfig.VERSION_NAME, "serialNumber", controllerConfiguration.getSerialNumber().toString());
+        this.f294a.attribute("", "name", controllerConfiguration.getName());
+        this.f294a.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
         this.f294a.ignorableWhitespace("\n");
         this.f298e++;
         Iterator it = ((ArrayList) controllerConfiguration.getDevices()).iterator();
@@ -128,19 +128,19 @@ public class WriteXMLFileHandler {
         }
         this.f298e--;
         this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.endTag(BuildConfig.VERSION_NAME, m204b(controllerConfiguration.getType().toString()));
+        this.f294a.endTag("", m204b(controllerConfiguration.getType().toString()));
         this.f294a.ignorableWhitespace("\n");
     }
 
     private void m201a(ControllerConfiguration controllerConfiguration, boolean z) throws IOException {
         this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.startTag(BuildConfig.VERSION_NAME, m204b(controllerConfiguration.getType().toString()));
+        this.f294a.startTag("", m204b(controllerConfiguration.getType().toString()));
         m203a(controllerConfiguration.getName());
-        this.f294a.attribute(BuildConfig.VERSION_NAME, "name", controllerConfiguration.getName());
+        this.f294a.attribute("", "name", controllerConfiguration.getName());
         if (z) {
-            this.f294a.attribute(BuildConfig.VERSION_NAME, "serialNumber", controllerConfiguration.getSerialNumber().toString());
+            this.f294a.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
         } else {
-            this.f294a.attribute(BuildConfig.VERSION_NAME, "port", String.valueOf(controllerConfiguration.getPort()));
+            this.f294a.attribute("", "port", String.valueOf(controllerConfiguration.getPort()));
         }
         this.f294a.ignorableWhitespace("\n");
         this.f298e++;
@@ -170,7 +170,7 @@ public class WriteXMLFileHandler {
         }
         this.f298e--;
         this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.endTag(BuildConfig.VERSION_NAME, m204b(controllerConfiguration.getType().toString()));
+        this.f294a.endTag("", m204b(controllerConfiguration.getType().toString()));
         this.f294a.ignorableWhitespace("\n");
     }
 
@@ -178,11 +178,11 @@ public class WriteXMLFileHandler {
         if (deviceConfiguration.isEnabled()) {
             try {
                 this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-                this.f294a.startTag(BuildConfig.VERSION_NAME, m204b(deviceConfiguration.getType().toString()));
+                this.f294a.startTag("", m204b(deviceConfiguration.getType().toString()));
                 m203a(deviceConfiguration.getName());
-                this.f294a.attribute(BuildConfig.VERSION_NAME, "name", deviceConfiguration.getName());
-                this.f294a.attribute(BuildConfig.VERSION_NAME, "port", String.valueOf(deviceConfiguration.getPort()));
-                this.f294a.endTag(BuildConfig.VERSION_NAME, m204b(deviceConfiguration.getType().toString()));
+                this.f294a.attribute("", "name", deviceConfiguration.getName());
+                this.f294a.attribute("", "port", String.valueOf(deviceConfiguration.getPort()));
+                this.f294a.endTag("", m204b(deviceConfiguration.getType().toString()));
                 this.f294a.ignorableWhitespace("\n");
             } catch (Throwable e) {
                 throw new RuntimeException(e);
@@ -196,7 +196,7 @@ public class WriteXMLFileHandler {
         if (this.f296c.size() > 0) {
             throw new IOException("Duplicate names: " + this.f296c);
         }
-        filename = filename.replaceFirst("[.][^.]+$", BuildConfig.VERSION_NAME);
+        filename = filename.replaceFirst("[.][^.]+$", "");
         File file = new File(folderName);
         boolean z = true;
         if (!file.exists()) {

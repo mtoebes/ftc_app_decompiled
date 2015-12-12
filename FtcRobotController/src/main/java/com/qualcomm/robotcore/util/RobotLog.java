@@ -3,7 +3,7 @@ package com.qualcomm.robotcore.util;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
-import com.qualcomm.robotcore.BuildConfig;
+
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import java.io.File;
 
@@ -68,7 +68,7 @@ public class RobotLog {
     }
 
     static {
-        f416a = BuildConfig.VERSION_NAME;
+        f416a = "";
         f417b = false;
     }
 
@@ -134,7 +134,7 @@ public class RobotLog {
     }
 
     public static void clearGlobalErrorMsg() {
-        f416a = BuildConfig.VERSION_NAME;
+        f416a = "";
     }
 
     public static void logAndThrow(String errMsg) throws RobotCoreException {

@@ -1,8 +1,6 @@
 package com.qualcomm.robotcore.robocol;
 
-import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.robocol.RobocolParsable.MsgType;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteBuffer;
@@ -25,7 +23,7 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
     }
 
     public Command(String name) {
-        this(name, BuildConfig.VERSION_NAME);
+        this(name, "");
     }
 
     public Command(String name, String extra) {

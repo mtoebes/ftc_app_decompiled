@@ -14,7 +14,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.ftdi.j2xx.ft4222.FT_4222_Defines;
 import com.ftdi.j2xx.protocol.SpiSlaveResponseEvent;
-import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager.DeviceType;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
@@ -103,7 +102,7 @@ public class Utility {
             if (file.isFile()) {
                 String name = file.getName();
                 if (Pattern.compile("(?i).xml").matcher(name).find()) {
-                    arrayList.add(name.replaceFirst("[.][^.]+$", BuildConfig.VERSION_NAME));
+                    arrayList.add(name.replaceFirst("[.][^.]+$", ""));
                 }
             }
         }
@@ -256,7 +255,7 @@ public class Utility {
     }
 
     public void updateHeader(String default_name, int pref_hardware_config_filename_id, int fileTextView, int header_id) {
-        String replaceFirst = this.f291b.getString(this.f290a.getString(pref_hardware_config_filename_id), default_name).replaceFirst("[.][^.]+$", BuildConfig.VERSION_NAME);
+        String replaceFirst = this.f291b.getString(this.f290a.getString(pref_hardware_config_filename_id), default_name).replaceFirst("[.][^.]+$", "");
         ((TextView) this.f290a.findViewById(fileTextView)).setText(replaceFirst);
         if (replaceFirst.equalsIgnoreCase(NO_FILE)) {
             changeBackground(Color.parseColor("#bf0510"), header_id);
@@ -268,7 +267,7 @@ public class Utility {
     }
 
     public void saveToPreferences(String filename, int pref_hardware_config_filename_id) {
-        filename = filename.replaceFirst("[.][^.]+$", BuildConfig.VERSION_NAME);
+        filename = filename.replaceFirst("[.][^.]+$", "");
         Editor edit = this.f291b.edit();
         edit.putString(this.f290a.getString(pref_hardware_config_filename_id), filename);
         edit.apply();
@@ -315,7 +314,7 @@ public class Utility {
             currentFile = currentFile.substring(7).trim();
         }
         if (currentFile.equalsIgnoreCase(NO_FILE)) {
-            return BuildConfig.VERSION_NAME;
+            return "";
         }
         return currentFile;
     }

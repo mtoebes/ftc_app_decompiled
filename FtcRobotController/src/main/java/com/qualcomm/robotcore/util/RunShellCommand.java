@@ -1,9 +1,6 @@
 package com.qualcomm.robotcore.util;
 
-import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.exception.RobotCoreException;
-
-import java.io.IOException;
 
 public class RunShellCommand {
     boolean f421a;
@@ -40,7 +37,7 @@ public class RunShellCommand {
 
     private String m235a(String str, boolean z) {
         byte[] bArr = new byte[524288];
-        String str2 = BuildConfig.VERSION_NAME;
+        String str2 = "";
         ProcessBuilder processBuilder = new ProcessBuilder(new String[0]);
         Process process = null;
         if (z) {
