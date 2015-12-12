@@ -7,11 +7,10 @@ import java.util.Comparator;
 import java.util.Random;
 
 public class Util {
-    public static String ASCII_RECORD_SEPARATOR;
+    public static String ASCII_RECORD_SEPARATOR = "\u001e";
     public static final String LOWERCASE_ALPHA_NUM_CHARACTERS = "0123456789qwertyuiopasdfghjklzxcvbnm";
 
     static class fileComparator implements Comparator<File> {
-
         public int compare(File obj, File obj2) {
             return obj.getName().compareTo(obj2.getName());
         }
@@ -29,10 +28,6 @@ public class Util {
         public void run() {
             this.textView.setText(this.message);
         }
-    }
-
-    static {
-        ASCII_RECORD_SEPARATOR = "\u001e";
     }
 
     public static String getRandomString(int stringLength, String charSet) {

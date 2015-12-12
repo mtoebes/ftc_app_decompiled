@@ -12,11 +12,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 public class ExtractAssets {
-    private static final String TAG;
-
-    static {
-        TAG = ExtractAssets.class.getSimpleName();
-    }
+    private static final String TAG = ExtractAssets.class.getSimpleName();
 
     public static ArrayList<String> ExtractToStorage(Context context, ArrayList<String> files, boolean useInternalStorage) throws IOException {
         if (!useInternalStorage) {
@@ -51,47 +47,43 @@ public class ExtractAssets {
             try {
                 inputStream = assets.open(sourceFilePath);
 
-                    File filesDir;
-                    Log.d(TAG, "File: " + sourceFilePath + " opened for streaming");
-                    if (!sourceFilePath.startsWith(File.separator)) {
-                        sourceFilePath = File.separator + sourceFilePath;
-                    }
-                    if (useInternalStorage) {
-                        filesDir = context.getFilesDir();
-                    } else {
-                        filesDir = context.getExternalFilesDir(null);
-                    }
+                File filesDir;
+                Log.d(TAG, "File: " + sourceFilePath + " opened for streaming");
+                if (!sourceFilePath.startsWith(File.separator)) {
+                    sourceFilePath = File.separator + sourceFilePath;
+                }
+                if (useInternalStorage) {
+                    filesDir = context.getFilesDir();
+                } else {
+                    filesDir = context.getExternalFilesDir(null);
+                }
 
-                    if(filesDir == null) {
-                        return fileList;
-                    }
+                if(filesDir == null) {
+                    return fileList;
+                }
 
-                    String outFile = filesDir.getPath() + sourceFilePath;
+                String outFile = filesDir.getPath() + sourceFilePath;
 
-                    if ((fileList == null) || !(fileList.contains(outFile))) {
-                        int lastIndexOf = outFile.lastIndexOf(File.separatorChar);
-                        String dirName = outFile.substring(0, lastIndexOf);
-                        String fileName = outFile.substring(lastIndexOf, outFile.length());
-                        File file = new File(dirName);
-                        if (file.mkdirs()) {
-                            Log.d(TAG, "Dir created " + dirName);
-                        }
-                        outputStream = new FileOutputStream(new File(file, fileName));
-                                byte[] bArr = new byte[1024];
-                                while (true) {
-                                    int read = inputStream.read(bArr);
-                                    if (read != -1) {
-                                        outputStream.write(bArr, 0, read);
-                                    } else {
-                                        break;
-                                    }
-                                }
-                                if (fileList != null) {
-                                    fileList.add(outFile);
-                                }
-                    } else {
-                        Log.e(TAG, "Ignoring Duplicate entry for " + outFile);
+                if ((fileList == null) || !(fileList.contains(outFile))) {
+                    int lastIndexOf = outFile.lastIndexOf(File.separatorChar);
+                    String dirName = outFile.substring(0, lastIndexOf);
+                    String fileName = outFile.substring(lastIndexOf, outFile.length());
+                    File file = new File(dirName);
+                    if (file.mkdirs()) {
+                        Log.d(TAG, "Dir created " + dirName);
                     }
+                    outputStream = new FileOutputStream(new File(file, fileName));
+                    byte[] buffer = new byte[1024];
+                    int read;
+                    while ((read = inputStream.read(buffer)) > 0) {
+                        outputStream.write(buffer, 0, read);
+                    }
+                    if (fileList != null) {
+                        fileList.add(outFile);
+                    }
+                } else {
+                    Log.e(TAG, "Ignoring Duplicate entry for " + outFile);
+                }
             } catch (IOException e7) {
                 Log.d(TAG, "File: " + sourceFilePath + " doesn't exist");
             } finally {

@@ -36,9 +36,9 @@ public class Network {
         ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         try {
             ArrayList<NetworkInterface> NetworkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for(NetworkInterface networkInterface2 : NetworkInterfaces) {
-                if (networkInterface2.getName().equals(networkInterface)) {
-                    arrayList.addAll(Collections.list(networkInterface2.getInetAddresses()));
+            for(NetworkInterface currentNetworkInterface : NetworkInterfaces) {
+                if (currentNetworkInterface.getName().equals(networkInterface)) {
+                    arrayList.addAll(Collections.list(currentNetworkInterface.getInetAddresses()));
                 }
             }
         } catch (SocketException ignored) {

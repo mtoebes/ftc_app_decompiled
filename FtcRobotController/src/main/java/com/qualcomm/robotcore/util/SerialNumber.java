@@ -3,10 +3,9 @@ package com.qualcomm.robotcore.util;
 import java.io.Serializable;
 
 public class SerialNumber implements Serializable {
-    private String serialNumber;
+    private String serialNumber = "N/A";
 
     public SerialNumber() {
-        this.serialNumber = "N/A";
     }
 
     public SerialNumber(String serialNumber) {
@@ -29,7 +28,7 @@ public class SerialNumber implements Serializable {
         } else if (object instanceof SerialNumber) {
             return this.serialNumber.equals(((SerialNumber) object).getSerialNumber());
         } else
-            return object instanceof String && this.serialNumber.equals(object);
+            return (object instanceof String) && (this.serialNumber.equals(object));
     }
 
     public int hashCode() {

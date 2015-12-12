@@ -5,7 +5,7 @@ public class ElapsedTime {
     private static final double TIME_IN_NANO = 1.0E9d;
 
     private long startTime;
-    private double timeResolution;
+    private double timeResolution = TIME_IN_NANO;
 
     public enum Resolution {
         SECONDS,
@@ -13,20 +13,14 @@ public class ElapsedTime {
     }
 
     public ElapsedTime() {
-        this.startTime = 0;
-        this.timeResolution = TIME_IN_NANO;
         reset();
     }
 
     public ElapsedTime(long startTime) {
-        this.startTime = 0;
-        this.timeResolution = TIME_IN_NANO;
         this.startTime = startTime;
     }
 
     public ElapsedTime(Resolution resolution) {
-        this.startTime = 0;
-        this.timeResolution = TIME_IN_NANO;
         reset();
         switch (resolution) {
             case SECONDS :

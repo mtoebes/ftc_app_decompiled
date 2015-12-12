@@ -5,11 +5,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 public class TypeConversion {
-    private static final Charset CHARSET;
-
-    static {
-        CHARSET = Charset.forName("UTF-8");
-    }
+    private static final Charset CHARSET = Charset.forName("UTF-8");
 
     private TypeConversion() {
     }

@@ -10,20 +10,20 @@ public class ImmersiveMode {
     View view;
     Handler handler;
 
-    class ImmersiveModeHandler extends Handler {
-        final ImmersiveMode immersiveMode;
+    static class ImmersiveModeHandler extends Handler {
+        final View view;
 
-        ImmersiveModeHandler(ImmersiveMode immersiveMode) {
-            this.immersiveMode = immersiveMode;
+        ImmersiveModeHandler(View view) {
+            this.view = view;
         }
 
         public void handleMessage(Message msg) {
-            this.immersiveMode.hideSystemUI();
+            hideSystemUI(view);
         }
     }
 
     public ImmersiveMode(View decorView) {
-        this.handler = new ImmersiveModeHandler(this);
+        this.handler = new ImmersiveModeHandler(view);
         this.view = decorView;
     }
 
@@ -31,13 +31,17 @@ public class ImmersiveMode {
         this.handler.removeMessages(0);
     }
 
-    public void hideSystemUI() {
+    private static void hideSystemUI(View view) {
         if (VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            this.view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         } else {
-            this.view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
+    }
+
+    public void hideSystemUI() {
+        hideSystemUI(this.view);
     }
 
     public static boolean apiOver19() {

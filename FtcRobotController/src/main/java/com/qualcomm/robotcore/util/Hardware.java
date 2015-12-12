@@ -6,11 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Hardware {
-    private static boolean isIFC;
-
-    static {
-        isIFC = CheckIfIFC();
-    }
+    private static final boolean isIFC = CheckIfIFC();
 
     public static Set<Integer> getGameControllerIds() {
         Set<Integer> hashSet = new HashSet<Integer>();

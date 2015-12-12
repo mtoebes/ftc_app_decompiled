@@ -5,17 +5,15 @@ import java.util.Queue;
 
 public class RollingAverage {
     public static final int DEFAULT_SIZE = 100;
-    private final Queue<Integer> queue;
+    private final Queue<Integer> queue = new LinkedList<Integer>();
     private long last;
     private int size;
 
     public RollingAverage() {
-        this.queue = new LinkedList<Integer>();
         resize(DEFAULT_SIZE);
     }
 
     public RollingAverage(int size) {
-        this.queue = new LinkedList<Integer>();
         resize(size);
     }
 
@@ -39,8 +37,9 @@ public class RollingAverage {
     public int getAverage() {
         if (this.queue.isEmpty()) {
             return 0;
+        } else {
+            return (int) (this.last / (long) this.queue.size());
         }
-        return (int) (this.last / (long) this.queue.size());
     }
 
     public void reset() {

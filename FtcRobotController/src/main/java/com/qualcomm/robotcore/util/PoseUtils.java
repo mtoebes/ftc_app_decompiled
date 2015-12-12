@@ -28,7 +28,7 @@ public class PoseUtils {
     }
 
     public static double smallestAngularDifferenceDegrees(double firstAngleDeg, double secondAngleDeg) {
-        double deltaDegrees = (firstAngleDeg - secondAngleDeg) * Math.PI / 180.0d;
-        return Math.atan2(Math.sin(deltaDegrees), Math.cos(deltaDegrees)) * 180.0d / Math.PI;
+        double deltaDegrees = (firstAngleDeg - secondAngleDeg) * (Math.PI / 180.0d);
+        return Math.atan2(Math.sin(deltaDegrees), Math.cos(deltaDegrees)) * (180.0d / Math.PI);
     }
 }

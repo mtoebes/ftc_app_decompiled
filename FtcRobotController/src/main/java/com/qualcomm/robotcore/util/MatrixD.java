@@ -35,7 +35,7 @@ public class MatrixD {
         } else {
             for (int row = 0; row < rows; row++) {
                 for (int col = 0; col < cols; col++) {
-                    this.mData[row][col] = (double) dataBuffer[cols * row + col];
+                    this.mData[row][col] = (double) dataBuffer[((cols * row) + col)];
                 }
             }
         }
@@ -93,11 +93,11 @@ public class MatrixD {
             throw new IllegalArgumentException("Input data to setSubMatrix null");
         } else if ((rows > numRows()) || (cols > numCols())) {
             throw new IllegalArgumentException("Attempted to get submatrix with size larger than original");
-        } else if (((rowOffset + rows) > numRows() || ((colOffset + cols)) > numCols())) {
+        } else if ((((rowOffset + rows) > numRows()) || (((colOffset + cols)) > numCols()))) {
             throw new IllegalArgumentException("Attempted to access out of bounds data with row or col offset out of range");
         } else if ((rows > inData.numRows()) || (cols > inData.numCols())) {
             throw new IllegalArgumentException("Input matrix small for setSubMatrix");
-        } else if ((rowOffset + rows) > inData.numRows() || colOffset + cols > numCols()) {
+        } else if (((rowOffset + rows) > inData.numRows()) || ((colOffset + cols) > numCols())) {
             throw new IllegalArgumentException("Input matrix Attempted to access out of bounds data with row or col offset out of range");
         } else {
             for (int row = 0; row < rows; row++) {

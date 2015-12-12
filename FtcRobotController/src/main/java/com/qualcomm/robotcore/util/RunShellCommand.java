@@ -7,7 +7,6 @@ public class RunShellCommand {
     boolean logging;
 
     public RunShellCommand() {
-        this.logging = false;
     }
 
     public void enableLogging(boolean enable) {

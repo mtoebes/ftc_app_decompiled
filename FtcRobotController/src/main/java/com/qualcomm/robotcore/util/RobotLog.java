@@ -9,7 +9,7 @@ import java.io.File;
 
 public class RobotLog {
     public static final String TAG = "RobotCore";
-    private static String globalErrorMessage;
+    private static String globalErrorMessage = "";
     private static boolean writeLock;
 
     static class writeLogThread extends Thread {
@@ -62,11 +62,6 @@ public class RobotLog {
     }
 
     private RobotLog() {
-    }
-
-    static {
-        globalErrorMessage = "";
-        writeLock = false;
     }
 
     public static void v(String message) {

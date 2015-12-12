@@ -98,7 +98,7 @@ public class MapView extends View {
     }
 
     private int toEvenInt(int i) {
-        return (i % 2 == 0) ? i : i + 1;
+        return ((i % 2) == 0) ? i : (i + 1);
     }
 
     public void setup(int xMax, int yMax, int numLinesX, int numLinesY, Bitmap robotIcon) {
@@ -132,11 +132,11 @@ public class MapView extends View {
     }
 
     private float scaleX(int x) {
-        return (float) x * this.scalerX + (float) (getWidth() / 2);
+        return (x * this.scalerX) + (getWidth() / 2.0f);
     }
 
     private float scaleY(int y) {
-        return (float) (getHeight() / 2) - (float) y * this.scalerY;
+        return (getHeight() / 2.0f) - (y * this.scalerY);
     }
 
     private int scaleTh(int th) {

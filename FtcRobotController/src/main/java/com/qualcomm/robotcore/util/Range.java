@@ -5,7 +5,8 @@ public class Range {
     }
 
     public static double scale(double scale, double x1, double x2, double y1, double y2) {
-        return (y1 - y2) / (x1 - x2) * scale + (y1 - (y1 - y2) * x1 / (x1 - x2));
+        double delta = (y1 - y2) / (x1 - x2);
+        return (scale * delta) + (y1 - (x1 * delta));
     }
 
     public static double clip(double number, double min, double max) {
