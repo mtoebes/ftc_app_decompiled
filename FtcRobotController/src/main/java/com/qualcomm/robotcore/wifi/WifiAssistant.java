@@ -5,12 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pManager;
+
 import com.qualcomm.robotcore.util.RobotLog;
 
 public class WifiAssistant {
-    private final IntentFilter f429a;
-    private final Context f430b;
-    private final C0055a f431c;
+    private final IntentFilter filter = new IntentFilter();
+    private final Context context;
+    private final WifiBroadcastReceiver wifiBroadcastReceiver;
 
     public interface WifiAssistantCallback {
         void wifiEventCallback(WifiState wifiState);
@@ -21,52 +24,49 @@ public class WifiAssistant {
         NOT_CONNECTED
     }
 
-    /* renamed from: com.qualcomm.robotcore.wifi.WifiAssistant.a */
-    private static class C0055a extends BroadcastReceiver {
-        private WifiState f427a;
-        private final WifiAssistantCallback f428b;
+    private static class WifiBroadcastReceiver extends BroadcastReceiver {
+        private WifiState wifiState = null;
+        private final WifiAssistantCallback wifiAssistantCallback;
 
-        public C0055a(WifiAssistantCallback wifiAssistantCallback) {
-            this.f427a = null;
-            this.f428b = wifiAssistantCallback;
+        public WifiBroadcastReceiver(WifiAssistantCallback wifiAssistantCallback) {
+            this.wifiAssistantCallback = wifiAssistantCallback;
         }
 
         public void onReceive(Context context, Intent intent) {
-            if (!intent.getAction().equals("android.net.wifi.STATE_CHANGE")) {
+            if (!intent.getAction().equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
                 return;
             }
             if (((NetworkInfo) intent.getParcelableExtra("networkInfo")).isConnected()) {
-                m238a(WifiState.CONNECTED);
+                setWifiState(WifiState.CONNECTED);
             } else {
-                m238a(WifiState.NOT_CONNECTED);
+                setWifiState(WifiState.NOT_CONNECTED);
             }
         }
 
-        private void m238a(WifiState wifiState) {
-            if (this.f427a != wifiState) {
-                this.f427a = wifiState;
-                if (this.f428b != null) {
-                    this.f428b.wifiEventCallback(this.f427a);
+        private void setWifiState(WifiState wifiState) {
+            if (this.wifiState != wifiState) {
+                this.wifiState = wifiState;
+                if (this.wifiAssistantCallback != null) {
+                    this.wifiAssistantCallback.wifiEventCallback(this.wifiState);
                 }
             }
         }
     }
 
     public WifiAssistant(Context context, WifiAssistantCallback callback) {
-        this.f430b = context;
+        this.context = context;
         if (callback == null) {
             RobotLog.v("WifiAssistantCallback is null");
         }
-        this.f431c = new C0055a(callback);
-        this.f429a = new IntentFilter();
-        this.f429a.addAction("android.net.wifi.STATE_CHANGE");
+        this.wifiBroadcastReceiver = new WifiBroadcastReceiver(callback);
+        this.filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
     }
 
     public void enable() {
-        this.f430b.registerReceiver(this.f431c, this.f429a);
+        this.context.registerReceiver(this.wifiBroadcastReceiver, this.filter);
     }
 
     public void disable() {
-        this.f430b.unregisterReceiver(this.f431c);
+        this.context.unregisterReceiver(this.wifiBroadcastReceiver);
     }
 }

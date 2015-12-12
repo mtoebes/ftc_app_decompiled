@@ -1,13 +1,13 @@
 12/12:
-Step 1 has been complete for all classes within robotcore. code compiles but have not attempted to run (expectation is that it would fail).
+Steps 1-6 have been completed
 
 Steps:
-    1: Fix compile errors
-        - Add missing casting/declaration
-        - Implement logic that did not decompile correctly
+    1: fix compile errors
+        - add missing casting/declaration
+        - implement logic that did not decompile correctly
         - fix try/catch errors
-    2: Refactor class variables names/functions to be readable
-        - Fix references to incorrect static variables
+    2: refactor class variables names/functions to be readable
+        - fix references to incorrect static variables
         - Add new static variables
     3: Correct casting related warnings
         - Add types to Collections
