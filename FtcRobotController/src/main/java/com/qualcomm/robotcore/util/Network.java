@@ -15,7 +15,7 @@ public class Network {
     public static InetAddress getLoopbackAddress() {
         try {
             return InetAddress.getByAddress(new byte[]{Byte.MAX_VALUE, (byte) 0, (byte) 0, (byte) 1});
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException ignored) {
             return null;
         }
     }
@@ -28,7 +28,7 @@ public class Network {
             for(NetworkInterface networkInterface : NetworkInterfaces) {
                 arrayList.addAll(Collections.list(networkInterface.getInetAddresses()));
             }
-        } catch (SocketException e) {
+        } catch (SocketException ignored) {
         }
         return arrayList;
     }
@@ -42,7 +42,7 @@ public class Network {
                     arrayList.addAll(Collections.list(networkInterface2.getInetAddresses()));
                 }
             }
-        } catch (SocketException e) {
+        } catch (SocketException ignored) {
         }
         return arrayList;
     }

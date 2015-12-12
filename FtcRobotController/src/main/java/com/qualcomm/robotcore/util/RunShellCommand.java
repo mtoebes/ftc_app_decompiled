@@ -2,6 +2,8 @@ package com.qualcomm.robotcore.util;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 
+import java.io.IOException;
+
 public class RunShellCommand {
     private final static int BUFFER_SIZE = 0x80000;
     boolean logging;
@@ -44,7 +46,7 @@ public class RunShellCommand {
         if (asRoot) {
             try {
                 processBuilder.command("su", "-c", cmd).redirectErrorStream(true);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 RobotLog.logStacktrace(e);
             }
         } else {
@@ -59,7 +61,7 @@ public class RunShellCommand {
                 output = new String(bArr, 0, read);
             }
         } catch (Exception e) {
-            // do nothing
+            e.printStackTrace();
         } finally {
             if (process != null) {
                 process.destroy();
@@ -76,7 +78,7 @@ public class RunShellCommand {
                 shell.run(String.format("kill %d", spawnedProcessPid));
                 spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException ignored) {
             throw new RobotCoreException(String.format("Failed to kill %s instances started by this app", processName));
         }
     }

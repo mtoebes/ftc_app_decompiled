@@ -51,7 +51,7 @@ public class RobotLog {
         public void run() {
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
             }
             try {
                 RobotLog.v("closing logcat file " + this.filePath);
