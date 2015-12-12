@@ -3,7 +3,7 @@ package com.qualcomm.robotcore.sensor;
 import java.util.List;
 
 public abstract class SensorBase<T> {
-    protected List<SensorListener<T>> mListeners;
+    protected final List<SensorListener<T>> mListeners;
 
     public abstract boolean initialize();
 
@@ -19,10 +19,7 @@ public abstract class SensorBase<T> {
 
     public final void update(T data) {
         synchronized (this.mListeners) {
-            if (this.mListeners == null) {
-                return;
-            }
-            for (SensorListener onUpdate : this.mListeners) {
+            for (SensorListener<T> onUpdate : this.mListeners) {
                 onUpdate.onUpdate(data);
             }
         }

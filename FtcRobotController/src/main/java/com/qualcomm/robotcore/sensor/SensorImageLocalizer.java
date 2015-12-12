@@ -84,9 +84,8 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
     }
 
     public boolean addRobotToCameraRef(double length, double width, double height, double angle) {
-        MatrixD matrixD = new MatrixD(3, 3);
         MatrixD makeRotationY = Pose.makeRotationY(-angle);
-        matrixD = new MatrixD(3, 4);
+        MatrixD matrixD = new MatrixD(3, 4);
         matrixD.setSubmatrix(makeRotationY, 3, 3, 0, 0);
         matrixD.data()[0][3] = width;
         matrixD.data()[1][3] = -height;
@@ -110,10 +109,10 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
         long currentTimeMillis = System.currentTimeMillis() / 1000;
         TrackedTargetData trackedTargetData;
         if (this.dataMap.containsKey(trackedTargetInfo.mTargetInfo.mTargetName)) {
-            trackedTargetData = (TrackedTargetData) this.dataMap.get(trackedTargetInfo.mTargetInfo.mTargetName);
+            trackedTargetData = this.dataMap.get(trackedTargetInfo.mTargetInfo.mTargetName);
             trackedTargetData.timeTracked = trackedTargetInfo.mTimeTracked;
             trackedTargetData.confidence = trackedTargetInfo.mConfidence;
-            if (currentTimeMillis - trackedTargetData.timeTracked > TrackedTargetData.RESET_COUNT_TIME_LIMIT) {
+            if ((currentTimeMillis - trackedTargetData.timeTracked) > TrackedTargetData.RESET_COUNT_TIME_LIMIT) {
                 trackedTargetData.count = 1;
             } else {
                 trackedTargetData.count++;
@@ -126,7 +125,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
             trackedTargetData.count = 1;
             this.dataMap.put(trackedTargetInfo.mTargetInfo.mTargetName, trackedTargetData);
         }
-        if (this.lastData == null || this.lastData.targetName == trackedTargetData.targetName || currentTimeMillis - this.lastData.lastUpdateTime >= TrackedTargetData.TARGET_SWITCH_INTERVAL) {
+        if ((this.lastData == null) || (this.lastData.targetName.equals(trackedTargetData.targetName)) || ((currentTimeMillis - this.lastData.lastUpdateTime) >= TrackedTargetData.TARGET_SWITCH_INTERVAL)) {
             return true;
         }
         Log.d(TAG, "Ignoring target " + trackedTargetInfo.mTargetInfo.mTargetName + " Time diff " + (currentTimeMillis - this.lastData.lastUpdateTime));
@@ -135,7 +134,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
 
     public void onUpdate(List<TrackedTargetInfo> targetPoses) {
         Log.d(TAG, "SensorImageLocalizer onUpdate");
-        if (targetPoses == null || targetPoses.size() < 1) {
+        if ((targetPoses == null) || (targetPoses.size() < 1)) {
             Log.d(TAG, "SensorImageLocalizer onUpdate NULL");
             update(null);
             return;
@@ -148,14 +147,12 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
         TrackedTargetData bestData = null;
 
         for (TrackedTargetInfo info : targetPoses) {
-            Object obj2;
             if (this.infoMap.containsKey(info.mTargetInfo.mTargetName)) {
-                if (!isValidInfo(info) || info.mConfidence <= bestConfidence) {
+                if (!isValidInfo(info) || (info.mConfidence <= bestConfidence)) {
                     Log.d(TAG, "Ignoring target " + info.mTargetInfo.mTargetName + " Confidence " + info.mConfidence);
                 } else {
-                    bestData = (TrackedTargetData) this.dataMap.get(info.mTargetInfo.mTargetName);
+                    bestData = this.dataMap.get(info.mTargetInfo.mTargetName);
                     bestConfidence = info.mConfidence;
-                    obj2 = 1;
                     Log.d(TAG, "Potential target " + info.mTargetInfo.mTargetName + " Confidence " + info.mConfidence);
                     bestInfo = info;
                     foundTarget = true;
@@ -167,7 +164,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
             update(null);
             return;
         }
-        TargetInfo targetInfo = (TargetInfo) this.infoMap.get(bestInfo.mTargetInfo.mTargetName);
+        TargetInfo targetInfo = this.infoMap.get(bestInfo.mTargetInfo.mTargetName);
         bestData.lastUpdateTime = currentTimeMillis;
         this.lastData = bestData;
         Log.d(TAG, "Selected target " + bestInfo.mTargetInfo.mTargetName + " time " + currentTimeMillis);
@@ -199,9 +196,10 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
         matrixD3.setSubmatrix(times, 3, 1, 0, 3);
         Pose pose = new Pose(matrixD3);
         double[] anglesAroundZ = PoseUtils.getAnglesAroundZ(pose);
-        Log.d(TAG, String.format("POSE_HEADING: x %8.4f z %8.4f up %8.4f", new Object[]{Double.valueOf(anglesAroundZ[0]), Double.valueOf(anglesAroundZ[1]), Double.valueOf(anglesAroundZ[2])}));
+        assert anglesAroundZ != null;
+        Log.d(TAG, String.format("POSE_HEADING: x %8.4f z %8.4f up %8.4f", anglesAroundZ[0], anglesAroundZ[1], anglesAroundZ[2]));
         matrixD3 = pose.getTranslationMatrix();
-        Log.d(TAG, String.format("POSE_TRANS: x %8.4f y %8.4f z %8.4f", new Object[]{Double.valueOf(matrixD3.data()[0][0]), Double.valueOf(matrixD3.data()[1][0]), Double.valueOf(matrixD3.data()[2][0])}));
+        Log.d(TAG, String.format("POSE_TRANS: x %8.4f y %8.4f z %8.4f", matrixD3.data()[0][0], matrixD3.data()[1][0], matrixD3.data()[2][0]));
         update(pose);
     }
 }
