@@ -11,8 +11,8 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
-import java.util.HashMap;
 
 public class MapView extends View {
     MapView mapView;
@@ -32,7 +32,7 @@ public class MapView extends View {
     private int robotY;
     private int robotTh;
     private boolean robotExists;
-    private HashMap<Integer, Marker> markers;
+    private SparseArray<Marker> markers;
     private Bitmap robotIcon;
 
     private class Marker {
@@ -94,7 +94,7 @@ public class MapView extends View {
         this.linePaint.setStrokeWidth(Dimmer.MAXIMUM_BRIGHTNESS);
         this.linePaint.setAntiAlias(true);
         this.mapView = this;
-        this.markers = new HashMap<Integer, Marker>();
+        this.markers = new SparseArray<Marker>();
     }
 
     private int toEvenInt(int i) {
@@ -158,7 +158,8 @@ public class MapView extends View {
     }
 
     public boolean removeMarker(int id) {
-        return this.markers.remove(Integer.valueOf(id)) != null;
+        this.markers.removeAt(id);
+        return true;
     }
 
     public int addDrawable(int x, int y, int resource) {
@@ -169,7 +170,10 @@ public class MapView extends View {
     }
 
     private void drawMarkers() {
-        for (Marker marker : this.markers.values()) {
+        for(int i = 0; i < this.markers.size(); i++) {
+            int key = this.markers.keyAt(i);
+            Marker marker = this.markers.get(key);
+
             float x = scaleX(marker.x);
             float y = scaleY(marker.y);
             if (marker.isCircle) {

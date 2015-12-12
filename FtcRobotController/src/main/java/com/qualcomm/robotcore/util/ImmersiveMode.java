@@ -32,8 +32,12 @@ public class ImmersiveMode {
     }
 
     public void hideSystemUI() {
-        this.view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        if (VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            this.view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            this.view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
     }
 
     public static boolean apiOver19() {

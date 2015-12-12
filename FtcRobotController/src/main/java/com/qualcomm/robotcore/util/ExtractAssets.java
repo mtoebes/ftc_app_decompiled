@@ -27,9 +27,7 @@ public class ExtractAssets {
         ArrayList<String> arrayList = new ArrayList<String>();
         for(String file : files) {
             ExtractAndCopy(context, file, useInternalStorage, arrayList);
-            if (arrayList != null) {
-                Log.d(TAG, "got " + arrayList.size() + " elements");
-            }
+            Log.d(TAG, "got " + arrayList.size() + " elements");
         }
         return arrayList;
     }
@@ -45,6 +43,10 @@ public class ExtractAssets {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if(ipFiles == null) {
+            return fileList;
+        }
+
         if (ipFiles.length == 0) {
             try {
                 inputStream = assets.open(sourceFilePath);
@@ -59,7 +61,13 @@ public class ExtractAssets {
                     } else {
                         filesDir = context.getExternalFilesDir(null);
                     }
+
+                    if(filesDir == null) {
+                        return fileList;
+                    }
+
                     String outFile = filesDir.getPath() + sourceFilePath;
+
                     if ((fileList == null) || !(fileList.contains(outFile))) {
                         int lastIndexOf = outFile.lastIndexOf(File.separatorChar);
                         String dirName = outFile.substring(0, lastIndexOf);
@@ -69,7 +77,6 @@ public class ExtractAssets {
                             Log.d(TAG, "Dir created " + dirName);
                         }
                         outputStream = new FileOutputStream(new File(file, fileName));
-                        if (outputStream != null) {
                                 byte[] bArr = new byte[1024];
                                 while (true) {
                                     int read = inputStream.read(bArr);
@@ -82,10 +89,6 @@ public class ExtractAssets {
                                 if (fileList != null) {
                                     fileList.add(outFile);
                                 }
-                        }
-                        if (fileList != null) {
-                            fileList.add(outFile);
-                        }
                     } else {
                         Log.e(TAG, "Ignoring Duplicate entry for " + outFile);
                     }
@@ -111,13 +114,14 @@ public class ExtractAssets {
                 }
             }
             return fileList;
+        } else {
+            if (!("".equals(sourceFilePath) || sourceFilePath.endsWith(File.separator))) {
+                sourceFilePath = sourceFilePath + File.separator;
+            }
+            for (String ipFile : ipFiles) {
+                ExtractAndCopy(context, sourceFilePath + ipFile, useInternalStorage, fileList);
+            }
+            return fileList;
         }
-        if (!("".equals(sourceFilePath) || sourceFilePath.endsWith(File.separator))) {
-            sourceFilePath = sourceFilePath + File.separator;
-        }
-        for (String ipFile : ipFiles) {
-            ExtractAndCopy(context, sourceFilePath + ipFile, useInternalStorage, fileList);
-        }
-        return fileList;
     }
 }

@@ -21,9 +21,7 @@ public class MatrixD {
             throw new IllegalArgumentException("Attempted to initialize MatrixF with rows/cols not matching init data");
         } else {
             for (int row = 0; row < rows; row++) {
-                for (int col = 0; col < cols; col++) {
-                    this.mData[row][col] = dataBuffer[cols * row + col];
-                }
+                System.arraycopy(dataBuffer, cols * row, this.mData[row], 0, cols);
             }
         }
     }
@@ -214,9 +212,9 @@ public class MatrixD {
     }
 
     public String toString() {
-        String matrixString = new String();
+        String matrixString = "";
         for (int row = 0; row < numRows(); row++) {
-            String colString = new String();
+            String colString = "";
             for (int col = 0; col < numCols(); col++) {
                 colString += String.format("%.4f", data()[row][col]);
                 if (col < (numCols() - 1)) {
