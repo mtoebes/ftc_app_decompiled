@@ -52,7 +52,7 @@ public class Pose {
     }
 
     public static MatrixD makeRotationX(double angle) {
-        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, 3, 3);
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
         matrixBuffer[0][0] = 1.0d;
@@ -68,7 +68,7 @@ public class Pose {
     }
 
     public static MatrixD makeRotationY(double angle) {
-        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, 3, 3);
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
         matrixBuffer[2][1] = 0.0d;
@@ -84,7 +84,7 @@ public class Pose {
     }
 
     public static MatrixD makeRotationZ(double angle) {
-        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, 3, 3);
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
         matrixBuffer[2][2] = 1.0d;

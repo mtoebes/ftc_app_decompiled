@@ -60,10 +60,10 @@ public class ElapsedTime {
     }
 
     public void log(String label) {
-        RobotLog.v(String.format("TIMER: %20s - %1.3f %s", new Object[]{label, Double.valueOf(time()), timeResolutionToString()}));
+        RobotLog.v(String.format("TIMER: %20s - %1.3f %s", label, Double.valueOf(time()), timeResolutionToString()));
     }
 
     public String toString() {
-        return String.format("%1.4f %s", new Object[]{Double.valueOf(time()), timeResolutionToString()});
+        return String.format("%1.4f %s", Double.valueOf(time()), timeResolutionToString());
     }
 }

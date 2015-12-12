@@ -39,16 +39,16 @@ public class RunShellCommand {
     private String runCommand(String cmd, boolean asRoot) {
         byte[] bArr = new byte[BUFFER_SIZE];
         String output = "";
-        ProcessBuilder processBuilder = new ProcessBuilder(new String[0]);
+        ProcessBuilder processBuilder = new ProcessBuilder();
         Process process = null;
         if (asRoot) {
             try {
-                processBuilder.command(new String[]{"su", "-c", cmd}).redirectErrorStream(true);
+                processBuilder.command("su", "-c", cmd).redirectErrorStream(true);
             } catch (Exception e) {
                 RobotLog.logStacktrace(e);
             }
         } else {
-            processBuilder.command(new String[]{"sh", "-c", cmd}).redirectErrorStream(true);
+            processBuilder.command("sh", "-c", cmd).redirectErrorStream(true);
         }
 
         try {
@@ -73,11 +73,11 @@ public class RunShellCommand {
             int spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             while (spawnedProcessPid != -1) {
                 RobotLog.v("Killing PID " + spawnedProcessPid);
-                shell.run(String.format("kill %d", new Object[]{Integer.valueOf(spawnedProcessPid)}));
+                shell.run(String.format("kill %d", Integer.valueOf(spawnedProcessPid)));
                 spawnedProcessPid = getSpawnedProcessPid(processName, packageName, shell);
             }
         } catch (Exception e) {
-            throw new RobotCoreException(String.format("Failed to kill %s instances started by this app", new Object[]{processName}));
+            throw new RobotCoreException(String.format("Failed to kill %s instances started by this app", processName));
         }
     }
 
@@ -91,7 +91,7 @@ public class RunShellCommand {
             }
         }
         String[] split = run.split("\n");
-        
+
         for(String line : split) {
             if (line.contains(processName) && line.contains(charSequence)) {
                 return Integer.parseInt(line.split("\\s+")[1]);

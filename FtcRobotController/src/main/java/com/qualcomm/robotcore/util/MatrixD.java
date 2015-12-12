@@ -10,7 +10,7 @@ public class MatrixD {
     protected int mRows;
 
     public MatrixD(int rows, int cols) {
-        this((double[][]) Array.newInstance(Double.TYPE, new int[]{rows, cols}));
+        this((double[][]) Array.newInstance(Double.TYPE, rows, cols));
     }
 
     public MatrixD(double[] dataBuffer, int rows, int cols) {
@@ -80,7 +80,7 @@ public class MatrixD {
         } else if (rowOffset + rows > numRows() || colOffset + cols > numCols()) {
             throw new IllegalArgumentException("Attempted to access out of bounds data with row or col offset out of range");
         } else {
-            double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{rows, cols});
+            double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, rows, cols);
             for (int row = 0; row < rows; row++) {
                 for (int col = 0; col < cols; col++) {
                     dataBuffer[row][col] = data()[rowOffset + row][colOffset + col];
@@ -114,7 +114,7 @@ public class MatrixD {
     public MatrixD transpose() {
         int rows = this.mRows;
         int cols = this.mCols;
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{cols, rows});
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, cols, rows);
         for (int col = 0; col < cols; col++) {
             for (int row = 0; row < rows; row++) {
                 dataBuffer[col][row] = this.mData[row][col];
@@ -124,7 +124,7 @@ public class MatrixD {
     }
 
     public MatrixD add(MatrixD other) {
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
         int numRows = numRows();
         int numCols = numCols();
         for (int row = 0; row < numRows; row++) {
@@ -136,7 +136,7 @@ public class MatrixD {
     }
 
     public MatrixD add(double val) {
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE,numRows(), numCols());
         int numRows = numRows();
         int numCols = numCols();
         for (int row = 0; row < numRows; row++) {
@@ -148,7 +148,7 @@ public class MatrixD {
     }
 
     public MatrixD subtract(MatrixD other) {
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
         int numRows = numRows();
         int numCols = numCols();
         for (int row = 0; row < numRows; row++) {
@@ -160,7 +160,7 @@ public class MatrixD {
     }
 
     public MatrixD subtract(double val) {
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
         int numRows = numRows();
         int numCols = numCols();
         for (int row = 0; row < numRows; row++) {
@@ -178,7 +178,7 @@ public class MatrixD {
         int numCols = numCols();
         int numRows = numRows();
         int numCols2 = other.numCols();
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows, numCols2});
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows, numCols2);
         for (int row = 0; row < numRows; row++) {
             for (int col2 = 0; col2 < numCols2; col2++) {
                 for (int col = 0; col < numCols; col++) {
@@ -191,7 +191,7 @@ public class MatrixD {
     }
 
     public MatrixD times(double f) {
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{numRows(), numCols()});
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
         for (int row = 0; row < numRows(); row++) {
             for (int col = 0; col < numCols(); col++) {
                 dataBuffer[row][col] = data()[row][col] * f;
@@ -218,7 +218,7 @@ public class MatrixD {
         for (int row = 0; row < numRows(); row++) {
             String colString = new String();
             for (int col = 0; col < numCols(); col++) {
-                colString = colString + String.format("%.4f", new Object[]{Double.valueOf(data()[row][col])});
+                colString = colString + String.format("%.4f", Double.valueOf(data()[row][col]));
                 if (col < numCols() - 1) {
                     colString = colString + ", ";
                 }

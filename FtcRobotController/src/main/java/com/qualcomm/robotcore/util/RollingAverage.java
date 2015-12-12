@@ -30,7 +30,7 @@ public class RollingAverage {
 
     public void addNumber(int number) {
         if (this.queue.size() >= this.size) {
-            this.last -= (long) ((Integer) this.queue.remove()).intValue();
+            this.last -= (long) (this.queue.remove()).intValue();
         }
         this.queue.add(Integer.valueOf(number));
         this.last += (long) number;
