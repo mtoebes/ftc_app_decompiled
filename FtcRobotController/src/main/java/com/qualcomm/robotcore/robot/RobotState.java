@@ -30,7 +30,7 @@ public enum RobotState {
         try {
             return f343b[b];
         } catch (ArrayIndexOutOfBoundsException e) {
-            RobotLog.m234w(String.format("Cannot convert %d to RobotState: %s", new Object[]{Byte.valueOf(b), e.toString()}));
+            RobotLog.w(String.format("Cannot convert %d to RobotState: %s", new Object[]{Byte.valueOf(b), e.toString()}));
             return robotState;
         }
     }

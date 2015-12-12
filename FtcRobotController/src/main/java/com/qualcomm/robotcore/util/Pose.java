@@ -44,7 +44,7 @@ public class Pose {
     }
 
     public MatrixD getTranslationMatrix() {
-        r0 = new double[3][];
+        double[][] r0 = new double[3][];
         r0[0] = new double[]{this.transX};
         r0[1] = new double[]{this.transY};
         r0[2] = new double[]{this.transZ};

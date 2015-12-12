@@ -24,7 +24,7 @@ public class BatteryChecker {
         public void run() {
             float batteryLevel = this.f358a.getBatteryLevel();
             this.f358a.f363e.updateBatteryLevel(batteryLevel);
-            RobotLog.m232i("Battery Checker, Level Remaining: " + batteryLevel);
+            RobotLog.i("Battery Checker, Level Remaining: " + batteryLevel);
             this.f358a.batteryHandler.postDelayed(this.f358a.f359a, this.f358a.f361c);
         }
     }

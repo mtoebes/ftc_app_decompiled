@@ -125,14 +125,14 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
                 c0042a.f348c++;
             }
         } else {
-            c0042a = new C0042a();
+            c0042a = new C0042a(this);
             c0042a.f350e = trackedTargetInfo.mConfidence;
             c0042a.f349d = trackedTargetInfo.mTargetInfo.mTargetName;
             c0042a.f347b = trackedTargetInfo.mTimeTracked;
             c0042a.f348c = 1;
             this.f356e.put(trackedTargetInfo.mTargetInfo.mTargetName, c0042a);
         }
-        if (this.f357f == null || this.f357f.f349d == r0.f349d || currentTimeMillis - this.f357f.f346a >= 10) {
+        if (this.f357f == null || this.f357f.f349d == c0042a.f349d || currentTimeMillis - this.f357f.f346a >= 10) {
             return true;
         }
         Log.d("SensorImageLocalizer", "Ignoring target " + trackedTargetInfo.mTargetInfo.mTargetName + " Time diff " + (currentTimeMillis - this.f357f.f346a));

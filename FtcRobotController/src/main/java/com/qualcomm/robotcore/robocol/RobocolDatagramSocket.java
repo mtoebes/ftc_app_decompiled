@@ -39,13 +39,13 @@ public class RobocolDatagramSocket {
             close();
         }
         this.f334e = State.LISTENING;
-        RobotLog.m230d("RobocolDatagramSocket binding to " + bindAddress.toString());
+        RobotLog.d("RobocolDatagramSocket binding to " + bindAddress.toString());
         this.f331b = new DatagramSocket(bindAddress);
     }
 
     public void connect(InetAddress connectAddress) throws SocketException {
         SocketAddress inetSocketAddress = new InetSocketAddress(connectAddress, RobocolConfig.PORT_NUMBER);
-        RobotLog.m230d("RobocolDatagramSocket connected to " + inetSocketAddress.toString());
+        RobotLog.d("RobocolDatagramSocket connected to " + inetSocketAddress.toString());
         this.f331b.connect(inetSocketAddress);
     }
 
@@ -54,21 +54,21 @@ public class RobocolDatagramSocket {
         if (this.f331b != null) {
             this.f331b.close();
         }
-        RobotLog.m230d("RobocolDatagramSocket is closed");
+        RobotLog.d("RobocolDatagramSocket is closed");
     }
 
     public void send(RobocolDatagram message) {
         try {
             this.f331b.send(message.getPacket());
         } catch (IllegalArgumentException e) {
-            RobotLog.m234w("Unable to send RobocolDatagram: " + e.toString());
-            RobotLog.m234w("               " + message.toString());
+            RobotLog.w("Unable to send RobocolDatagram: " + e.toString());
+            RobotLog.w("               " + message.toString());
         } catch (IOException e2) {
-            RobotLog.m234w("Unable to send RobocolDatagram: " + e2.toString());
-            RobotLog.m234w("               " + message.toString());
+            RobotLog.w("Unable to send RobocolDatagram: " + e2.toString());
+            RobotLog.w("               " + message.toString());
         } catch (NullPointerException e3) {
-            RobotLog.m234w("Unable to send RobocolDatagram: " + e3.toString());
-            RobotLog.m234w("               " + message.toString());
+            RobotLog.w("Unable to send RobocolDatagram: " + e3.toString());
+            RobotLog.w("               " + message.toString());
         }
     }
 
@@ -76,13 +76,13 @@ public class RobocolDatagramSocket {
         try {
             this.f331b.receive(this.f332c);
         } catch (PortUnreachableException e) {
-            RobotLog.m230d("RobocolDatagramSocket receive error: remote port unreachable");
+            RobotLog.d("RobocolDatagramSocket receive error: remote port unreachable");
             return null;
         } catch (IOException e2) {
-            RobotLog.m230d("RobocolDatagramSocket receive error: " + e2.toString());
+            RobotLog.d("RobocolDatagramSocket receive error: " + e2.toString());
             return null;
         } catch (NullPointerException e3) {
-            RobotLog.m230d("RobocolDatagramSocket receive error: " + e3.toString());
+            RobotLog.d("RobocolDatagramSocket receive error: " + e3.toString());
         }
         this.f333d.setPacket(this.f332c);
         return this.f333d;

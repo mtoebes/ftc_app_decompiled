@@ -80,7 +80,7 @@ public class Network {
     public static ArrayList<String> getHostAddresses(Collection<InetAddress> addresses) {
         ArrayList<String> arrayList = new ArrayList();
         for (InetAddress hostAddress : addresses) {
-            Object hostAddress2 = hostAddress.getHostAddress();
+            String hostAddress2 = hostAddress.getHostAddress();
             if (hostAddress2.contains("%")) {
                 hostAddress2 = hostAddress2.substring(0, hostAddress2.indexOf(37));
             }

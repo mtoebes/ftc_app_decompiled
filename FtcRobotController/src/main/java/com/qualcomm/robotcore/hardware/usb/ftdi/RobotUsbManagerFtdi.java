@@ -19,7 +19,7 @@ public class RobotUsbManagerFtdi implements RobotUsbManager {
         try {
             this.f303b = D2xxManager.getInstance(context);
         } catch (D2xxException e) {
-            RobotLog.m231e("Unable to create D2xxManager; cannot open USB devices");
+            RobotLog.e("Unable to create D2xxManager; cannot open USB devices");
         }
     }
 

@@ -19,21 +19,21 @@ public class RobotLog {
         final /* synthetic */ int f413c;
 
         C00511(String str, String str2, String str3, int i) {
+            super(str);
             this.f411a = str2;
             this.f412b = str3;
             this.f413c = i;
-            super(str);
         }
 
         public void run() {
             try {
                 String str = "UsbRequestJNI:S UsbRequest:S *:V";
-                RobotLog.m233v("saving logcat to " + this.f411a);
+                RobotLog.v("saving logcat to " + this.f411a);
                 RunShellCommand runShellCommand = new RunShellCommand();
                 RunShellCommand.killSpawnedProcess("logcat", this.f412b, runShellCommand);
                 runShellCommand.run(String.format("logcat -f %s -r%d -n%d -v time %s", new Object[]{this.f411a, Integer.valueOf(this.f413c), Integer.valueOf(1), "UsbRequestJNI:S UsbRequest:S *:V"}));
             } catch (RobotCoreException e) {
-                RobotLog.m233v("Error while writing log file to disk: " + e.toString());
+                RobotLog.v("Error while writing log file to disk: " + e.toString());
             } finally {
                 RobotLog.f417b = false;
             }
@@ -56,10 +56,10 @@ public class RobotLog {
             } catch (InterruptedException e) {
             }
             try {
-                RobotLog.m233v("closing logcat file " + this.f414a);
+                RobotLog.v("closing logcat file " + this.f414a);
                 RunShellCommand.killSpawnedProcess("logcat", this.f415b, new RunShellCommand());
             } catch (RobotCoreException e2) {
-                RobotLog.m233v("Unable to cancel writing log file to disk: " + e2.toString());
+                RobotLog.v("Unable to cancel writing log file to disk: " + e2.toString());
             }
         }
     }
@@ -72,40 +72,40 @@ public class RobotLog {
         f417b = false;
     }
 
-    public static void m233v(String message) {
+    public static void v(String message) {
         Log.v(TAG, message);
     }
 
-    public static void m230d(String message) {
+    public static void d(String message) {
         Log.d(TAG, message);
     }
 
-    public static void m232i(String message) {
+    public static void i(String message) {
         Log.i(TAG, message);
     }
 
-    public static void m234w(String message) {
+    public static void w(String message) {
         Log.w(TAG, message);
     }
 
-    public static void m231e(String message) {
+    public static void e(String message) {
         Log.e(TAG, message);
     }
 
     public static void logStacktrace(Exception e) {
-        m231e(e.toString());
+        e(e.toString());
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
-            m231e(stackTraceElement.toString());
+            e(stackTraceElement.toString());
         }
     }
 
     public static void logStacktrace(RobotCoreException e) {
-        m231e(e.toString());
+        e(e.toString());
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
-            m231e(stackTraceElement.toString());
+            e(stackTraceElement.toString());
         }
         if (e.isChainedException()) {
-            m231e("Exception chained from:");
+            e("Exception chained from:");
             if (e.getChainedException() instanceof RobotCoreException) {
                 logStacktrace((RobotCoreException) e.getChainedException());
             } else {
@@ -138,7 +138,7 @@ public class RobotLog {
     }
 
     public static void logAndThrow(String errMsg) throws RobotCoreException {
-        m234w(errMsg);
+        w(errMsg);
         throw new RobotCoreException(errMsg);
     }
 

@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
 
 public interface RobocolParsable {
-    public static final byte[] EMPTY_HEADER_BUFFER;
     public static final int HEADER_LENGTH = 3;
+    public static final byte[] EMPTY_HEADER_BUFFER = new byte[HEADER_LENGTH];;
 
     public enum MsgType {
         EMPTY(0),
@@ -27,7 +27,7 @@ public interface RobocolParsable {
             try {
                 return f335a[b];
             } catch (ArrayIndexOutOfBoundsException e) {
-                RobotLog.m234w(String.format("Cannot convert %d to MsgType: %s", new Object[]{Byte.valueOf(b), e.toString()}));
+                RobotLog.w(String.format("Cannot convert %d to MsgType: %s", new Object[]{Byte.valueOf(b), e.toString()}));
                 return msgType;
             }
         }
@@ -46,8 +46,4 @@ public interface RobocolParsable {
     MsgType getRobocolMsgType();
 
     byte[] toByteArray() throws RobotCoreException;
-
-    static {
-        EMPTY_HEADER_BUFFER = new byte[HEADER_LENGTH];
-    }
 }

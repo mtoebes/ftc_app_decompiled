@@ -10,7 +10,6 @@ import com.ftdi.j2xx.ft4222.FT_4222_Defines.SPI_SLAVE_CMD;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
-import com.qualcomm.robotcore.robocol.RobocolParsable.MsgType;
 import com.qualcomm.robotcore.util.Dimmer;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -23,8 +22,8 @@ public class Gamepad implements RobocolParsable {
     public static final int ID_UNASSOCIATED = -1;
     private static Set<Integer> f236d;
     private static Set<C0034a> f237e;
-    public boolean f238a;
-    public boolean f239b;
+    public boolean a;
+    public boolean b;
     public boolean back;
     private final GamepadCallback f240c;
     protected float dpadThreshold;
@@ -48,8 +47,8 @@ public class Gamepad implements RobocolParsable {
     public boolean start;
     public long timestamp;
     public byte user;
-    public boolean f241x;
-    public boolean f242y;
+    public boolean x;
+    public boolean y;
 
     public interface GamepadCallback {
         void gamepadChanged(Gamepad gamepad);
@@ -80,10 +79,10 @@ public class Gamepad implements RobocolParsable {
         this.dpad_down = false;
         this.dpad_left = false;
         this.dpad_right = false;
-        this.f238a = false;
-        this.f239b = false;
-        this.f241x = false;
-        this.f242y = false;
+        this.a = false;
+        this.b = false;
+        this.x = false;
+        this.y = false;
         this.guide = false;
         this.start = false;
         this.back = false;
@@ -109,7 +108,7 @@ public class Gamepad implements RobocolParsable {
         try {
             copy(new Gamepad());
         } catch (RobotCoreException e) {
-            RobotLog.m231e("Gamepad library in an invalid state");
+            RobotLog.e("Gamepad library in an invalid state");
             throw new IllegalStateException("Gamepad library in an invalid state");
         }
     }
@@ -165,13 +164,13 @@ public class Gamepad implements RobocolParsable {
         } else if (keyCode == 21) {
             this.dpad_left = pressed(event);
         } else if (keyCode == 96) {
-            this.f238a = pressed(event);
+            this.a = pressed(event);
         } else if (keyCode == 97) {
-            this.f239b = pressed(event);
+            this.b = pressed(event);
         } else if (keyCode == 99) {
-            this.f241x = pressed(event);
+            this.x = pressed(event);
         } else if (keyCode == 100) {
-            this.f242y = pressed(event);
+            this.y = pressed(event);
         } else if (keyCode == 110) {
             this.guide = pressed(event);
         } else if (keyCode == 108) {
@@ -241,25 +240,25 @@ public class Gamepad implements RobocolParsable {
                 i2 = 0;
             }
             i3 = (i2 + i3) << 1;
-            if (this.f238a) {
+            if (this.a) {
                 i2 = 1;
             } else {
                 i2 = 0;
             }
             i3 = (i2 + i3) << 1;
-            if (this.f239b) {
+            if (this.b) {
                 i2 = 1;
             } else {
                 i2 = 0;
             }
             i3 = (i2 + i3) << 1;
-            if (this.f241x) {
+            if (this.x) {
                 i2 = 1;
             } else {
                 i2 = 0;
             }
             i3 = (i2 + i3) << 1;
-            if (this.f242y) {
+            if (this.y) {
                 i2 = 1;
             } else {
                 i2 = 0;
@@ -354,25 +353,25 @@ public class Gamepad implements RobocolParsable {
             } else {
                 z2 = false;
             }
-            this.f238a = z2;
+            this.a = z2;
             if ((i & SPI_SLAVE_CMD.SPI_MASTER_TRANSFER) != 0) {
                 z2 = true;
             } else {
                 z2 = false;
             }
-            this.f239b = z2;
+            this.b = z2;
             if ((i & 64) != 0) {
                 z2 = true;
             } else {
                 z2 = false;
             }
-            this.f241x = z2;
+            this.x = z2;
             if ((i & 32) != 0) {
                 z2 = true;
             } else {
                 z2 = false;
             }
-            this.f242y = z2;
+            this.y = z2;
             if ((i & 16) != 0) {
                 z2 = true;
             } else {
@@ -430,16 +429,16 @@ public class Gamepad implements RobocolParsable {
         if (this.dpad_right) {
             str = str + "dpad_right ";
         }
-        if (this.f238a) {
+        if (this.a) {
             str = str + "a ";
         }
-        if (this.f239b) {
+        if (this.b) {
             str = str + "b ";
         }
-        if (this.f241x) {
+        if (this.x) {
             str = str + "x ";
         }
-        if (this.f242y) {
+        if (this.y) {
             str = str + "y ";
         }
         if (this.guide) {

@@ -27,7 +27,7 @@ public abstract class LinearOpMode extends OpMode {
             try {
                 this.f200c.runOpMode();
             } catch (InterruptedException e) {
-                RobotLog.m230d("LinearOpMode received an Interrupted Exception; shutting down this linear op mode");
+                RobotLog.d("LinearOpMode received an Interrupted Exception; shutting down this linear op mode");
             } catch (RuntimeException e2) {
                 this.f198a = e2;
             } finally {
@@ -137,10 +137,10 @@ public abstract class LinearOpMode extends OpMode {
             Thread.yield();
         }
         if (!this.f202a.m183c()) {
-            RobotLog.m231e("*****************************************************************");
-            RobotLog.m231e("User Linear Op Mode took too long to exit; emergency killing app.");
-            RobotLog.m231e("Possible infinite loop in user code?");
-            RobotLog.m231e("*****************************************************************");
+            RobotLog.e("*****************************************************************");
+            RobotLog.e("User Linear Op Mode took too long to exit; emergency killing app.");
+            RobotLog.e("Possible infinite loop in user code?");
+            RobotLog.e("*****************************************************************");
             System.exit(-1);
         }
     }

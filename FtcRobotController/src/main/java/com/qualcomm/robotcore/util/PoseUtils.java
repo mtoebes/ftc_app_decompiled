@@ -14,7 +14,7 @@ public class PoseUtils {
 
     public static double[] getAnglesAroundZ(MatrixD rotMat) {
         if (rotMat.numRows() == 3 && rotMat.numCols() == 3) {
-            r0 = new double[3][];
+            double[][] r0 = new double[3][];
             r0[0] = new double[]{0.0d};
             r0[1] = new double[]{0.0d};
             r0[2] = new double[]{Servo.MAX_POSITION};

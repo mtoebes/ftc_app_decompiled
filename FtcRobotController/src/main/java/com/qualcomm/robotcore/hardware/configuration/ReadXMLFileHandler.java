@@ -77,10 +77,10 @@ public class ReadXMLFileHandler {
                 eventType = this.f287m.next();
             }
         } catch (XmlPullParserException e) {
-            RobotLog.m234w("XmlPullParserException");
+            RobotLog.w("XmlPullParserException");
             e.printStackTrace();
         } catch (IOException e2) {
-            RobotLog.m234w("IOException");
+            RobotLog.w("IOException");
             e2.printStackTrace();
         }
         return this.f286a;
@@ -89,11 +89,11 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration m192a() throws IOException, XmlPullParserException, RobotCoreException {
         String attributeValue = this.f287m.getAttributeValue(null, "name");
         String attributeValue2 = this.f287m.getAttributeValue(null, "serialNumber");
-        Object a = m195a(f276c, ConfigurationType.PULSE_WIDTH_DEVICE);
-        Object a2 = m195a(f280g, ConfigurationType.I2C_DEVICE);
-        Object a3 = m195a(f278e, ConfigurationType.ANALOG_INPUT);
-        Object a4 = m195a(f277d, ConfigurationType.DIGITAL_DEVICE);
-        Object a5 = m195a(f279f, ConfigurationType.ANALOG_OUTPUT);
+        ArrayList<DeviceConfiguration> a = m195a(f276c, ConfigurationType.PULSE_WIDTH_DEVICE);
+        ArrayList<DeviceConfiguration> a2 = m195a(f280g, ConfigurationType.I2C_DEVICE);
+        ArrayList<DeviceConfiguration> a3 = m195a(f278e, ConfigurationType.ANALOG_INPUT);
+        ArrayList<DeviceConfiguration> a4 = m195a(f277d, ConfigurationType.DIGITAL_DEVICE);
+        ArrayList<DeviceConfiguration> a5 = m195a(f279f, ConfigurationType.ANALOG_OUTPUT);
         int next = this.f287m.next();
         String a6 = m194a(this.f287m.getName());
         while (next != 1) {
@@ -102,10 +102,10 @@ public class ReadXMLFileHandler {
                     continue;
                 } else {
                     if (f275b) {
-                        RobotLog.m231e("[handleDeviceInterfaceModule] tagname: " + a6);
+                        RobotLog.e("[handleDeviceInterfaceModule] tagname: " + a6);
                     }
                     if (a6.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
-                        ControllerConfiguration deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(attributeValue, new SerialNumber(attributeValue2));
+                        DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(attributeValue, new SerialNumber(attributeValue2));
                         deviceInterfaceModuleConfiguration.setPwmDevices(a);
                         deviceInterfaceModuleConfiguration.setI2cDevices(a2);
                         deviceInterfaceModuleConfiguration.setAnalogInputDevices(a3);
@@ -152,19 +152,20 @@ public class ReadXMLFileHandler {
         List a = m195a(f281h, ConfigurationType.NOTHING);
         int next = this.f287m.next();
         String a2 = m194a(this.f287m.getName());
+        ControllerConfiguration legacyModuleControllerConfiguration;
         while (next != 1) {
             if (next == 3) {
                 if (a2 == null) {
                     continue;
                 } else if (a2.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
-                    ControllerConfiguration legacyModuleControllerConfiguration = new LegacyModuleControllerConfiguration(attributeValue, a, new SerialNumber(attributeValue2));
+                    legacyModuleControllerConfiguration = new LegacyModuleControllerConfiguration(attributeValue, a, new SerialNumber(attributeValue2));
                     legacyModuleControllerConfiguration.setEnabled(true);
                     return legacyModuleControllerConfiguration;
                 }
             }
             if (next == 2) {
                 if (f275b) {
-                    RobotLog.m231e("[handleLegacyModule] tagname: " + a2);
+                    RobotLog.e("[handleLegacyModule] tagname: " + a2);
                 }
                 if (a2.equalsIgnoreCase(ConfigurationType.COMPASS.toString()) || a2.equalsIgnoreCase(ConfigurationType.LIGHT_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.IR_SEEKER.toString()) || a2.equalsIgnoreCase(ConfigurationType.ACCELEROMETER.toString()) || a2.equalsIgnoreCase(ConfigurationType.GYRO.toString()) || a2.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.toString()) || a2.equalsIgnoreCase(ConfigurationType.ULTRASONIC_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) || a2.equalsIgnoreCase(ConfigurationType.NOTHING.toString())) {
                     DeviceConfiguration c = m198c();
@@ -195,7 +196,7 @@ public class ReadXMLFileHandler {
             deviceConfiguration.setEnabled(true);
         }
         if (f275b) {
-            RobotLog.m231e("[handleDevice] name: " + deviceConfiguration.getName() + ", port: " + deviceConfiguration.getPort() + ", type: " + deviceConfiguration.getType());
+            RobotLog.e("[handleDevice] name: " + deviceConfiguration.getName() + ", port: " + deviceConfiguration.getPort() + ", type: " + deviceConfiguration.getType());
         }
         return deviceConfiguration;
     }
@@ -218,8 +219,8 @@ public class ReadXMLFileHandler {
         String attributeValue = this.f287m.getAttributeValue(null, "name");
         String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
         int parseInt = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
-        Object a = m195a(f285l, ConfigurationType.SERVO);
-        Object a2 = m195a(f284k, ConfigurationType.MOTOR);
+        ArrayList<DeviceConfiguration> a = m195a(f285l, ConfigurationType.SERVO);
+        ArrayList<DeviceConfiguration> a2 = m195a(f284k, ConfigurationType.MOTOR);
         int next = this.f287m.next();
         String a3 = m194a(this.f287m.getName());
         while (next != 1) {

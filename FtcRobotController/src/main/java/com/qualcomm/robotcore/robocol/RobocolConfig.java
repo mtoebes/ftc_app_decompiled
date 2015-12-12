@@ -22,17 +22,18 @@ public class RobocolConfig {
         ArrayList removeIPv6Addresses = Network.removeIPv6Addresses(Network.removeLoopbackAddresses(Network.getLocalIpAddresses()));
         Iterator it = removeIPv6Addresses.iterator();
         while (it.hasNext()) {
+            InetAddress inetAddress= null;
             try {
                 Enumeration inetAddresses = NetworkInterface.getByInetAddress((InetAddress) it.next()).getInetAddresses();
                 while (inetAddresses.hasMoreElements()) {
-                    InetAddress inetAddress = (InetAddress) inetAddresses.nextElement();
+                    inetAddress = (InetAddress) inetAddresses.nextElement();
                     if (inetAddress.equals(destAddress)) {
                         return inetAddress;
                     }
                 }
                 continue;
             } catch (SocketException e) {
-                RobotLog.m233v(String.format("socket exception while trying to get network interface of %s", new Object[]{r0.getHostAddress()}));
+                RobotLog.v(String.format("socket exception while trying to get network interface of %s", new Object[]{inetAddress.getHostAddress()}));
             }
         }
         return determineBindAddressBasedOnWifiP2pSubnet(removeIPv6Addresses, destAddress);
@@ -59,9 +60,9 @@ public class RobocolConfig {
                     return inetAddress;
                 }
             } catch (SocketException e) {
-                RobotLog.m233v(String.format("socket exception while trying to get network interface of %s", new Object[]{inetAddress.getHostAddress()}));
+                RobotLog.v(String.format("socket exception while trying to get network interface of %s", new Object[]{inetAddress.getHostAddress()}));
             } catch (IOException e2) {
-                RobotLog.m233v(String.format("IO exception while trying to determine if %s is reachable via %s", new Object[]{destAddress.getHostAddress(), inetAddress.getHostAddress()}));
+                RobotLog.v(String.format("IO exception while trying to determine if %s is reachable via %s", new Object[]{destAddress.getHostAddress(), inetAddress.getHostAddress()}));
             }
         }
         return Network.getLoopbackAddress();

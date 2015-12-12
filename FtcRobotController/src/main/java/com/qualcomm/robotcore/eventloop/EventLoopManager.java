@@ -103,7 +103,7 @@ public class EventLoopManager {
         }
 
         public void processCommand(Command command) {
-            RobotLog.m234w("Dropping command " + command.getName() + ", no active event loop");
+            RobotLog.w("Dropping command " + command.getName() + ", no active event loop");
         }
 
         public OpModeManager getOpModeManager() {
@@ -120,7 +120,7 @@ public class EventLoopManager {
         }
 
         public void run() {
-            RobotLog.m233v("EventLoopRunnable has started");
+            RobotLog.v("EventLoopRunnable has started");
             try {
                 ElapsedTime elapsedTime = new ElapsedTime();
                 while (!Thread.interrupted()) {
@@ -147,7 +147,7 @@ public class EventLoopManager {
                             blockUntilReady2.startBlockingWork();
                         }
                     } catch (Exception e) {
-                        RobotLog.m231e("Event loop threw an exception");
+                        RobotLog.e("Event loop threw an exception");
                         RobotLog.logStacktrace(e);
                         RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + (e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : BuildConfig.VERSION_NAME)));
                         this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
@@ -160,23 +160,23 @@ public class EventLoopManager {
                     }
                 }
             } catch (InterruptedException e2) {
-                RobotLog.m233v("EventLoopRunnable interrupted");
+                RobotLog.v("EventLoopRunnable interrupted");
                 this.f178a.m164a(RobotState.STOPPED);
             } catch (RobotCoreException e3) {
-                RobotLog.m233v("RobotCoreException in EventLoopManager: " + e3.getMessage());
+                RobotLog.v("RobotCoreException in EventLoopManager: " + e3.getMessage());
                 this.f178a.m164a(RobotState.EMERGENCY_STOP);
                 this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
             }
             try {
                 this.f178a.f189g.teardown();
             } catch (Exception e4) {
-                RobotLog.m234w("Caught exception during looper teardown: " + e4.toString());
+                RobotLog.w("Caught exception during looper teardown: " + e4.toString());
                 RobotLog.logStacktrace(e4);
                 if (RobotLog.hasGlobalErrorMsg()) {
                     this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                 }
             }
-            RobotLog.m233v("EventLoopRunnable has exited");
+            RobotLog.v("EventLoopRunnable has exited");
         }
     }
 
@@ -248,7 +248,7 @@ public class EventLoopManager {
             r0 = r0.toString();
             r0 = r1.append(r0);
             r0 = r0.toString();
-            com.qualcomm.robotcore.util.RobotLog.m234w(r0);
+            com.qualcomm.robotcore.util.RobotLog.w(r0);
             goto L_0x0000;
         L_0x0067:
             r1 = r4.f180b;	 Catch:{ RobotCoreException -> 0x004b }
@@ -289,17 +289,17 @@ public class EventLoopManager {
             while (!Thread.interrupted()) {
                 for (Command command : this.f181a.f196n) {
                     if (command.getAttempts() > 10) {
-                        RobotLog.m234w("Failed to send command, too many attempts: " + command.toString());
+                        RobotLog.w("Failed to send command, too many attempts: " + command.toString());
                         this.f182b.add(command);
                     } else if (command.isAcknowledged()) {
-                        RobotLog.m233v("Command " + command.getName() + " has been acknowledged by remote device");
+                        RobotLog.v("Command " + command.getName() + " has been acknowledged by remote device");
                         this.f182b.add(command);
                     } else {
                         try {
-                            RobotLog.m233v("Sending command: " + command.getName() + ", attempt " + command.getAttempts());
+                            RobotLog.v("Sending command: " + command.getName() + ", attempt " + command.getAttempts());
                             this.f181a.f186d.send(new RobocolDatagram(command.toByteArray()));
                         } catch (RobotCoreException e) {
-                            RobotLog.m234w("Failed to send command " + command.getName());
+                            RobotLog.w("Failed to send command " + command.getName());
                             RobotLog.logStacktrace(e);
                         }
                     }
@@ -325,7 +325,7 @@ public class EventLoopManager {
         resetGamepads();
         opModeManager.initActiveOpMode(OpModeManager.DEFAULT_OP_MODE_NAME);
         m164a(RobotState.DROPPED_CONNECTION);
-        RobotLog.m232i(str);
+        RobotLog.i(str);
     }
 
     public EventLoopManager(RobocolDatagramSocket socket) {
@@ -353,9 +353,9 @@ public class EventLoopManager {
     public void start(EventLoop eventLoop) throws RobotCoreException {
         this.f187e = false;
         setEventLoop(eventLoop);
-        this.f185c = new Thread(new C0030d(), "Scheduled Sends");
+        this.f185c = new Thread(new C0030d(this), "Scheduled Sends");
         this.f185c.start();
-        new Thread(new C0029c()).start();
+        new Thread(new C0029c(this)).start();
     }
 
     public void shutdown() {
@@ -376,7 +376,7 @@ public class EventLoopManager {
     public void setEventLoop(EventLoop eventLoop) throws RobotCoreException {
         if (eventLoop == null) {
             eventLoop = f183a;
-            RobotLog.m230d("Event loop cannot be null, using empty event loop");
+            RobotLog.d("Event loop cannot be null, using empty event loop");
         }
         m166b();
         this.f189g = eventLoop;
@@ -414,7 +414,7 @@ public class EventLoopManager {
         try {
             this.f186d.send(new RobocolDatagram(telemetry.toByteArray()));
         } catch (RobotCoreException e) {
-            RobotLog.m234w("Failed to send telemetry data");
+            RobotLog.w("Failed to send telemetry data");
             RobotLog.logStacktrace(e);
         }
         telemetry.clearData();
@@ -433,10 +433,10 @@ public class EventLoopManager {
             }
             this.f188f = new ElapsedTime(0);
             m164a(RobotState.RUNNING);
-            this.f184b = new Thread(new C0028b(), "Event Loop");
+            this.f184b = new Thread(new C0028b(this), "Event Loop");
             this.f184b.start();
         } catch (Exception e) {
-            RobotLog.m234w("Caught exception during looper init: " + e.toString());
+            RobotLog.w("Caught exception during looper init: " + e.toString());
             RobotLog.logStacktrace(e);
             m164a(RobotState.EMERGENCY_STOP);
             if (RobotLog.hasGlobalErrorMsg()) {
@@ -459,7 +459,7 @@ public class EventLoopManager {
 
     private void m164a(RobotState robotState) {
         this.state = robotState;
-        RobotLog.m233v("EventLoopManager state is " + robotState.toString());
+        RobotLog.v("EventLoopManager state is " + robotState.toString());
         if (this.f192j != null) {
             this.f192j.onStateChange(robotState);
         }
@@ -469,13 +469,13 @@ public class EventLoopManager {
         Gamepad gamepad = new Gamepad();
         gamepad.fromByteArray(robocolDatagram.getData());
         if (gamepad.user < (byte) 1 || gamepad.user > 2) {
-            RobotLog.m230d("Gamepad with user %d received. Only users 1 and 2 are valid");
+            RobotLog.d("Gamepad with user %d received. Only users 1 and 2 are valid");
             return;
         }
         int i = gamepad.user - 1;
         this.f190h[i].copy(gamepad);
         if (this.f190h[0].id == this.f190h[1].id) {
-            RobotLog.m233v("Gamepad moved position, removing stale gamepad");
+            RobotLog.v("Gamepad moved position, removing stale gamepad");
             if (i == 0) {
                 this.f190h[1].copy(new Gamepad());
             }
@@ -502,14 +502,14 @@ public class EventLoopManager {
             }
             if (this.f189g != f183a) {
                 this.f197o = robocolDatagram.getAddress();
-                RobotLog.m232i("new remote peer discovered: " + this.f197o.getHostAddress());
+                RobotLog.i("new remote peer discovered: " + this.f197o.getHostAddress());
                 try {
                     this.f186d.connect(this.f197o);
                 } catch (SocketException e) {
-                    RobotLog.m231e("Unable to connect to peer:" + e.toString());
+                    RobotLog.e("Unable to connect to peer:" + e.toString());
                 }
                 RobocolParsable peerDiscovery = new PeerDiscovery(PeerType.PEER);
-                RobotLog.m233v("Sending peer discovery packet");
+                RobotLog.v("Sending peer discovery packet");
                 RobocolDatagram robocolDatagram2 = new RobocolDatagram(peerDiscovery);
                 if (this.f186d.getInetAddress() == null) {
                     robocolDatagram2.setAddress(this.f197o);
@@ -520,7 +520,7 @@ public class EventLoopManager {
     }
 
     private void m175d(RobocolDatagram robocolDatagram) throws RobotCoreException {
-        RobocolParsable command = new Command(robocolDatagram.getData());
+        Command command = new Command(robocolDatagram.getData());
         if (command.isAcknowledged()) {
             this.f196n.remove(command);
             return;
@@ -545,7 +545,7 @@ public class EventLoopManager {
         try {
             this.f189g.processCommand(command);
         } catch (Exception e) {
-            RobotLog.m231e("Event loop threw an exception while processing a command");
+            RobotLog.e("Event loop threw an exception while processing a command");
             RobotLog.logStacktrace(e);
         }
     }
@@ -554,7 +554,7 @@ public class EventLoopManager {
     }
 
     private void m178e(RobocolDatagram robocolDatagram) {
-        RobotLog.m234w("RobotCore event loop received unknown event type: " + robocolDatagram.getMsgType().name());
+        RobotLog.w("RobotCore event loop received unknown event type: " + robocolDatagram.getMsgType().name());
     }
 
     public void buildAndSendTelemetry(String tag, String msg) {

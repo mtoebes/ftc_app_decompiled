@@ -8,6 +8,7 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Color;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -86,7 +87,7 @@ public class Utility {
             z = file.mkdir();
         }
         if (!z) {
-            RobotLog.m231e("Can't create the Robot Config Files directory!");
+            RobotLog.e("Can't create the Robot Config Files directory!");
             complainToast("Can't create the Robot Config Files directory!", this.f290a);
         }
     }
@@ -94,13 +95,13 @@ public class Utility {
     public ArrayList<String> getXMLFiles() {
         File[] listFiles = new File(CONFIG_FILES_DIR).listFiles();
         if (listFiles == null) {
-            RobotLog.m232i("robotConfigFiles directory is empty");
+            RobotLog.i("robotConfigFiles directory is empty");
             return new ArrayList();
         }
         ArrayList<String> arrayList = new ArrayList();
         for (File file : listFiles) {
             if (file.isFile()) {
-                Object name = file.getName();
+                String name = file.getName();
                 if (Pattern.compile("(?i).xml").matcher(name).find()) {
                     arrayList.add(name.replaceFirst("[.][^.]+$", BuildConfig.VERSION_NAME));
                 }
@@ -117,7 +118,7 @@ public class Utility {
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Duplicate name")) {
                 complainToast("Found " + e.getMessage(), this.f290a);
-                RobotLog.m231e("Found " + e.getMessage());
+                RobotLog.e("Found " + e.getMessage());
                 return true;
             }
         }
@@ -133,16 +134,16 @@ public class Utility {
     }
 
     public void complainToast(String msg, Context context) {
-        Toast makeText = Toast.makeText(context, msg, 0);
+        Toast makeText = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
         makeText.setGravity(17, 0, 0);
-        TextView textView = (TextView) makeText.getView().findViewById(16908299);
+        TextView textView = (TextView) makeText.getView().findViewById(android.R.id.message);
         textView.setTextColor(-1);
         textView.setTextSize(18.0f);
         makeText.show();
     }
 
     public void createLists(Set<Entry<SerialNumber, DeviceType>> entries, Map<SerialNumber, ControllerConfiguration> deviceControllers) {
-        for (Entry entry : entries) {
+        for (Entry<SerialNumber, DeviceType> entry : entries) {
             switch (C00361.f288a[((DeviceType) entry.getValue()).ordinal()]) {
                 case SpiSlaveResponseEvent.DATA_CORRUPTED /*1*/:
                     deviceControllers.put(entry.getKey(), buildMotorController((SerialNumber) entry.getKey()));
@@ -287,7 +288,7 @@ public class Utility {
 
     public void setOrangeText(String msg0, String msg1, int info_id, int layout_id, int orange0, int orange1) {
         LinearLayout linearLayout = (LinearLayout) this.f290a.findViewById(info_id);
-        linearLayout.setVisibility(0);
+        linearLayout.setVisibility(View.VISIBLE);
         linearLayout.removeAllViews();
         this.f290a.getLayoutInflater().inflate(layout_id, linearLayout, true);
         TextView textView = (TextView) linearLayout.findViewById(orange0);
@@ -298,7 +299,7 @@ public class Utility {
     }
 
     public void confirmSave() {
-        Toast makeText = Toast.makeText(this.f290a, "Saved", 0);
+        Toast makeText = Toast.makeText(this.f290a, "Saved", Toast.LENGTH_SHORT);
         makeText.setGravity(80, 0, 50);
         makeText.show();
     }

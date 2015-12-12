@@ -55,7 +55,7 @@ public class WifiAssistant {
     public WifiAssistant(Context context, WifiAssistantCallback callback) {
         this.f430b = context;
         if (callback == null) {
-            RobotLog.m233v("WifiAssistantCallback is null");
+            RobotLog.v("WifiAssistantCallback is null");
         }
         this.f431c = new C0055a(callback);
         this.f429a = new IntentFilter();
