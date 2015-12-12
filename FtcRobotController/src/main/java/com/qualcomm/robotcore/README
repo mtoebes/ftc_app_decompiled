@@ -9,15 +9,11 @@ Steps:
     2: Refactor class variables names/functions to be readable
         - Fix references to incorrect static variables
         - Add new static variables
-    3: Correct casting related warnings
-        - Add types to Collections
-        - Remove unnecessary castings
-        - Update variable types to be more specific
+    3: Correct all relevant warnings
     4: Identify and fix any faulty logic
         - Add checks for missed edge cases
         - Remove superfluous checks
     5: Optimize functions to be easy to flow/reduce complexity
-        - ie: replace iter whiles with foreach loops
         - move class variable initialization out of constructors
     6: Squash/expand functions to reuse/compartmentalize logic
         - localize creation of rarely used classes
