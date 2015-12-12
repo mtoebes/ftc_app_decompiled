@@ -25,7 +25,7 @@ public class WifiAssistant {
     }
 
     private static class WifiBroadcastReceiver extends BroadcastReceiver {
-        private WifiState wifiState = null;
+        private WifiState wifiState;
         private final WifiAssistantCallback wifiAssistantCallback;
 
         public WifiBroadcastReceiver(WifiAssistantCallback wifiAssistantCallback) {
@@ -36,7 +36,7 @@ public class WifiAssistant {
             if (!intent.getAction().equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
                 return;
             }
-            if (((NetworkInfo) intent.getParcelableExtra("networkInfo")).isConnected()) {
+            if (((NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO)).isConnected()) {
                 setWifiState(WifiState.CONNECTED);
             } else {
                 setWifiState(WifiState.NOT_CONNECTED);

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WifiDirectAssistant {
-    private static WifiDirectAssistant wifiDirectAssistant = null;
+    private static WifiDirectAssistant wifiDirectAssistant;
     private final List<WifiP2pDevice> wifiP2pDevices = new ArrayList<WifiP2pDevice>();
     private Context context;
     private boolean isWifiP2pEnabled;
@@ -35,17 +35,17 @@ public class WifiDirectAssistant {
     private final AssistantConnectionInfoListener connectionInfoListener = new AssistantConnectionInfoListener(this);
     private final AssistantPeerListListener peerListListener = new AssistantPeerListListener(this);
     private final AssistantGroupInfoListener groupInfoListener = new AssistantGroupInfoListener(this);
-    private int failureReason = 0;
+    private int failureReason;
     private ConnectStatus connectStatus = ConnectStatus.NOT_CONNECTED;
-    private Event event = null;
+    private Event event;
     private String deviceMacAddress = "";
     private String deviceName = "";
-    private InetAddress GroupOwnerInetAddress = null;
+    private InetAddress GroupOwnerInetAddress;
     private String groupOwnerMacAddress = "";
     private String groupOwnerName = "";
     private String passphrase = "";
-    private boolean groupFormed = false;
-    private int wifiDirectAssistantClientsNum = 0;
+    private boolean groupFormed;
+    private int wifiDirectAssistantClientsNum;
     private WifiDirectAssistantCallback wifiDirectAssistantCallback;
 
     class DiscoverActionListener implements ActionListener {
@@ -183,8 +183,13 @@ public class WifiDirectAssistant {
                     this.wifiDirectAssistant.groupOwnerMacAddress = owner.deviceAddress;
                     this.wifiDirectAssistant.groupOwnerName = owner.deviceName;
                 }
-                this.wifiDirectAssistant.passphrase = group.getPassphrase();
-                this.wifiDirectAssistant.passphrase = this.wifiDirectAssistant.passphrase != null ? this.wifiDirectAssistant.passphrase : "";
+
+                String passphrase = group.getPassphrase();
+                if(passphrase == null) {
+                    passphrase = "";
+                }
+                this.wifiDirectAssistant.passphrase = passphrase;
+
                 RobotLog.v("Wifi Direct connection information available");
                 this.wifiDirectAssistant.setEvent(Event.CONNECTION_INFO_AVAILABLE);
             }
@@ -346,7 +351,8 @@ public class WifiDirectAssistant {
     }
 
     public boolean isConnected() {
-        return this.connectStatus == ConnectStatus.CONNECTED || this.connectStatus == ConnectStatus.GROUP_OWNER;
+        return (this.connectStatus == ConnectStatus.CONNECTED) ||
+                (this.connectStatus == ConnectStatus.GROUP_OWNER);
     }
 
     public boolean isGroupOwner() {
@@ -371,7 +377,8 @@ public class WifiDirectAssistant {
     }
 
     public void connect(WifiP2pDevice peer) {
-        if (this.connectStatus == ConnectStatus.CONNECTING || this.connectStatus == ConnectStatus.CONNECTED) {
+        if ((this.connectStatus == ConnectStatus.CONNECTING) ||
+                (this.connectStatus == ConnectStatus.CONNECTED)) {
             RobotLog.d("WifiDirect connection request to " + peer.deviceAddress + " ignored, already connected");
             return;
         }
@@ -408,7 +415,7 @@ public class WifiDirectAssistant {
     }
 
     private void setEvent(Event event) {
-        if (this.event != event || this.event == Event.PEERS_AVAILABLE) {
+        if ((this.event != event) || (this.event == Event.PEERS_AVAILABLE)) {
             this.event = event;
             if (this.wifiDirectAssistantCallback != null) {
                 this.wifiDirectAssistantCallback.onWifiDirectEvent(event);
