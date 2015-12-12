@@ -8,13 +8,15 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 
 public class GenericDialogFragment extends DialogFragment {
+    public static final String ARGUMENT_DIALOG_MESSAGE = "dialogMsg";
+    private static final String ERROR_MESSAGE = "App error condition!";
+    private static final String POSITIVE_BUTTON_TEXT = "OK";
 
-    /* renamed from: com.qualcomm.robotcore.util.GenericDialogFragment.1 */
-    class C00481 implements OnClickListener {
-        final /* synthetic */ GenericDialogFragment f380a;
+    class GenericOnClickListener implements OnClickListener {
+        final GenericDialogFragment genericDialogFragment;
 
-        C00481(GenericDialogFragment genericDialogFragment) {
-            this.f380a = genericDialogFragment;
+        GenericOnClickListener(GenericDialogFragment genericDialogFragment) {
+            this.genericDialogFragment = genericDialogFragment;
         }
 
         public void onClick(DialogInterface dialog, int id) {
@@ -22,10 +24,9 @@ public class GenericDialogFragment extends DialogFragment {
     }
 
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String str = "App error condition!";
-        CharSequence string = getArguments().getString("dialogMsg", "App error condition!");
+        CharSequence string = getArguments().getString(ARGUMENT_DIALOG_MESSAGE, ERROR_MESSAGE);
         Builder builder = new Builder(getActivity());
-        builder.setMessage(string).setPositiveButton("OK", new C00481(this));
+        builder.setMessage(string).setPositiveButton(POSITIVE_BUTTON_TEXT, new GenericOnClickListener(this));
         return builder.create();
     }
 }

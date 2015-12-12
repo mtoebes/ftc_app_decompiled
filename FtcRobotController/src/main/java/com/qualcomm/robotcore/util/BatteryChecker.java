@@ -3,29 +3,29 @@ package com.qualcomm.robotcore.util;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.BatteryManager;
 import android.os.Handler;
 
 public class BatteryChecker {
-    Runnable f359a;
-    private Context f360b;
+    private static final long DEFAULT_DELAY = 5000;
+    Runnable batteryRunnable;
+    private Context context;
     protected Handler batteryHandler;
-    private long f361c;
-    private long f362d;
-    private BatteryWatcher f363e;
+    private long delay;
+    private BatteryWatcher batteryWatcher;
 
-    /* renamed from: com.qualcomm.robotcore.util.BatteryChecker.1 */
-    class C00431 implements Runnable {
-        final /* synthetic */ BatteryChecker f358a;
+    class batteryRunnable implements Runnable {
+        final BatteryChecker batteryChecker;
 
-        C00431(BatteryChecker batteryChecker) {
-            this.f358a = batteryChecker;
+        batteryRunnable(BatteryChecker batteryChecker) {
+            this.batteryChecker = batteryChecker;
         }
 
         public void run() {
-            float batteryLevel = this.f358a.getBatteryLevel();
-            this.f358a.f363e.updateBatteryLevel(batteryLevel);
+            float batteryLevel = this.batteryChecker.getBatteryLevel();
+            this.batteryChecker.batteryWatcher.updateBatteryLevel(batteryLevel);
             RobotLog.i("Battery Checker, Level Remaining: " + batteryLevel);
-            this.f358a.batteryHandler.postDelayed(this.f358a.f359a, this.f358a.f361c);
+            this.batteryChecker.batteryHandler.postDelayed(this.batteryChecker.batteryRunnable, this.batteryChecker.delay);
         }
     }
 
@@ -34,30 +34,31 @@ public class BatteryChecker {
     }
 
     public BatteryChecker(Context context, BatteryWatcher watcher, long delay) {
-        this.f362d = 5000;
-        this.f359a = new C00431(this);
-        this.f360b = context;
-        this.f363e = watcher;
-        this.f361c = delay;
+        this.batteryRunnable = new batteryRunnable(this);
+        this.context = context;
+        this.batteryWatcher = watcher;
+        this.delay = delay;
         this.batteryHandler = new Handler();
     }
 
     public float getBatteryLevel() {
-        int i = -1;
-        Intent registerReceiver = this.f360b.registerReceiver(null, new IntentFilter("android.intent.action.BATTERY_CHANGED"));
-        int intExtra = registerReceiver.getIntExtra("level", -1);
-        int intExtra2 = registerReceiver.getIntExtra("scale", -1);
-        if (intExtra >= 0 && intExtra2 > 0) {
-            i = (intExtra * 100) / intExtra2;
+        float batteryLevel = -1;
+        Intent registerReceiver = this.context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if(registerReceiver != null) {
+            int level = registerReceiver.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = registerReceiver.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            if (level >= 0 && scale > 0) {
+                batteryLevel = (level * 100) / scale;
+            }
         }
-        return (float) i;
+        return batteryLevel;
     }
 
     public void startBatteryMonitoring() {
-        this.batteryHandler.postDelayed(this.f359a, this.f362d);
+        this.batteryHandler.postDelayed(this.batteryRunnable, DEFAULT_DELAY);
     }
 
     public void endBatteryMonitoring() {
-        this.batteryHandler.removeCallbacks(this.f359a);
+        this.batteryHandler.removeCallbacks(this.batteryRunnable);
     }
 }

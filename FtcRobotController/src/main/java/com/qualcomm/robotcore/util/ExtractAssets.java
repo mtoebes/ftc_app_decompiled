@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class ExtractAssets {
-    private static final String f379a;
+    private static final String TAG;
 
     static {
-        f379a = ExtractAssets.class.getSimpleName();
+        TAG = ExtractAssets.class.getSimpleName();
     }
 
     public static ArrayList<String> ExtractToStorage(Context context, ArrayList<String> files, boolean useInternalStorage) throws IOException {
@@ -28,99 +28,99 @@ public class ExtractAssets {
         ArrayList<String> arrayList = new ArrayList();
         Iterator it = files.iterator();
         while (it.hasNext()) {
-            m220a(context, (String) it.next(), useInternalStorage, arrayList);
+            ExtractAndCopy(context, (String) it.next(), useInternalStorage, arrayList);
             if (arrayList != null) {
-                Log.d(f379a, "got " + arrayList.size() + " elements");
+                Log.d(TAG, "got " + arrayList.size() + " elements");
             }
         }
         return arrayList;
     }
 
-    private static ArrayList<String> m220a(Context context, String str, boolean z, ArrayList<String> arrayList) {
-        String[] list;
+    private static ArrayList<String> ExtractAndCopy(Context context, String sourceFilePath, boolean useInternalStorage, ArrayList<String> fileList) {
+        String[] ipFiles;
         InputStream inputStream = null;
-        FileOutputStream fileOutputStream = null;
-        Log.d(f379a, "Extracting assests for " + str);
+        FileOutputStream outputStream = null;
+        Log.d(TAG, "Extracting assests for " + sourceFilePath);
         AssetManager assets = context.getAssets();
         try {
-            list = assets.list(str);
+            ipFiles = assets.list(sourceFilePath);
         } catch (IOException e) {
             e.printStackTrace();
-            list = null;
+            ipFiles = null;
         }
-        if (list.length == 0) {
+        if (ipFiles.length == 0) {
             try {
-                inputStream = assets.open(str);
+                inputStream = assets.open(sourceFilePath);
 
                     File filesDir;
-                    Log.d(f379a, "File: " + str + " opened for streaming");
-                    if (!str.startsWith(File.separator)) {
-                        str = File.separator + str;
+                    Log.d(TAG, "File: " + sourceFilePath + " opened for streaming");
+                    if (!sourceFilePath.startsWith(File.separator)) {
+                        sourceFilePath = File.separator + sourceFilePath;
                     }
-                    if (z) {
+                    if (useInternalStorage) {
                         filesDir = context.getFilesDir();
                     } else {
                         filesDir = context.getExternalFilesDir(null);
                     }
-                    String concat = filesDir.getPath().concat(str);
-                    if (arrayList == null || !arrayList.contains(concat)) {
-                        int lastIndexOf = concat.lastIndexOf(File.separatorChar);
-                        String substring = concat.substring(0, lastIndexOf);
-                        String substring2 = concat.substring(lastIndexOf, concat.length());
-                        File file = new File(substring);
+                    String outFile = filesDir.getPath().concat(sourceFilePath);
+                    if (fileList == null || !fileList.contains(outFile)) {
+                        int lastIndexOf = outFile.lastIndexOf(File.separatorChar);
+                        String dirName = outFile.substring(0, lastIndexOf);
+                        String fileName = outFile.substring(lastIndexOf, outFile.length());
+                        File file = new File(dirName);
                         if (file.mkdirs()) {
-                            Log.d(f379a, "Dir created " + substring);
+                            Log.d(TAG, "Dir created " + dirName);
                         }
-                        fileOutputStream = new FileOutputStream(new File(file, substring2));
-                        if (fileOutputStream != null) {
+                        outputStream = new FileOutputStream(new File(file, fileName));
+                        if (outputStream != null) {
                                 byte[] bArr = new byte[1024];
                                 while (true) {
                                     int read = inputStream.read(bArr);
                                     if (read != -1) {
-                                        fileOutputStream.write(bArr, 0, read);
+                                        outputStream.write(bArr, 0, read);
                                     } else {
                                         break;
                                     }
                                 }
-                                if (arrayList != null) {
-                                    arrayList.add(concat);
+                                if (fileList != null) {
+                                    fileList.add(outFile);
                                 }
                         }
-                        if (arrayList != null) {
-                            arrayList.add(concat);
+                        if (fileList != null) {
+                            fileList.add(outFile);
                         }
                     } else {
-                        Log.e(f379a, "Ignoring Duplicate entry for " + concat);
+                        Log.e(TAG, "Ignoring Duplicate entry for " + outFile);
                     }
             } catch (IOException e7) {
-                Log.d(f379a, "File: " + str + " doesn't exist");
+                Log.d(TAG, "File: " + sourceFilePath + " doesn't exist");
             } finally {
                 try {
                     if (inputStream != null) {
                         inputStream.close();
                     }
                 } catch (Exception e) {
-                    Log.d(f379a, "Unable to close in stream");
+                    Log.d(TAG, "Unable to close in stream");
                     e.printStackTrace();
                 }
 
                 try {
-                    if (fileOutputStream != null) {
-                        fileOutputStream.close();
+                    if (outputStream != null) {
+                        outputStream.close();
                     }
                 } catch (Exception e) {
-                    Log.d(f379a, "Unable to close out stream");
+                    Log.d(TAG, "Unable to close out stream");
                     e.printStackTrace();
                 }
             }
-            return arrayList;
+            return fileList;
         }
-        if (!(str.equals("") || str.endsWith(File.separator))) {
-            str = str.concat(File.separator);
+        if (!(sourceFilePath.equals("") || sourceFilePath.endsWith(File.separator))) {
+            sourceFilePath = sourceFilePath.concat(File.separator);
         }
-        for (String concat2 : list) {
-            m220a(context, str.concat(concat2), z, arrayList);
+        for (String ipFile : ipFiles) {
+            ExtractAndCopy(context, sourceFilePath.concat(ipFile), useInternalStorage, fileList);
         }
-        return arrayList;
+        return fileList;
     }
 }

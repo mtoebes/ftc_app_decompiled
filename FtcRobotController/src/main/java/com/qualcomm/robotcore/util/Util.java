@@ -10,32 +10,26 @@ public class Util {
     public static String ASCII_RECORD_SEPARATOR = null;
     public static final String LOWERCASE_ALPHA_NUM_CHARACTERS = "0123456789qwertyuiopasdfghjklzxcvbnm";
 
-    /* renamed from: com.qualcomm.robotcore.util.Util.1 */
-    static class C00531 implements Comparator<File> {
-        C00531() {
+    static class fileComparator implements Comparator<File> {
+        fileComparator() {
         }
 
         public int compare(File obj, File obj2) {
-            return m236a((File) obj, (File) obj2);
-        }
-
-        public int m236a(File file, File file2) {
-            return file.getName().compareTo(file2.getName());
+            return obj.getName().compareTo(obj2.getName());
         }
     }
 
-    /* renamed from: com.qualcomm.robotcore.util.Util.2 */
-    static class C00542 implements Runnable {
-        final /* synthetic */ TextView f424a;
-        final /* synthetic */ String f425b;
+    static class updateTextViewRunnable implements Runnable {
+        final TextView textView;
+        final String message;
 
-        C00542(TextView textView, String str) {
-            this.f424a = textView;
-            this.f425b = str;
+        updateTextViewRunnable(TextView textView, String str) {
+            this.textView = textView;
+            this.message = str;
         }
 
         public void run() {
-            this.f424a.setText(this.f425b);
+            this.textView.setText(this.message);
         }
     }
 
@@ -53,19 +47,19 @@ public class Util {
     }
 
     public static void sortFilesByName(File[] files) {
-        Arrays.sort(files, new C00531());
+        Arrays.sort(files, new fileComparator());
     }
 
     public static void updateTextView(TextView textView, String msg) {
         if (textView != null) {
-            textView.post(new C00542(textView, msg));
+            textView.post(new updateTextViewRunnable(textView, msg));
         }
     }
 
     public static byte[] concatenateByteArrays(byte[] first, byte[] second) {
-        byte[] obj = new byte[(first.length + second.length)];
-        System.arraycopy(first, 0, obj, 0, first.length);
-        System.arraycopy(second, 0, obj, first.length, second.length);
-        return obj;
+        byte[] buffer = new byte[(first.length + second.length)];
+        System.arraycopy(first, 0, buffer, 0, first.length);
+        System.arraycopy(second, 0, buffer, first.length, second.length);
+        return buffer;
     }
 }

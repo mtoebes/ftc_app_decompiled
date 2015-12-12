@@ -3,51 +3,52 @@ package com.qualcomm.robotcore.util;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 
 public class RunShellCommand {
-    boolean f421a;
+    private final static int BUFFER_SIZE = 0x80000;
+    boolean logging;
 
     public RunShellCommand() {
-        this.f421a = false;
+        this.logging = false;
     }
 
     public void enableLogging(boolean enable) {
-        this.f421a = enable;
+        this.logging = enable;
     }
 
     public String run(String cmd) {
-        if (this.f421a) {
+        if (this.logging) {
             RobotLog.v("running command: " + cmd);
         }
-        String a = m235a(cmd, false);
-        if (this.f421a) {
-            RobotLog.v("         output: " + a);
+        String output = runCommand(cmd, false);
+        if (this.logging) {
+            RobotLog.v("         output: " + output);
         }
-        return a;
+        return output;
     }
 
     public String runAsRoot(String cmd) {
-        if (this.f421a) {
+        if (this.logging) {
             RobotLog.v("running command: " + cmd);
         }
-        String a = m235a(cmd, true);
-        if (this.f421a) {
-            RobotLog.v("         output: " + a);
+        String output = runCommand(cmd, true);
+        if (this.logging) {
+            RobotLog.v("         output: " + output);
         }
-        return a;
+        return output;
     }
 
-    private String m235a(String str, boolean z) {
-        byte[] bArr = new byte[524288];
-        String str2 = "";
+    private String runCommand(String cmd, boolean asRoot) {
+        byte[] bArr = new byte[BUFFER_SIZE];
+        String output = "";
         ProcessBuilder processBuilder = new ProcessBuilder(new String[0]);
         Process process = null;
-        if (z) {
+        if (asRoot) {
             try {
-                processBuilder.command(new String[]{"su", "-c", str}).redirectErrorStream(true);
+                processBuilder.command(new String[]{"su", "-c", cmd}).redirectErrorStream(true);
             } catch (Exception e) {
                 RobotLog.logStacktrace(e);
             }
         } else {
-            processBuilder.command(new String[]{"sh", "-c", str}).redirectErrorStream(true);
+            processBuilder.command(new String[]{"sh", "-c", cmd}).redirectErrorStream(true);
         }
 
         try {
@@ -55,7 +56,7 @@ public class RunShellCommand {
             process.waitFor();
             int read = process.getInputStream().read(bArr);
             if (read > 0) {
-                str2 = new String(bArr, 0, read);
+                output = new String(bArr, 0, read);
             }
         } catch (Exception e) {
             // do nothing
@@ -64,7 +65,7 @@ public class RunShellCommand {
                 process.destroy();
             }
         }
-        return str2;
+        return output;
     }
 
     public static void killSpawnedProcess(String processName, String packageName, RunShellCommand shell) throws RobotCoreException {
@@ -81,7 +82,6 @@ public class RunShellCommand {
     }
 
     public static int getSpawnedProcessPid(String processName, String packageName, RunShellCommand shell) {
-        int i = 0;
         String run = shell.run("ps");
         CharSequence charSequence = "invalid";
         for (String str : run.split("\n")) {
@@ -91,13 +91,11 @@ public class RunShellCommand {
             }
         }
         String[] split = run.split("\n");
-        int length = split.length;
-        while (i < length) {
-            String str2 = split[i];
-            if (str2.contains(processName) && str2.contains(charSequence)) {
-                return Integer.parseInt(str2.split("\\s+")[1]);
+        
+        for(String line : split) {
+            if (line.contains(processName) && line.contains(charSequence)) {
+                return Integer.parseInt(line.split("\\s+")[1]);
             }
-            i++;
         }
         return -1;
     }

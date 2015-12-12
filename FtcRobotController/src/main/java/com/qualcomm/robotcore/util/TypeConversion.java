@@ -6,10 +6,10 @@ import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 public class TypeConversion {
-    private static final Charset f423a;
+    private static final Charset CHARSET;
 
     static {
-        f423a = Charset.forName("UTF-8");
+        CHARSET = Charset.forName("UTF-8");
     }
 
     private TypeConversion() {
@@ -64,26 +64,26 @@ public class TypeConversion {
     }
 
     public static int unsignedByteToInt(byte b) {
-        return b & FT_4222_Defines.CHIPTOP_DEBUG_REQUEST;
+        return b & 0xFF;
     }
 
     public static double unsignedByteToDouble(byte b) {
-        return (double) (b & FT_4222_Defines.CHIPTOP_DEBUG_REQUEST);
+        return (double) (b & 0xFF);
     }
 
     public static long unsignedIntToLong(int i) {
-        return ((long) i) & 4294967295L;
+        return ((long) i) & 0xFFFFFFFF;
     }
 
     public static byte[] stringToUtf8(String javaString) {
-        byte[] bytes = javaString.getBytes(f423a);
-        if (javaString.equals(new String(bytes, f423a))) {
+        byte[] bytes = javaString.getBytes(CHARSET);
+        if (javaString.equals(new String(bytes, CHARSET))) {
             return bytes;
         }
-        throw new IllegalArgumentException(String.format("string cannot be cleanly encoded into %s - '%s' -> '%s'", new Object[]{f423a.name(), javaString, new String(bytes, f423a)}));
+        throw new IllegalArgumentException(String.format("string cannot be cleanly encoded into %s - '%s' -> '%s'", new Object[]{CHARSET.name(), javaString, new String(bytes, CHARSET)}));
     }
 
     public static String utf8ToString(byte[] utf8String) {
-        return new String(utf8String, f423a);
+        return new String(utf8String, CHARSET);
     }
 }

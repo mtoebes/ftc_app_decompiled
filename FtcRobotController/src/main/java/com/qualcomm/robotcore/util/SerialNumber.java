@@ -3,22 +3,22 @@ package com.qualcomm.robotcore.util;
 import java.io.Serializable;
 
 public class SerialNumber implements Serializable {
-    private String f422a;
+    private String serialNumber;
 
     public SerialNumber() {
-        this.f422a = "N/A";
+        this.serialNumber = "N/A";
     }
 
     public SerialNumber(String serialNumber) {
-        this.f422a = serialNumber;
+        this.serialNumber = serialNumber;
     }
 
     public String getSerialNumber() {
-        return this.f422a;
+        return this.serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        this.f422a = serialNumber;
+        this.serialNumber = serialNumber;
     }
 
     public boolean equals(Object object) {
@@ -29,19 +29,19 @@ public class SerialNumber implements Serializable {
             return true;
         }
         if (object instanceof SerialNumber) {
-            return this.f422a.equals(((SerialNumber) object).getSerialNumber());
+            return this.serialNumber.equals(((SerialNumber) object).getSerialNumber());
         }
         if (object instanceof String) {
-            return this.f422a.equals(object);
+            return this.serialNumber.equals(object);
         }
         return false;
     }
 
     public int hashCode() {
-        return this.f422a.hashCode();
+        return this.serialNumber.hashCode();
     }
 
     public String toString() {
-        return this.f422a;
+        return this.serialNumber;
     }
 }

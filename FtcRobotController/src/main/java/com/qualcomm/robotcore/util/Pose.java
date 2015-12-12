@@ -27,11 +27,11 @@ public class Pose {
         this.transY = transY;
         this.transZ = transZ;
         this.poseMatrix = new MatrixD(3, 4);
-        double[] dArr = this.poseMatrix.data()[0];
-        double[] dArr2 = this.poseMatrix.data()[1];
-        this.poseMatrix.data()[2][2] = Servo.MAX_POSITION;
-        dArr2[1] = Servo.MAX_POSITION;
-        dArr[0] = Servo.MAX_POSITION;
+
+        this.poseMatrix.data()[0][0] = 1.0d;
+        this.poseMatrix.data()[1][1] = 1.0d;
+        this.poseMatrix.data()[2][2] = 1.0d;
+
         this.poseMatrix.data()[0][3] = transX;
         this.poseMatrix.data()[1][3] = transY;
         this.poseMatrix.data()[2][3] = transZ;
@@ -44,71 +44,59 @@ public class Pose {
     }
 
     public MatrixD getTranslationMatrix() {
-        double[][] r0 = new double[3][];
-        r0[0] = new double[]{this.transX};
-        r0[1] = new double[]{this.transY};
-        r0[2] = new double[]{this.transZ};
-        return new MatrixD(r0);
+        double[][] matrixBuffer = new double[3][];
+        matrixBuffer[0] = new double[]{this.transX};
+        matrixBuffer[1] = new double[]{this.transY};
+        matrixBuffer[2] = new double[]{this.transZ};
+        return new MatrixD(matrixBuffer);
     }
 
     public static MatrixD makeRotationX(double angle) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
-        dArr[0][0] = Servo.MAX_POSITION;
-        double[] dArr2 = dArr[0];
-        double[] dArr3 = dArr[0];
-        double[] dArr4 = dArr[1];
-        dArr[2][0] = 0.0d;
-        dArr4[0] = 0.0d;
-        dArr3[2] = 0.0d;
-        dArr2[1] = 0.0d;
-        dArr2 = dArr[1];
-        dArr[2][2] = cos;
-        dArr2[1] = cos;
-        dArr[1][2] = -sin;
-        dArr[2][1] = sin;
-        return new MatrixD(dArr);
+        matrixBuffer[0][0] = 1.0d;
+        matrixBuffer[2][0] = 0.0d;
+        matrixBuffer[1][0] = 0.0d;
+        matrixBuffer[0][2] = 0.0d;
+        matrixBuffer[0][1] = 0.0d;
+        matrixBuffer[2][2] = cos;
+        matrixBuffer[1][1] = cos;
+        matrixBuffer[1][2] = -sin;
+        matrixBuffer[2][1] = sin;
+        return new MatrixD(matrixBuffer);
     }
 
     public static MatrixD makeRotationY(double angle) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
-        double[] dArr2 = dArr[0];
-        double[] dArr3 = dArr[1];
-        double[] dArr4 = dArr[1];
-        dArr[2][1] = 0.0d;
-        dArr4[2] = 0.0d;
-        dArr3[0] = 0.0d;
-        dArr2[1] = 0.0d;
-        dArr[1][1] = Servo.MAX_POSITION;
-        dArr2 = dArr[0];
-        dArr[2][2] = cos;
-        dArr2[0] = cos;
-        dArr[0][2] = sin;
-        dArr[2][0] = -sin;
-        return new MatrixD(dArr);
+        matrixBuffer[2][1] = 0.0d;
+        matrixBuffer[1][2] = 0.0d;
+        matrixBuffer[1][0] = 0.0d;
+        matrixBuffer[0][1] = 0.0d;
+        matrixBuffer[1][1] = 1.0d;
+        matrixBuffer[2][2] = cos;
+        matrixBuffer[0][0] = cos;
+        matrixBuffer[0][2] = sin;
+        matrixBuffer[2][0] = -sin;
+        return new MatrixD(matrixBuffer);
     }
 
     public static MatrixD makeRotationZ(double angle) {
-        double[][] dArr = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
+        double[][] matrixBuffer = (double[][]) Array.newInstance(Double.TYPE, new int[]{3, 3});
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
-        dArr[2][2] = Servo.MAX_POSITION;
-        double[] dArr2 = dArr[2];
-        double[] dArr3 = dArr[2];
-        double[] dArr4 = dArr[0];
-        dArr[1][2] = 0.0d;
-        dArr4[2] = 0.0d;
-        dArr3[1] = 0.0d;
-        dArr2[0] = 0.0d;
-        dArr2 = dArr[0];
-        dArr[1][1] = cos;
-        dArr2[0] = cos;
-        dArr[0][1] = -sin;
-        dArr[1][0] = sin;
-        return new MatrixD(dArr);
+        matrixBuffer[2][2] = 1.0d;
+        matrixBuffer[1][2] = 0.0d;
+        matrixBuffer[0][2] = 0.0d;
+        matrixBuffer[2][1] = 0.0d;
+        matrixBuffer[2][0] = 0.0d;
+        matrixBuffer[1][1] = cos;
+        matrixBuffer[0][0] = cos;
+        matrixBuffer[0][1] = -sin;
+        matrixBuffer[1][0] = sin;
+        return new MatrixD(matrixBuffer);
     }
 
     public String toString() {
