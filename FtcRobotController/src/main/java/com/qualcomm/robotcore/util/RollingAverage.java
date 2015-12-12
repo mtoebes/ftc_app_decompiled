@@ -10,12 +10,12 @@ public class RollingAverage {
     private int size;
 
     public RollingAverage() {
-        this.queue = new LinkedList();
+        this.queue = new LinkedList<Integer>();
         resize(DEFAULT_SIZE);
     }
 
     public RollingAverage(int size) {
-        this.queue = new LinkedList();
+        this.queue = new LinkedList<Integer>();
         resize(size);
     }
 

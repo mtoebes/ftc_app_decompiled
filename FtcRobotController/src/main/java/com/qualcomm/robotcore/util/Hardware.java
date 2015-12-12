@@ -13,7 +13,7 @@ public class Hardware {
     }
 
     public static Set<Integer> getGameControllerIds() {
-        Set<Integer> hashSet = new HashSet();
+        Set<Integer> hashSet = new HashSet<Integer>();
         for (int deviceId : InputDevice.getDeviceIds()) {
             int sources = InputDevice.getDevice(deviceId).getSources();
             if ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD || (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {

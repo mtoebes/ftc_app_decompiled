@@ -235,15 +235,15 @@ public class MatrixD {
         Log.e("MatrixD", "Hello2 matrix");
         MatrixD matrixD = new MatrixD(new double[][]{new double[]{Servo.MAX_POSITION, 0.0d, -2.0d}, new double[]{0.0d, 3.0d, -1.0d}});
         Log.e("MatrixD", "Hello3 matrix");
-        Log.e("MatrixD", "A = \n" + matrixD.toString());
+        Log.e("MatrixD", "A = \n" + matrixD);
         MatrixD matrixD2 = new MatrixD(new double[][]{new double[]{0.0d, 3.0d}, new double[]{-2.0d, -1.0d}, new double[]{0.0d, 4.0d}});
-        Log.e("MatrixD", "B = \n" + matrixD2.toString());
-        Log.e("MatrixD", "A transpose = " + matrixD.transpose().toString());
-        Log.e("MatrixD", "B transpose = " + matrixD2.transpose().toString());
-        Log.e("MatrixD", "AB = \n" + matrixD.times(matrixD2).toString());
+        Log.e("MatrixD", "B = \n" + matrixD2);
+        Log.e("MatrixD", "A transpose = " + matrixD.transpose());
+        Log.e("MatrixD", "B transpose = " + matrixD2.transpose());
+        Log.e("MatrixD", "AB = \n" + matrixD.times(matrixD2));
         matrixD = matrixD2.times(matrixD);
-        Log.e("MatrixD", "BA = \n" + matrixD.toString());
-        Log.e("MatrixD", "BA*2 = " + matrixD.times(2.0d).toString());
+        Log.e("MatrixD", "BA = \n" + matrixD);
+        Log.e("MatrixD", "BA*2 = " + matrixD.times(2.0d));
         Log.e("MatrixD", "BA submatrix 3,2,0,1 = " + matrixD.submatrix(3, 2, 0, 1));
         Log.e("MatrixD", "BA submatrix 2,1,1,2 = " + matrixD.submatrix(2, 1, 1, 2));
     }

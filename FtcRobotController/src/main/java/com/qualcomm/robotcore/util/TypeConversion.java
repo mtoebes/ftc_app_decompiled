@@ -72,7 +72,7 @@ public class TypeConversion {
     }
 
     public static long unsignedIntToLong(int i) {
-        return ((long) i) & 0xFFFFFFFF;
+        return (long) i;
     }
 
     public static byte[] stringToUtf8(String javaString) {

@@ -21,7 +21,7 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> getLocalIpAddresses() {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         try {
             Iterator it = Collections.list(NetworkInterface.getNetworkInterfaces()).iterator();
             while (it.hasNext()) {
@@ -33,7 +33,7 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> getLocalIpAddress(String networkInterface) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         try {
             Iterator it = Collections.list(NetworkInterface.getNetworkInterfaces()).iterator();
             while (it.hasNext()) {
@@ -48,7 +48,7 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> removeIPv6Addresses(Collection<InetAddress> addresses) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         for (InetAddress inetAddress : addresses) {
             if (inetAddress instanceof Inet4Address) {
                 arrayList.add(inetAddress);
@@ -58,7 +58,7 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> removeIPv4Addresses(Collection<InetAddress> addresses) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         for (InetAddress inetAddress : addresses) {
             if (inetAddress instanceof Inet6Address) {
                 arrayList.add(inetAddress);
@@ -68,7 +68,7 @@ public class Network {
     }
 
     public static ArrayList<InetAddress> removeLoopbackAddresses(Collection<InetAddress> addresses) {
-        ArrayList<InetAddress> arrayList = new ArrayList();
+        ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         for (InetAddress inetAddress : addresses) {
             if (!inetAddress.isLoopbackAddress()) {
                 arrayList.add(inetAddress);
@@ -78,7 +78,7 @@ public class Network {
     }
 
     public static ArrayList<String> getHostAddresses(Collection<InetAddress> addresses) {
-        ArrayList<String> arrayList = new ArrayList();
+        ArrayList<String> arrayList = new ArrayList<String>();
         for (InetAddress hostAddress : addresses) {
             String hostAddress2 = hostAddress.getHostAddress();
             if (hostAddress2.contains("%")) {

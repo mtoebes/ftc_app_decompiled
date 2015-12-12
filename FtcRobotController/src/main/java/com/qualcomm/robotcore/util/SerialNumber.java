@@ -24,17 +24,15 @@ public class SerialNumber implements Serializable {
     public boolean equals(Object object) {
         if (object == null) {
             return false;
-        }
-        if (object == this) {
+        } else if (object == this) {
             return true;
-        }
-        if (object instanceof SerialNumber) {
+        } else if (object instanceof SerialNumber) {
             return this.serialNumber.equals(((SerialNumber) object).getSerialNumber());
-        }
-        if (object instanceof String) {
+        } else if (object instanceof String) {
             return this.serialNumber.equals(object);
+        } else {
+            return false;
         }
-        return false;
     }
 
     public int hashCode() {

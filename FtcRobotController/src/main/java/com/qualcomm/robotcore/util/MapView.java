@@ -28,7 +28,6 @@ public class MapView extends View {
     private int nextId;
     private float scalerX;
     private float scalerY;
-    private BitmapDrawable bitmapDrawable;
     private int robotX;
     private int robotY;
     private int robotTh;
@@ -95,7 +94,7 @@ public class MapView extends View {
         this.linePaint.setStrokeWidth(Dimmer.MAXIMUM_BRIGHTNESS);
         this.linePaint.setAntiAlias(true);
         this.mapView = this;
-        this.markers = new HashMap();
+        this.markers = new HashMap<Integer, Marker>();
     }
 
     private int toEvenInt(int i) {
@@ -159,10 +158,7 @@ public class MapView extends View {
     }
 
     public boolean removeMarker(int id) {
-        if (this.markers.remove(Integer.valueOf(id)) == null) {
-            return false;
-        }
-        return true;
+        return (this.markers.remove(Integer.valueOf(id)) != null);
     }
 
     public int addDrawable(int x, int y, int resource) {
@@ -207,7 +203,7 @@ public class MapView extends View {
                 drawRobot();
             }
         }
-        this.bitmapDrawable = new BitmapDrawable(getResources(), this.bitmap);
-        this.mapView.setBackgroundDrawable(this.bitmapDrawable);
+        BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), this.bitmap);
+        this.mapView.setBackground(bitmapDrawable);
     }
 }

@@ -25,7 +25,7 @@ public class ExtractAssets {
                 throw new IOException("External Storage not accessible");
             }
         }
-        ArrayList<String> arrayList = new ArrayList();
+        ArrayList<String> arrayList = new ArrayList<String>();
         Iterator it = files.iterator();
         while (it.hasNext()) {
             ExtractAndCopy(context, (String) it.next(), useInternalStorage, arrayList);

@@ -32,7 +32,7 @@ public class RobotLog {
                 RunShellCommand.killSpawnedProcess("logcat", this.packageName, runShellCommand);
                 runShellCommand.run(String.format("logcat -f %s -r%d -n%d -v time %s", new Object[]{this.filePath, Integer.valueOf(this.fileSizeKb), Integer.valueOf(1), "UsbRequestJNI:S UsbRequest:S *:V"}));
             } catch (RobotCoreException e) {
-                RobotLog.v("Error while writing log file to disk: " + e.toString());
+                RobotLog.v("Error while writing log file to disk: " + e);
             } finally {
                 RobotLog.writeLock = false;
             }
@@ -57,7 +57,7 @@ public class RobotLog {
                 RobotLog.v("closing logcat file " + this.filePath);
                 RunShellCommand.killSpawnedProcess("logcat", this.packageName, new RunShellCommand());
             } catch (RobotCoreException e2) {
-                RobotLog.v("Unable to cancel writing log file to disk: " + e2.toString());
+                RobotLog.v("Unable to cancel writing log file to disk: " + e2);
             }
         }
     }
