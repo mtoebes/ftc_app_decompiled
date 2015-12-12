@@ -57,33 +57,12 @@ public abstract class LinearOpMode extends OpMode {
         this.f205d = false;
     }
 
-    /* JADX WARNING: inconsistent code. */
-    /* Code decompiled incorrectly, please refer to instructions dump. */
     public synchronized void waitForStart() throws InterruptedException {
-        /*
-        r1 = this;
-        monitor-enter(r1);
-    L_0x0001:
-        r0 = r1.f205d;	 Catch:{ all -> 0x000e }
-        if (r0 != 0) goto L_0x0011;
-    L_0x0005:
-        monitor-enter(r1);	 Catch:{ all -> 0x000e }
-        r1.wait();	 Catch:{ all -> 0x000b }
-        monitor-exit(r1);	 Catch:{ all -> 0x000b }
-        goto L_0x0001;
-    L_0x000b:
-        r0 = move-exception;
-        monitor-exit(r1);	 Catch:{ all -> 0x000b }
-        throw r0;	 Catch:{ all -> 0x000e }
-    L_0x000e:
-        r0 = move-exception;
-        monitor-exit(r1);
-        throw r0;
-    L_0x0011:
-        monitor-exit(r1);
-        return;
-        */
-        throw new UnsupportedOperationException("Method not decompiled: com.qualcomm.robotcore.eventloop.opmode.LinearOpMode.waitForStart():void");
+        while(!this.f205d) {
+            synchronized (this) {
+                this.wait();
+            }
+        }
     }
 
     public void waitOneFullHardwareCycle() throws InterruptedException {
