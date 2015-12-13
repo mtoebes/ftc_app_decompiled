@@ -10,28 +10,23 @@ public enum RobotState {
     EMERGENCY_STOP(4),
     DROPPED_CONNECTION(5);
     
-    private static final RobotState[] f343b;
-    private int f345a;
+    private static final RobotState[] ROBOT_STATES = values();
+    private int state;
 
-    static {
-        f343b = values();
-    }
-
-    private RobotState(int state) {
-        this.f345a = state;
+    RobotState(int state) {
+        this.state = state;
     }
 
     public byte asByte() {
-        return (byte) this.f345a;
+        return (byte) this.state;
     }
 
     public static RobotState fromByte(byte b) {
-        RobotState robotState = NOT_STARTED;
         try {
-            return f343b[b];
+            return ROBOT_STATES[b];
         } catch (ArrayIndexOutOfBoundsException e) {
-            RobotLog.w(String.format("Cannot convert %d to RobotState: %s", new Object[]{Byte.valueOf(b), e.toString()}));
-            return robotState;
+            RobotLog.w(String.format("Cannot convert %d to RobotState: %s", b, e.toString()));
+            return NOT_STARTED;
         }
     }
 }
