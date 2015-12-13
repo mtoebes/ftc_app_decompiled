@@ -10,28 +10,27 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class PeerDiscoveryManager {
-    private InetAddress f323a;
-    private final RobocolDatagramSocket f324b;
-    private ScheduledExecutorService f325c;
-    private ScheduledFuture<?> f326d;
-    private final PeerDiscovery f327e;
+    private InetAddress address;
+    private final RobocolDatagramSocket socket;
+    private ScheduledExecutorService service;
+    private ScheduledFuture<?> future;
+    private final PeerDiscovery message = new PeerDiscovery(PeerType.PEER);
 
-    /* renamed from: com.qualcomm.robotcore.robocol.PeerDiscoveryManager.a */
-    private class C0040a implements Runnable {
-        final /* synthetic */ PeerDiscoveryManager f322a;
+    private class PeerDiscoveryRunnable implements Runnable {
+        final PeerDiscoveryManager peerDiscoveryManager;
 
-        private C0040a(PeerDiscoveryManager peerDiscoveryManager) {
-            this.f322a = peerDiscoveryManager;
+        private PeerDiscoveryRunnable(PeerDiscoveryManager peerDiscoveryManager) {
+            this.peerDiscoveryManager = peerDiscoveryManager;
         }
 
         public void run() {
             try {
                 RobotLog.v("Sending peer discovery packet");
-                RobocolDatagram robocolDatagram = new RobocolDatagram(this.f322a.f327e);
-                if (this.f322a.f324b.getInetAddress() == null) {
-                    robocolDatagram.setAddress(this.f322a.f323a);
+                RobocolDatagram robocolDatagram = new RobocolDatagram(new PeerDiscovery(PeerType.PEER));
+                if (this.peerDiscoveryManager.socket.getInetAddress() == null) {
+                    robocolDatagram.setAddress(this.peerDiscoveryManager.address);
                 }
-                this.f322a.f324b.send(robocolDatagram);
+                this.peerDiscoveryManager.socket.send(robocolDatagram);
             } catch (RobotCoreException e) {
                 RobotLog.d("Unable to send peer discovery packet: " + e.toString());
             }
@@ -39,32 +38,31 @@ public class PeerDiscoveryManager {
     }
 
     public PeerDiscoveryManager(RobocolDatagramSocket socket) {
-        this.f327e = new PeerDiscovery(PeerType.PEER);
-        this.f324b = socket;
+        this.socket = socket;
     }
 
     public InetAddress getPeerDiscoveryDevice() {
-        return this.f323a;
+        return this.address;
     }
 
     public void start(InetAddress peerDiscoveryDevice) {
         RobotLog.v("Starting peer discovery");
-        if (peerDiscoveryDevice == this.f324b.getLocalAddress()) {
+        if (peerDiscoveryDevice == this.socket.getLocalAddress()) {
             RobotLog.v("No need for peer discovery, we are the peer discovery device");
             return;
         }
-        if (this.f326d != null) {
-            this.f326d.cancel(true);
+        if (this.future != null) {
+            this.future.cancel(true);
         }
-        this.f323a = peerDiscoveryDevice;
-        this.f325c = Executors.newSingleThreadScheduledExecutor();
-        this.f326d = this.f325c.scheduleAtFixedRate(new C0040a(this), 1, 1, TimeUnit.SECONDS);
+        this.address = peerDiscoveryDevice;
+        this.service = Executors.newSingleThreadScheduledExecutor();
+        this.future = this.service.scheduleAtFixedRate(new PeerDiscoveryRunnable(this), 1, 1, TimeUnit.SECONDS);
     }
 
     public void stop() {
         RobotLog.v("Stopping peer discovery");
-        if (this.f326d != null) {
-            this.f326d.cancel(true);
+        if (this.future != null) {
+            this.future.cancel(true);
         }
     }
 }

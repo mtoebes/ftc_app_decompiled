@@ -4,71 +4,65 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Comparator;
 
 public class Command implements RobocolParsable, Comparable<Command>, Comparator<Command> {
     public static final int MAX_COMMAND_LENGTH = 256;
-    private static final Charset f304h;
-    String f305a;
-    String f306b;
-    byte[] f307c;
-    byte[] f308d;
-    long f309e;
-    boolean f310f;
-    byte f311g;
+    public static final short BASE_PAYLOAD_SIZE = (short) 11;
 
-    static {
-        f304h = Charset.forName("UTF-8");
-    }
+    String name;
+    String extra;
+    byte[] nameBuffer;
+    byte[] extraBuffer;
+    long timestamp;
+    boolean isAcknowledged;
+    byte attempts;
 
     public Command(String name) {
         this(name, "");
     }
 
     public Command(String name, String extra) {
-        this.f310f = false;
-        this.f311g = (byte) 0;
-        this.f305a = name;
-        this.f306b = extra;
-        this.f307c = TypeConversion.stringToUtf8(this.f305a);
-        this.f308d = TypeConversion.stringToUtf8(this.f306b);
-        this.f309e = generateTimestamp();
-        if (this.f307c.length > MAX_COMMAND_LENGTH) {
+        this.name = name;
+        this.extra = extra;
+        this.nameBuffer = TypeConversion.stringToUtf8(this.name);
+        this.extraBuffer = TypeConversion.stringToUtf8(this.extra);
+        this.timestamp = generateTimestamp();
+        if (this.nameBuffer.length > MAX_COMMAND_LENGTH) {
             throw new IllegalArgumentException(String.format("command name length is too long (MAX: %d)", new Object[]{Integer.valueOf(MAX_COMMAND_LENGTH)}));
-        } else if (this.f308d.length > MAX_COMMAND_LENGTH) {
+        } else if (this.extraBuffer.length > MAX_COMMAND_LENGTH) {
             throw new IllegalArgumentException(String.format("command extra data length is too long (MAX: %d)", new Object[]{Integer.valueOf(MAX_COMMAND_LENGTH)}));
         }
     }
 
     public Command(byte[] byteArray) throws RobotCoreException {
-        this.f310f = false;
-        this.f311g = (byte) 0;
+        this.isAcknowledged = false;
+        this.attempts = (byte) 0;
         fromByteArray(byteArray);
     }
 
     public void acknowledge() {
-        this.f310f = true;
+        this.isAcknowledged = true;
     }
 
     public boolean isAcknowledged() {
-        return this.f310f;
+        return this.isAcknowledged;
     }
 
     public String getName() {
-        return this.f305a;
+        return this.name;
     }
 
     public String getExtra() {
-        return this.f306b;
+        return this.extra;
     }
 
     public byte getAttempts() {
-        return this.f311g;
+        return this.attempts;
     }
 
     public long getTimestamp() {
-        return this.f309e;
+        return this.timestamp;
     }
 
     public MsgType getRobocolMsgType() {
@@ -76,20 +70,20 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
     }
 
     public byte[] toByteArray() throws RobotCoreException {
-        if (this.f311g != 127) {
-            this.f311g = (byte) (this.f311g + 1);
+        if (this.attempts < MAX_COMMAND_LENGTH) {
+            this.attempts ++;
         }
-        short length = (short) ((this.f307c.length + 11) + this.f308d.length);
-        ByteBuffer allocate = ByteBuffer.allocate(length + 3);
+        short length = (short) (this.nameBuffer.length + this.extraBuffer.length + BASE_PAYLOAD_SIZE);
+        ByteBuffer allocate = ByteBuffer.allocate(length + HEADER_LENGTH);
         try {
             allocate.put(getRobocolMsgType().asByte());
             allocate.putShort(length);
-            allocate.putLong(this.f309e);
-            allocate.put((byte) (this.f310f ? 1 : 0));
-            allocate.put((byte) this.f307c.length);
-            allocate.put(this.f307c);
-            allocate.put((byte) this.f308d.length);
-            allocate.put(this.f308d);
+            allocate.putLong(this.timestamp);
+            allocate.put((byte) (this.isAcknowledged ? 1 : 0));
+            allocate.put((byte) this.nameBuffer.length);
+            allocate.put(this.nameBuffer);
+            allocate.put((byte) this.extraBuffer.length);
+            allocate.put(this.extraBuffer);
         } catch (Exception e) {
             RobotLog.logStacktrace(e);
         }
@@ -97,29 +91,30 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
     }
 
     public void fromByteArray(byte[] byteArray) throws RobotCoreException {
-        boolean z = true;
-        ByteBuffer wrap = ByteBuffer.wrap(byteArray, 3, byteArray.length - 3);
-        this.f309e = wrap.getLong();
-        if (wrap.get() != (byte) 1) {
-            z = false;
-        }
-        this.f310f = z;
-        this.f307c = new byte[TypeConversion.unsignedByteToInt(wrap.get())];
-        wrap.get(this.f307c);
-        this.f305a = TypeConversion.utf8ToString(this.f307c);
-        this.f308d = new byte[TypeConversion.unsignedByteToInt(wrap.get())];
-        wrap.get(this.f308d);
-        this.f306b = TypeConversion.utf8ToString(this.f308d);
+        ByteBuffer wrap = ByteBuffer.wrap(byteArray, HEADER_LENGTH, byteArray.length - HEADER_LENGTH);
+
+        this.timestamp = wrap.getLong();
+
+        this.isAcknowledged = (wrap.get() == 1);
+
+        this.nameBuffer = new byte[TypeConversion.unsignedByteToInt(wrap.get())];
+        wrap.get(this.nameBuffer);
+
+        this.name = TypeConversion.utf8ToString(this.nameBuffer);
+        this.extraBuffer = new byte[TypeConversion.unsignedByteToInt(wrap.get())];
+
+        wrap.get(this.extraBuffer);
+        this.extra = TypeConversion.utf8ToString(this.extraBuffer);
     }
 
     public String toString() {
-        return String.format("command: %20d %5s %s", new Object[]{Long.valueOf(this.f309e), Boolean.valueOf(this.f310f), this.f305a});
+        return String.format("command: %20d %5s %s", new Object[]{Long.valueOf(this.timestamp), Boolean.valueOf(this.isAcknowledged), this.name});
     }
 
-    public boolean equals(Object o) {
-        if (o instanceof Command) {
-            Command command = (Command) o;
-            if (this.f305a.equals(command.f305a) && this.f309e == command.f309e) {
+    public boolean equals(Object obj) {
+        if (obj instanceof Command) {
+            Command command = (Command) obj;
+            if (this.name.equals(command.name) && this.timestamp == command.timestamp) {
                 return true;
             }
         }
@@ -127,18 +122,18 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
     }
 
     public int hashCode() {
-        return (int) (((long) this.f305a.hashCode()) & this.f309e);
+        return (int) (((long) this.name.hashCode()) & this.timestamp);
     }
 
     public int compareTo(Command another) {
-        int compareTo = this.f305a.compareTo(another.f305a);
+        int compareTo = this.name.compareTo(another.name);
         if (compareTo != 0) {
             return compareTo;
         }
-        if (this.f309e < another.f309e) {
+        if (this.timestamp < another.timestamp) {
             return -1;
         }
-        if (this.f309e > another.f309e) {
+        if (this.timestamp > another.timestamp) {
             return 1;
         }
         return 0;

@@ -6,7 +6,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 
 public class RobocolDatagram {
-    private DatagramPacket f328a;
+    private DatagramPacket packet;
 
     public RobocolDatagram(RobocolParsable message) throws RobotCoreException {
         setData(message.toByteArray());
@@ -17,60 +17,59 @@ public class RobocolDatagram {
     }
 
     protected RobocolDatagram(DatagramPacket packet) {
-        this.f328a = packet;
+        this.packet = packet;
     }
 
     protected RobocolDatagram() {
-        this.f328a = null;
     }
 
     public MsgType getMsgType() {
-        return MsgType.fromByte(this.f328a.getData()[0]);
+        return MsgType.fromByte(this.packet.getData()[0]);
     }
 
     public int getLength() {
-        return this.f328a.getLength();
+        return this.packet.getLength();
     }
 
     public int getPayloadLength() {
-        return this.f328a.getLength() - 3;
+        return this.packet.getLength() - RobocolParsable.HEADER_LENGTH;
     }
 
     public byte[] getData() {
-        return this.f328a.getData();
+        return this.packet.getData();
     }
 
     public void setData(byte[] data) {
-        this.f328a = new DatagramPacket(data, data.length);
+        this.packet = new DatagramPacket(data, data.length);
     }
 
     public InetAddress getAddress() {
-        return this.f328a.getAddress();
+        return this.packet.getAddress();
     }
 
     public void setAddress(InetAddress address) {
-        this.f328a.setAddress(address);
+        this.packet.setAddress(address);
     }
 
     public String toString() {
-        int i;
-        String str = "NONE";
-        String str2 = null;
-        if (this.f328a == null || this.f328a.getAddress() == null || this.f328a.getLength() <= 0) {
-            i = 0;
+        int length;
+        String messageType = "NONE";
+        String hostAddress = null;
+        if (this.packet == null || this.packet.getAddress() == null || this.packet.getLength() <= 0) {
+            length = 0;
         } else {
-            str = MsgType.fromByte(this.f328a.getData()[0]).name();
-            i = this.f328a.getLength();
-            str2 = this.f328a.getAddress().getHostAddress();
+            messageType = MsgType.fromByte(this.packet.getData()[0]).name();
+            length = this.packet.getLength();
+            hostAddress = this.packet.getAddress().getHostAddress();
         }
-        return String.format("RobocolDatagram - type:%s, addr:%s, size:%d", new Object[]{str, str2, Integer.valueOf(i)});
+        return String.format("RobocolDatagram - type:%s, addr:%s, size:%d", new Object[]{messageType, hostAddress, Integer.valueOf(length)});
     }
 
     protected DatagramPacket getPacket() {
-        return this.f328a;
+        return this.packet;
     }
 
     protected void setPacket(DatagramPacket packet) {
-        this.f328a = packet;
+        this.packet = packet;
     }
 }
