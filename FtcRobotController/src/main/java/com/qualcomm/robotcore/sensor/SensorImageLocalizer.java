@@ -13,7 +13,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
     private static final String TAG = "SensorImageLocalizer";
 
     private final Map<String, TargetInfo> targetInfoMap = new HashMap<String, TargetInfo>();
-    private Pose robotPose; // with respect to the camera
+    private Pose robotToCamPose = new Pose(0,0,0); // with respect to the camera
     private final HashMap<String, TrackedTargetData> dataMap = new HashMap<String, TrackedTargetData>();
     private TrackedTargetData lastData;
 
@@ -90,7 +90,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
         matrixD.data()[0][3] = width;
         matrixD.data()[1][3] = -height;
         matrixD.data()[2][3] = length;
-        this.robotPose = new Pose(matrixD);
+        this.robotToCamPose = new Pose(matrixD);
         return true;
     }
 
@@ -179,29 +179,22 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
 
         Log.d(TAG, "Selected target " + targetName + " time " + currentTimeMillis);
 
-        MatrixD matrixD = null;
-        if (this.robotPose != null) {
-            matrixD = this.robotPose.poseMatrix.submatrix(3, 3, 0, 0);
-        }
-
+        MatrixD matrixD = this.robotToCamPose.poseMatrix.submatrix(3, 3, 0, 0);
+        
         MatrixD transpose = trackedTargetInfo.mTargetInfo.mTargetPose.poseMatrix.submatrix(3, 3, 0, 0).transpose();
         MatrixD submatrix = targetInfo.mTargetPose.poseMatrix.submatrix(3, 3, 0, 0);
         MatrixD times = Pose.makeRotationX(Math.toRadians(90.0d)).times(Pose.makeRotationY(Math.toRadians(90.0d)));
         MatrixD times2 = times.times(submatrix).times(transpose);
-        if (matrixD != null) {
-            matrixD = times2.times(matrixD);
-        } else {
-            matrixD = times2;
-        }
+
+        matrixD = times2.times(matrixD);
+
         times2 = new MatrixD(3, 1);
         times2.data()[0][0] = targetInfo.mTargetSize.mLongSide;
         times2.data()[1][0] = targetInfo.mTargetSize.mShortSide;
         times2.data()[2][0] = 0.0d;
         MatrixD times3 = transpose.times(trackedTargetInfo.mTargetInfo.mTargetPose.getTranslationMatrix());
-        MatrixD matrixD2 = new MatrixD(3, 1);
-        if (this.robotPose != null) {
-            matrixD2 = this.robotPose.getTranslationMatrix();
-        }
+        MatrixD matrixD2 = this.robotToCamPose.getTranslationMatrix();
+
         times = times.times(targetInfo.mTargetPose.getTranslationMatrix().subtract(submatrix.times(times3.add(transpose.times(matrixD2)).add(times2))));
         MatrixD matrixD3 = new MatrixD(3, 4);
         matrixD3.setSubmatrix(matrixD, 3, 3, 0, 0);
