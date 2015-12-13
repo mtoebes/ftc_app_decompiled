@@ -27,6 +27,10 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
         public int count;
         public String targetName;
         public double confidence;
+
+        TrackedTargetData(String name) {
+            this.targetName = name;
+        }
     }
 
     public SensorImageLocalizer(List<SensorListener<Pose>> l) {
@@ -109,8 +113,9 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
     private boolean isValidInfo(TrackedTargetInfo trackedTargetInfo) {
         long currentTimeMillis = System.currentTimeMillis() / 1000;
         TrackedTargetData trackedTargetData;
-        if (this.dataMap.containsKey(trackedTargetInfo.mTargetInfo.mTargetName)) {
-            trackedTargetData = this.dataMap.get(trackedTargetInfo.mTargetInfo.mTargetName);
+        String targetName = trackedTargetInfo.mTargetInfo.mTargetName;
+        if (this.dataMap.containsKey(targetName)) {
+            trackedTargetData = this.dataMap.get(targetName);
             trackedTargetData.timeTracked = trackedTargetInfo.mTimeTracked;
             trackedTargetData.confidence = trackedTargetInfo.mConfidence;
             if ((currentTimeMillis - trackedTargetData.timeTracked) > TrackedTargetData.RESET_COUNT_TIME_LIMIT) {
@@ -119,18 +124,20 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
                 trackedTargetData.count++;
             }
         } else {
-            trackedTargetData = new TrackedTargetData();
-            trackedTargetData.confidence = trackedTargetInfo.mConfidence;
-            trackedTargetData.targetName = trackedTargetInfo.mTargetInfo.mTargetName;
+            trackedTargetData = new TrackedTargetData(targetName);
             trackedTargetData.timeTracked = trackedTargetInfo.mTimeTracked;
+            trackedTargetData.confidence = trackedTargetInfo.mConfidence;
             trackedTargetData.count = 1;
-            this.dataMap.put(trackedTargetInfo.mTargetInfo.mTargetName, trackedTargetData);
+            this.dataMap.put(targetName, trackedTargetData);
         }
-        if ((this.lastData == null) || (this.lastData.targetName.equals(trackedTargetData.targetName)) || ((currentTimeMillis - this.lastData.lastUpdateTime) >= TrackedTargetData.TARGET_SWITCH_INTERVAL)) {
+        if ((this.lastData == null) ||
+                (this.lastData.targetName.equals(trackedTargetData.targetName)) ||
+                ((currentTimeMillis - this.lastData.lastUpdateTime) >= TrackedTargetData.TARGET_SWITCH_INTERVAL)) {
             return true;
+        } else {
+            Log.d(TAG, "Ignoring target " + targetName + " Time diff " + (currentTimeMillis - this.lastData.lastUpdateTime));
+            return false;
         }
-        Log.d(TAG, "Ignoring target " + trackedTargetInfo.mTargetInfo.mTargetName + " Time diff " + (currentTimeMillis - this.lastData.lastUpdateTime));
-        return false;
     }
 
     private TrackedTargetInfo getBestTarget(List<TrackedTargetInfo> targetPoses) {
@@ -195,6 +202,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
         MatrixD targetWrtWorldTrans = targetWrtWorldPose.getTranslationMatrix();
 
         MatrixD cameraWrtWorldRot = targetWrtWorldRot.times(cameraWrtTargetRot);
+
         MatrixD robotWrtWorldRot = cameraWrtWorldRot.times(robotWrtCameraRot);
 
         MatrixD robotRot = TRANSFORM_AXES.times(robotWrtWorldRot);
