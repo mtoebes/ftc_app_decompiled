@@ -11,9 +11,10 @@ import java.util.Map;
 public class SensorImageLocalizer extends SensorBase<Pose> implements SensorListener<List<TrackedTargetInfo>> {
     private static final boolean DEBUG = false;
     private static final String TAG = "SensorImageLocalizer";
+    private static final MatrixD TRANSFORM_AXES = Pose.makeRotationX(Math.toRadians(90.0d)).times(Pose.makeRotationY(Math.toRadians(90.0d)));
 
     private final Map<String, TargetInfo> targetInfoMap = new HashMap<String, TargetInfo>();
-    private Pose robotToCamPose = new Pose(0,0,0); // with respect to the camera
+    private Pose robotWrtCameraPose = new Pose(0,0,0); // with respect to the camera
     private final HashMap<String, TrackedTargetData> dataMap = new HashMap<String, TrackedTargetData>();
     private TrackedTargetData lastData;
 
@@ -90,7 +91,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
         matrixD.data()[0][3] = width;
         matrixD.data()[1][3] = -height;
         matrixD.data()[2][3] = length;
-        this.robotToCamPose = new Pose(matrixD);
+        this.robotWrtCameraPose = new Pose(matrixD);
         return true;
     }
 
@@ -164,47 +165,62 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
 
         long currentTimeMillis = System.currentTimeMillis() / 1000;
 
-        TrackedTargetInfo trackedTargetInfo = getBestTarget(targetPoses);
+        TrackedTargetInfo target = getBestTarget(targetPoses);
 
-        if (trackedTargetInfo == null) {
+        if (target == null) {
             update(null);
             return;
         }
 
-        String targetName = trackedTargetInfo.mTargetInfo.mTargetName;
-        TargetInfo targetInfo = this.targetInfoMap.get(targetName);
+        String targetName = target.mTargetInfo.mTargetName;
+
         TrackedTargetData targetData = this.dataMap.get(targetName);
         targetData.lastUpdateTime = currentTimeMillis;
         this.lastData = targetData;
-
         Log.d(TAG, "Selected target " + targetName + " time " + currentTimeMillis);
 
-        MatrixD matrixD = this.robotToCamPose.poseMatrix.submatrix(3, 3, 0, 0);
-        
-        MatrixD transpose = trackedTargetInfo.mTargetInfo.mTargetPose.poseMatrix.submatrix(3, 3, 0, 0).transpose();
-        MatrixD submatrix = targetInfo.mTargetPose.poseMatrix.submatrix(3, 3, 0, 0);
-        MatrixD times = Pose.makeRotationX(Math.toRadians(90.0d)).times(Pose.makeRotationY(Math.toRadians(90.0d)));
-        MatrixD times2 = times.times(submatrix).times(transpose);
+        TargetInfo targetInfo = this.targetInfoMap.get(targetName);
+        Pose targetWrtWorldPose = targetInfo.mTargetPose;
+        Pose targetWrtCameraPose = target.mTargetInfo.mTargetPose;
 
-        matrixD = times2.times(matrixD);
+        MatrixD robotWrtCameraRot = this.robotWrtCameraPose.poseMatrix.submatrix(3, 3, 0, 0);
+        MatrixD robotWrtCameraTrans = this.robotWrtCameraPose.getTranslationMatrix();
 
-        times2 = new MatrixD(3, 1);
-        times2.data()[0][0] = targetInfo.mTargetSize.mLongSide;
-        times2.data()[1][0] = targetInfo.mTargetSize.mShortSide;
-        times2.data()[2][0] = 0.0d;
-        MatrixD times3 = transpose.times(trackedTargetInfo.mTargetInfo.mTargetPose.getTranslationMatrix());
-        MatrixD matrixD2 = this.robotToCamPose.getTranslationMatrix();
+        MatrixD targetWrtCameraRot = targetWrtCameraPose.poseMatrix.submatrix(3, 3, 0, 0);
+        MatrixD targetWrtCameraTrans = targetWrtCameraPose.getTranslationMatrix();
 
-        times = times.times(targetInfo.mTargetPose.getTranslationMatrix().subtract(submatrix.times(times3.add(transpose.times(matrixD2)).add(times2))));
-        MatrixD matrixD3 = new MatrixD(3, 4);
-        matrixD3.setSubmatrix(matrixD, 3, 3, 0, 0);
-        matrixD3.setSubmatrix(times, 3, 1, 0, 3);
-        Pose pose = new Pose(matrixD3);
-        double[] anglesAroundZ = PoseUtils.getAnglesAroundZ(pose);
-        assert anglesAroundZ != null;
-        Log.d(TAG, String.format("POSE_HEADING: x %8.4f z %8.4f up %8.4f", anglesAroundZ[0], anglesAroundZ[1], anglesAroundZ[2]));
-        matrixD3 = pose.getTranslationMatrix();
-        Log.d(TAG, String.format("POSE_TRANS: x %8.4f y %8.4f z %8.4f", matrixD3.data()[0][0], matrixD3.data()[1][0], matrixD3.data()[2][0]));
+        MatrixD cameraWrtTargetRot = targetWrtCameraRot.transpose();
+
+        MatrixD targetWrtWorldRot = targetWrtWorldPose.poseMatrix.submatrix(3, 3, 0, 0);
+        MatrixD targetWrtWorldTrans = targetWrtWorldPose.getTranslationMatrix();
+
+        MatrixD cameraWrtWorldRot = targetWrtWorldRot.times(cameraWrtTargetRot);
+        MatrixD robotWrtWorldRot = cameraWrtWorldRot.times(robotWrtCameraRot);
+
+        MatrixD robotRot = TRANSFORM_AXES.times(robotWrtWorldRot);
+
+        MatrixD vertexWrtTargetTrans = new MatrixD(3, 1);
+        vertexWrtTargetTrans.data()[0][0] = targetInfo.mTargetSize.mLongSide;
+        vertexWrtTargetTrans.data()[1][0] = targetInfo.mTargetSize.mShortSide;
+        vertexWrtTargetTrans.data()[2][0] = 0;
+
+        MatrixD cameraWrtTargetTrans = cameraWrtTargetRot.times(targetWrtCameraTrans);
+        MatrixD robotWrtTargetTrans = cameraWrtTargetRot.times(robotWrtCameraTrans);
+        MatrixD robotWrtVertexTrans = robotWrtTargetTrans.add(cameraWrtTargetTrans).add(vertexWrtTargetTrans);
+
+        MatrixD robotWrtWorldTrans = targetWrtWorldRot.times(robotWrtVertexTrans);
+        MatrixD robotTrans = targetWrtWorldTrans.subtract(robotWrtWorldTrans);
+        robotTrans = TRANSFORM_AXES.times(robotTrans);
+
+        MatrixD robotPoseMat = new MatrixD(3, 4);
+        robotPoseMat.setSubmatrix(robotRot, 3, 3, 0, 0);
+        robotPoseMat.setSubmatrix(robotTrans, 3, 1, 0, 3);
+        Pose pose = new Pose(robotPoseMat);
+        double[] angles = PoseUtils.getAnglesAroundZ(pose);
+        assert angles != null;
+        Log.d(TAG, String.format("POSE_HEADING: x %8.4f z %8.4f up %8.4f", angles[0], angles[1], angles[2]));
+        robotPoseMat = pose.getTranslationMatrix();
+        Log.d(TAG, String.format("POSE_TRANS: x %8.4f y %8.4f z %8.4f", robotPoseMat.data()[0][0], robotPoseMat.data()[1][0], robotPoseMat.data()[2][0]));
         update(pose);
     }
 }
