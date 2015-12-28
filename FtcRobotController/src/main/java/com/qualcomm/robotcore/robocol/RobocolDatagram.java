@@ -55,14 +55,14 @@ public class RobocolDatagram {
         int length;
         String messageType = "NONE";
         String hostAddress = null;
-        if (this.packet == null || this.packet.getAddress() == null || this.packet.getLength() <= 0) {
+        if ((this.packet == null) || (this.packet.getAddress() == null) || (this.packet.getLength() <= 0)) {
             length = 0;
         } else {
             messageType = MsgType.fromByte(this.packet.getData()[0]).name();
             length = this.packet.getLength();
             hostAddress = this.packet.getAddress().getHostAddress();
         }
-        return String.format("RobocolDatagram - type:%s, addr:%s, size:%d", new Object[]{messageType, hostAddress, Integer.valueOf(length)});
+        return String.format("RobocolDatagram - type:%s, addr:%s, size:%d", new Object[]{messageType, hostAddress, length});
     }
 
     protected DatagramPacket getPacket() {

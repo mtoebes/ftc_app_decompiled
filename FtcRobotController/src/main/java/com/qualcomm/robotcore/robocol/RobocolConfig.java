@@ -19,7 +19,7 @@ public class RobocolConfig {
     public static final int WIFI_P2P_SUBNET_MASK = -256;
 
     public static InetAddress determineBindAddress(InetAddress destAddress) {
-        ArrayList removeIPv6Addresses = Network.removeIPv6Addresses(Network.removeLoopbackAddresses(Network.getLocalIpAddresses()));
+        ArrayList<InetAddress> removeIPv6Addresses = Network.removeIPv6Addresses(Network.removeLoopbackAddresses(Network.getLocalIpAddresses()));
         Iterator it = removeIPv6Addresses.iterator();
         while (it.hasNext()) {
             InetAddress inetAddress= null;
@@ -31,7 +31,6 @@ public class RobocolConfig {
                         return inetAddress;
                     }
                 }
-                continue;
             } catch (SocketException e) {
                 RobotLog.v(String.format("socket exception while trying to get network interface of %s", new Object[]{inetAddress.getHostAddress()}));
             }

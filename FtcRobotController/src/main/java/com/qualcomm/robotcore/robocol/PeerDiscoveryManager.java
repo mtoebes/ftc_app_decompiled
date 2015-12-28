@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 public class PeerDiscoveryManager {
     private InetAddress address;
     private final RobocolDatagramSocket socket;
-    private ScheduledExecutorService service;
     private ScheduledFuture<?> future;
     private final PeerDiscovery message = new PeerDiscovery(PeerType.PEER);
 
@@ -55,8 +54,8 @@ public class PeerDiscoveryManager {
             this.future.cancel(true);
         }
         this.address = peerDiscoveryDevice;
-        this.service = Executors.newSingleThreadScheduledExecutor();
-        this.future = this.service.scheduleAtFixedRate(new PeerDiscoveryRunnable(this), 1, 1, TimeUnit.SECONDS);
+        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        this.future = service.scheduleAtFixedRate(new PeerDiscoveryRunnable(this), 1, 1, TimeUnit.SECONDS);
     }
 
     public void stop() {

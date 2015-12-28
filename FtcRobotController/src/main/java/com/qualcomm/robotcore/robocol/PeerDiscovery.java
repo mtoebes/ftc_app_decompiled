@@ -1,6 +1,5 @@
 package com.qualcomm.robotcore.robocol;
 
-import com.ftdi.j2xx.protocol.SpiSlaveResponseEvent;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.nio.ByteBuffer;
@@ -18,13 +17,13 @@ public class PeerDiscovery implements RobocolParsable {
         GROUP_OWNER(2);
         
         private static final PeerType[] peerTypes = values();
-        private int type;
+        private final int type;
 
         public static PeerType fromByte(byte b) {
             try {
                 return peerTypes[b];
             } catch (ArrayIndexOutOfBoundsException e) {
-                RobotLog.w(String.format("Cannot convert %d to Peer: %s", new Object[]{Byte.valueOf(b), e.toString()}));
+                RobotLog.w(String.format("Cannot convert %d to Peer: %s", new Object[]{b, e.toString()}));
                 return NOT_SET;
             }
         }

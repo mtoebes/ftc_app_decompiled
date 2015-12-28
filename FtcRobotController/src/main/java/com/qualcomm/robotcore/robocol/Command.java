@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.Comparator;
 
 public class Command implements RobocolParsable, Comparable<Command>, Comparator<Command> {
-    public static final int MAX_COMMAND_LENGTH = 256;
+    public static final int MAX_COMMAND_LENGTH = 0x7F;
     public static final short BASE_PAYLOAD_SIZE = (short) 11;
 
     String name;
@@ -29,9 +29,9 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
         this.extraBuffer = TypeConversion.stringToUtf8(this.extra);
         this.timestamp = generateTimestamp();
         if (this.nameBuffer.length > MAX_COMMAND_LENGTH) {
-            throw new IllegalArgumentException(String.format("command name length is too long (MAX: %d)", new Object[]{Integer.valueOf(MAX_COMMAND_LENGTH)}));
+            throw new IllegalArgumentException(String.format("command name length is too long (MAX: %d)", new Object[]{MAX_COMMAND_LENGTH}));
         } else if (this.extraBuffer.length > MAX_COMMAND_LENGTH) {
-            throw new IllegalArgumentException(String.format("command extra data length is too long (MAX: %d)", new Object[]{Integer.valueOf(MAX_COMMAND_LENGTH)}));
+            throw new IllegalArgumentException(String.format("command extra data length is too long (MAX: %d)", new Object[]{MAX_COMMAND_LENGTH}));
         }
     }
 
@@ -108,7 +108,7 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
     }
 
     public String toString() {
-        return String.format("command: %20d %5s %s", new Object[]{Long.valueOf(this.timestamp), Boolean.valueOf(this.isAcknowledged), this.name});
+        return String.format("command: %20d %5s %s", new Object[]{this.timestamp, this.isAcknowledged, this.name});
     }
 
     public boolean equals(Object obj) {

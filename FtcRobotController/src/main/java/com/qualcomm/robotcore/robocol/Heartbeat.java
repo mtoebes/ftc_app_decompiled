@@ -83,7 +83,7 @@ public class Heartbeat implements RobocolParsable {
     }
 
     public String toString() {
-        return String.format("Heartbeat - seq: %4d, time: %d", new Object[]{Short.valueOf(this.sequenceNumber), Long.valueOf(this.timestamp)});
+        return String.format("Heartbeat - seq: %4d, time: %d", new Object[]{this.sequenceNumber, this.timestamp});
     }
 
     private static synchronized short getNextSequenceNumber() {
