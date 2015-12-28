@@ -67,10 +67,9 @@ public class PeerDiscovery implements RobocolParsable {
             throw new RobotCoreException("Expected buffer of at least 13 bytes, received " + byteArray.length);
         }
         ByteBuffer wrap = ByteBuffer.wrap(byteArray, HEADER_LENGTH, PAYLOAD_SIZE);
-        switch (PeerType.fromByte(wrap.get())) {
-            case PEER :
-                this.peerType = PeerType.fromByte(wrap.get());
-            default:
+
+        if((PeerType.fromByte(wrap.get())) == PeerType.PEER) {
+            this.peerType = PeerType.fromByte(wrap.get());
         }
     }
 

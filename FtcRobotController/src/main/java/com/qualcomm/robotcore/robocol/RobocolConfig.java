@@ -9,7 +9,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
 
 public class RobocolConfig {
     public static final int MAX_PACKET_SIZE = 4098;
@@ -31,7 +30,11 @@ public class RobocolConfig {
                     }
                 }
             } catch (SocketException e) {
-                RobotLog.v(String.format("socket exception while trying to get network interface of %s", inetAddress.getHostAddress()));
+                if (inetAddress != null) {
+                    RobotLog.v(String.format("socket exception while trying to get network interface of %s", inetAddress.getHostAddress()));
+                } else {
+                    RobotLog.v("exception while trying to get remote address");
+                }
             }
         }
         return determineBindAddressBasedOnWifiP2pSubnet(removeIPv6Addresses, destAddress);

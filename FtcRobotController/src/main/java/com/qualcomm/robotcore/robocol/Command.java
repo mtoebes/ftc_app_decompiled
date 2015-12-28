@@ -29,9 +29,9 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
         this.extraBuffer = TypeConversion.stringToUtf8(this.extra);
         this.timestamp = generateTimestamp();
         if (this.nameBuffer.length > MAX_COMMAND_LENGTH) {
-            throw new IllegalArgumentException(String.format("command name length is too long (MAX: %d)", new Object[]{MAX_COMMAND_LENGTH}));
+            throw new IllegalArgumentException(String.format("command name length is too long (MAX: %d)", MAX_COMMAND_LENGTH));
         } else if (this.extraBuffer.length > MAX_COMMAND_LENGTH) {
-            throw new IllegalArgumentException(String.format("command extra data length is too long (MAX: %d)", new Object[]{MAX_COMMAND_LENGTH}));
+            throw new IllegalArgumentException(String.format("command extra data length is too long (MAX: %d)", MAX_COMMAND_LENGTH));
         }
     }
 
@@ -114,7 +114,7 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
     public boolean equals(Object obj) {
         if (obj instanceof Command) {
             Command command = (Command) obj;
-            if (this.name.equals(command.name) && this.timestamp == command.timestamp) {
+            if (this.name.equals(command.name) && (this.timestamp == command.timestamp)) {
                 return true;
             }
         }
