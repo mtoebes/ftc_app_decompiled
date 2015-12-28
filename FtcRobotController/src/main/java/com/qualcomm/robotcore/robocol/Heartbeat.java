@@ -10,7 +10,7 @@ public class Heartbeat implements RobocolParsable {
 
     public static final short MAX_SEQUENCE_NUMBER = (short) 10000;
     public static final short PAYLOAD_SIZE = (short) 11;
-    public static final short BUFFER_SIZE = (short) PAYLOAD_SIZE + HEADER_LENGTH;
+    public static final short BUFFER_SIZE = PAYLOAD_SIZE + HEADER_LENGTH;
     private static short numberGen;
     private long timestamp;
     private short sequenceNumber;
@@ -83,7 +83,7 @@ public class Heartbeat implements RobocolParsable {
     }
 
     public String toString() {
-        return String.format("Heartbeat - seq: %4d, time: %d", new Object[]{this.sequenceNumber, this.timestamp});
+        return String.format("Heartbeat - seq: %4d, time: %d", this.sequenceNumber, this.timestamp);
     }
 
     private static synchronized short getNextSequenceNumber() {

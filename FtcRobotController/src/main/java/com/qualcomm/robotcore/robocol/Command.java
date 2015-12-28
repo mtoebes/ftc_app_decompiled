@@ -108,7 +108,7 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
     }
 
     public String toString() {
-        return String.format("command: %20d %5s %s", new Object[]{this.timestamp, this.isAcknowledged, this.name});
+        return String.format("command: %20d %5s %s", this.timestamp, this.isAcknowledged, this.name);
     }
 
     public boolean equals(Object obj) {

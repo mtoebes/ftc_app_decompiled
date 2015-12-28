@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 public class PeerDiscovery implements RobocolParsable {
     public static final short PAYLOAD_SIZE = (short) 10;
     public static final byte ROBOCOL_VERSION = (byte) 1;
-    public static final short BUFFER_SIZE = (short) PAYLOAD_SIZE + HEADER_LENGTH;
+    public static final short BUFFER_SIZE = PAYLOAD_SIZE + HEADER_LENGTH;
 
     private PeerType peerType;
 
@@ -23,12 +23,12 @@ public class PeerDiscovery implements RobocolParsable {
             try {
                 return peerTypes[b];
             } catch (ArrayIndexOutOfBoundsException e) {
-                RobotLog.w(String.format("Cannot convert %d to Peer: %s", new Object[]{b, e.toString()}));
+                RobotLog.w(String.format("Cannot convert %d to Peer: %s", b, e.toString()));
                 return NOT_SET;
             }
         }
 
-        private PeerType(int type) {
+        PeerType(int type) {
             this.type = type;
         }
 
@@ -75,6 +75,6 @@ public class PeerDiscovery implements RobocolParsable {
     }
 
     public String toString() {
-        return String.format("Peer Discovery - peer type: %s", new Object[]{this.peerType.name()});
+        return String.format("Peer Discovery - peer type: %s", this.peerType.name());
     }
 }

@@ -62,7 +62,7 @@ public class RobocolDatagram {
             length = this.packet.getLength();
             hostAddress = this.packet.getAddress().getHostAddress();
         }
-        return String.format("RobocolDatagram - type:%s, addr:%s, size:%d", new Object[]{messageType, hostAddress, length});
+        return String.format("RobocolDatagram - type:%s, addr:%s, size:%d", messageType, hostAddress, length);
     }
 
     protected DatagramPacket getPacket() {
