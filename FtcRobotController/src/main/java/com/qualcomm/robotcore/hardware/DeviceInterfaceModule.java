@@ -7,11 +7,11 @@ public interface DeviceInterfaceModule extends AnalogInputController, AnalogOutp
 
     byte getDigitalOutputStateByte();
 
-    boolean getLEDState(int i);
+    boolean getLEDState(int channel);
 
-    void setDigitalIOControlByte(byte b);
+    void setDigitalIOControlByte(byte input);
 
-    void setDigitalOutputByte(byte b);
+    void setDigitalOutputByte(byte input);
 
-    void setLED(int i, boolean z);
+    void setLED(int channel, boolean state);
 }

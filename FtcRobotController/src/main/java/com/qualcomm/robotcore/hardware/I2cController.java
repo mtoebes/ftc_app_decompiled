@@ -4,58 +4,58 @@ import com.qualcomm.robotcore.util.SerialNumber;
 import java.util.concurrent.locks.Lock;
 
 public interface I2cController extends HardwareDevice {
-    public static final byte I2C_BUFFER_START_ADDRESS = (byte) 4;
+    byte I2C_BUFFER_START_ADDRESS = 4;
 
-    public interface I2cPortReadyCallback {
-        void portIsReady(int i);
+    interface I2cPortReadyCallback {
+        void portIsReady(int port);
     }
 
-    void copyBufferIntoWriteBuffer(int i, byte[] bArr);
+    void copyBufferIntoWriteBuffer(int physicalPort, byte[] bArr);
 
-    void deregisterForPortReadyCallback(int i);
+    void deregisterForPortReadyCallback(int port);
 
-    void enableI2cReadMode(int i, int i2, int i3, int i4);
+    void enableI2cReadMode(int physicalPort, int i2cAddress, int memAddress, int length);
 
-    void enableI2cWriteMode(int i, int i2, int i3, int i4);
+    void enableI2cWriteMode(int physicalPort, int i2cAddress, int memAddress, int length);
 
-    byte[] getCopyOfReadBuffer(int i);
+    byte[] getCopyOfReadBuffer(int physicalPort);
 
-    byte[] getCopyOfWriteBuffer(int i);
+    byte[] getCopyOfWriteBuffer(int physicalPort);
 
-    byte[] getI2cReadCache(int i);
+    byte[] getI2cReadCache(int port);
 
-    Lock getI2cReadCacheLock(int i);
+    Lock getI2cReadCacheLock(int port);
 
-    byte[] getI2cWriteCache(int i);
+    byte[] getI2cWriteCache(int port);
 
-    Lock getI2cWriteCacheLock(int i);
+    Lock getI2cWriteCacheLock(int port);
 
     SerialNumber getSerialNumber();
 
-    boolean isI2cPortActionFlagSet(int i);
+    boolean isI2cPortActionFlagSet(int port);
 
-    boolean isI2cPortInReadMode(int i);
+    boolean isI2cPortInReadMode(int port);
 
-    boolean isI2cPortInWriteMode(int i);
+    boolean isI2cPortInWriteMode(int port);
 
-    boolean isI2cPortReady(int i);
+    boolean isI2cPortReady(int port);
 
-    void readI2cCacheFromController(int i);
-
-    @Deprecated
-    void readI2cCacheFromModule(int i);
-
-    void registerForI2cPortReadyCallback(I2cPortReadyCallback i2cPortReadyCallback, int i);
-
-    void setI2cPortActionFlag(int i);
-
-    void writeI2cCacheToController(int i);
+    void readI2cCacheFromController(int port);
 
     @Deprecated
-    void writeI2cCacheToModule(int i);
+    void readI2cCacheFromModule(int port);
 
-    void writeI2cPortFlagOnlyToController(int i);
+    void registerForI2cPortReadyCallback(I2cPortReadyCallback i2cPortReadyCallback, int port);
+
+    void setI2cPortActionFlag(int port);
+
+    void writeI2cCacheToController(int port);
 
     @Deprecated
-    void writeI2cPortFlagOnlyToModule(int i);
+    void writeI2cCacheToModule(int port);
+
+    void writeI2cPortFlagOnlyToController(int port);
+
+    @Deprecated
+    void writeI2cPortFlagOnlyToModule(int port);
 }

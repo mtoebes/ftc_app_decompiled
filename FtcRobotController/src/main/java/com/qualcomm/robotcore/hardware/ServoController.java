@@ -9,11 +9,11 @@ public interface ServoController extends HardwareDevice {
 
     PwmStatus getPwmStatus();
 
-    double getServoPosition(int i);
+    double getServoPosition(int channel);
 
     void pwmDisable();
 
     void pwmEnable();
 
-    void setServoPosition(int i, double d);
+    void setServoPosition(int channel, double position);
 }

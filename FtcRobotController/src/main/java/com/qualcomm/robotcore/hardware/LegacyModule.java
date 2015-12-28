@@ -1,11 +1,11 @@
 package com.qualcomm.robotcore.hardware;
 
 public interface LegacyModule extends HardwareDevice, I2cController {
-    void enable9v(int i, boolean z);
+    void enable9v(int physicalPort, boolean enable);
 
-    void enableAnalogReadMode(int i);
+    void enableAnalogReadMode(int physicalPort);
 
-    byte[] readAnalog(int i);
+    byte[] readAnalog(int physicalPort);
 
-    void setDigitalLine(int i, int i2, boolean z);
+    void setDigitalLine(int physicalPort, int line, boolean set);
 }

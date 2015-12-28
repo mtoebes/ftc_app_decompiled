@@ -4,18 +4,18 @@ import com.qualcomm.robotcore.util.SerialNumber;
 
 public interface DigitalChannelController extends HardwareDevice {
 
-    public enum Mode {
+    enum Mode {
         INPUT,
         OUTPUT
     }
 
-    Mode getDigitalChannelMode(int i);
+    Mode getDigitalChannelMode(int channel);
 
-    boolean getDigitalChannelState(int i);
+    boolean getDigitalChannelState(int channel);
 
     SerialNumber getSerialNumber();
 
-    void setDigitalChannelMode(int i, Mode mode);
+    void setDigitalChannelMode(int channel, Mode mode);
 
-    void setDigitalChannelState(int i, boolean z);
+    void setDigitalChannelState(int channel, boolean state);
 }
