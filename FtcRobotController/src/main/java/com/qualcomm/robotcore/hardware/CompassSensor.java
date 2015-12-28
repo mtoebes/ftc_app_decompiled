@@ -16,6 +16,6 @@ public abstract class CompassSensor implements HardwareDevice {
     public abstract String status();
 
     public String toString() {
-        return String.format("Compass: %3.1f", new Object[]{Double.valueOf(getDirection())});
+        return String.format("Compass: %3.1f", getDirection());
     }
 }

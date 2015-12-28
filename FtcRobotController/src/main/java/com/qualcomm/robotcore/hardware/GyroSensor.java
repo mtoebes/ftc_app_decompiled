@@ -20,7 +20,7 @@ public abstract class GyroSensor implements HardwareDevice {
     public abstract String status();
 
     public String toString() {
-        return String.format("Gyro: %3.1f", new Object[]{Double.valueOf(getRotation())});
+        return String.format("Gyro: %3.1f", getRotation());
     }
 
     public void notSupported() {
