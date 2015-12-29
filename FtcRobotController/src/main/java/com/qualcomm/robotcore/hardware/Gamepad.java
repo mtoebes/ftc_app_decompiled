@@ -145,108 +145,44 @@ public class Gamepad implements RobocolParsable {
 
     public byte[] toByteArray() throws RobotCoreException {
         int i = 1;
-        ByteBuffer allocate = ByteBuffer.allocate(45);
+        ByteBuffer messageBuffer = ByteBuffer.allocate(45);
         try {
             int i2;
-            allocate.put(getRobocolMsgType().asByte());
-            allocate.putShort((short) 42);
-            allocate.put((byte) 2);
-            allocate.putInt(this.id);
-            allocate.putLong(this.timestamp).array();
-            allocate.putFloat(this.left_stick_x).array();
-            allocate.putFloat(this.left_stick_y).array();
-            allocate.putFloat(this.right_stick_x).array();
-            allocate.putFloat(this.right_stick_y).array();
-            allocate.putFloat(this.left_trigger).array();
-            allocate.putFloat(this.right_trigger).array();
-            int i3 = ((this.left_stick_button ? 1 : 0)) << 1;
-            if (this.right_stick_button) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.dpad_up) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.dpad_down) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.dpad_left) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.dpad_right) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.a) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.b) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.x) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.y) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.guide) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.start) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.back) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i3 = (i2 + i3) << 1;
-            if (this.left_bumper) {
-                i2 = 1;
-            } else {
-                i2 = 0;
-            }
-            i2 = (i2 + i3) << 1;
-            if (!this.right_bumper) {
-                i = 0;
-            }
-            allocate.putInt(i + i2);
-            allocate.put(this.user);
+            messageBuffer.put(getRobocolMsgType().asByte());
+            messageBuffer.putShort((short) 42);
+            messageBuffer.put((byte) 2);
+            messageBuffer.putInt(this.id);
+            messageBuffer.putLong(this.timestamp).array();
+            messageBuffer.putFloat(this.left_stick_x).array();
+            messageBuffer.putFloat(this.left_stick_y).array();
+            messageBuffer.putFloat(this.right_stick_x).array();
+            messageBuffer.putFloat(this.right_stick_y).array();
+            messageBuffer.putFloat(this.left_trigger).array();
+            messageBuffer.putFloat(this.right_trigger).array();
+
+            int buttons =
+                    ((left_stick_button ? 1 : 0) << 14) +
+                            ((right_stick_button ? 1 : 0) << 13) +
+                            ((dpad_up ? 1 : 0) << 12) +
+                            ((dpad_down ? 1 : 0) << 11) +
+                            ((dpad_left ? 1 : 0) << 10) +
+                            ((dpad_right ? 1 : 0) << 9) +
+                            ((a ? 1 : 0) << 8) +
+                            ((b ? 1 : 0) << 7) +
+                            ((x ? 1 : 0) << 6) +
+                            ((y ? 1 : 0) << 5) +
+                            ((guide ? 1 : 0) << 4) +
+                            ((start ? 1 : 0) << 3) +
+                            ((back ? 1 : 0) << 2) +
+                            ((left_bumper ? 1 : 0) << 1) +
+                            (right_bumper ? 1 : 0);
+
+            messageBuffer.putInt(buttons);
+            messageBuffer.put(user);
         } catch (Exception e) {
             RobotLog.logStacktrace(e);
         }
-        return allocate.array();
+        return messageBuffer.array();
     }
 
     public void fromByteArray(byte[] byteArray) throws RobotCoreException {
