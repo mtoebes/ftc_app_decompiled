@@ -250,14 +250,12 @@ public class Gamepad implements RobocolParsable {
     }
 
     public void fromByteArray(byte[] byteArray) throws RobotCoreException {
-        boolean z = true;
         if (byteArray.length < 45) {
             throw new RobotCoreException("Expected buffer of at least 45 bytes, received " + byteArray.length);
         }
         ByteBuffer wrap = ByteBuffer.wrap(byteArray, 3, 42);
-        byte b = wrap.get();
-        if (b >= (byte) 1) {
-            boolean z2;
+        byte version = wrap.get();
+        if (version >= 1) {
             this.id = wrap.getInt();
             this.timestamp = wrap.getLong();
             this.left_stick_x = wrap.getFloat();
@@ -267,39 +265,23 @@ public class Gamepad implements RobocolParsable {
             this.left_trigger = wrap.getFloat();
             this.right_trigger = wrap.getFloat();
             int i = wrap.getInt();
-            this.left_stick_button = (i & 16384) != 0;
-            z2 = (i & 8192) != 0;
-            this.right_stick_button = z2;
-            z2 = (i & 4096) != 0;
-            this.dpad_up = z2;
-            z2 = (i & 2048) != 0;
-            this.dpad_down = z2;
-            z2 = (i & 1024) != 0;
-            this.dpad_left = z2;
-            z2 = (i & 512) != 0;
-            this.dpad_right = z2;
-            z2 = (i & Command.MAX_COMMAND_LENGTH) != 0;
-            this.a = z2;
-            z2 = (i & 128) != 0;
-            this.b = z2;
-            z2 = (i & 64) != 0;
-            this.x = z2;
-            z2 = (i & 32) != 0;
-            this.y = z2;
-            z2 = (i & 16) != 0;
-            this.guide = z2;
-            z2 = (i & 8) != 0;
-            this.start = z2;
-            z2 = (i & 4) != 0;
-            this.back = z2;
-            z2 = (i & 2) != 0;
-            this.left_bumper = z2;
-            if ((i & 1) == 0) {
-                z = false;
-            }
-            this.right_bumper = z;
+            this.left_stick_button = (i & (1 <<14)) != 0;
+            this.right_stick_button = (i & (1 <<13)) != 0;
+            this.dpad_up = (i & (1 <<12)) != 0;
+            this.dpad_down = (i & (1 <<11)) != 0;
+            this.dpad_left = (i & (1 << 10)) != 0;
+            this.dpad_right = (i & (1 << 9)) != 0;
+            this.a = (i & (1 << 8)) != 0;
+            this.b = (i & (1 << 7)) != 0;
+            this.x = (i & (1 << 6)) != 0;
+            this.y = (i & (1 << 5)) != 0;
+            this.guide = (i & (1 << 4)) != 0;
+            this.start = (i & (1 << 3)) != 0;
+            this.back = (i & (1 << 2)) != 0;
+            this.left_bumper = (i & (1 << 1)) != 0;
+            this.right_bumper = (i & 1) != 0;
         }
-        if (b >= 2) {
+        if (version >= 2) {
             this.user = wrap.get();
         }
         callCallback();
