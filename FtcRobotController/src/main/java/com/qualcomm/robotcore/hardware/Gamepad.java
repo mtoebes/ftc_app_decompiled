@@ -71,10 +71,10 @@ public class Gamepad implements RobocolParsable {
     }
 
     public Gamepad(GamepadCallback callback) {
-        this.left_stick_x = 0.0f;
-        this.left_stick_y = 0.0f;
-        this.right_stick_x = 0.0f;
-        this.right_stick_y = 0.0f;
+        this.left_stick_x = 0;
+        this.left_stick_y = 0;
+        this.right_stick_x = 0;
+        this.right_stick_y = 0;
         this.dpad_up = false;
         this.dpad_down = false;
         this.dpad_left = false;
@@ -90,9 +90,9 @@ public class Gamepad implements RobocolParsable {
         this.right_bumper = false;
         this.left_stick_button = false;
         this.right_stick_button = false;
-        this.left_trigger = 0.0f;
-        this.right_trigger = 0.0f;
-        this.user = (byte) -1;
+        this.left_trigger = 0;
+        this.right_trigger = 0;
+        this.user = -1;
         this.id = ID_UNASSOCIATED;
         this.timestamp = 0;
         this.dpadThreshold = 0.2f;
@@ -114,7 +114,7 @@ public class Gamepad implements RobocolParsable {
     }
 
     public void setJoystickDeadzone(float deadzone) {
-        if (deadzone < 0.0f || deadzone > Dimmer.MAXIMUM_BRIGHTNESS) {
+        if (deadzone < 0 || deadzone > Dimmer.MAXIMUM_BRIGHTNESS) {
             throw new IllegalArgumentException("deadzone cannot be greater than max joystick value");
         }
         this.joystickDeadzone = deadzone;
@@ -408,7 +408,7 @@ public class Gamepad implements RobocolParsable {
     }
 
     public boolean atRest() {
-        return this.left_stick_x == 0.0f && this.left_stick_y == 0.0f && this.right_stick_x == 0.0f && this.right_stick_y == 0.0f && this.left_trigger == 0.0f && this.right_trigger == 0.0f;
+        return this.left_stick_x == 0 && this.left_stick_y == 0 && this.right_stick_x == 0 && this.right_stick_y == 0 && this.left_trigger == 0 && this.right_trigger == 0;
     }
 
     public String type() {
@@ -467,21 +467,21 @@ public class Gamepad implements RobocolParsable {
 
     protected float cleanMotionValues(float number) {
         if (number < this.joystickDeadzone && number > (-this.joystickDeadzone)) {
-            return 0.0f;
+            return 0;
         }
         if (number > Dimmer.MAXIMUM_BRIGHTNESS) {
             return Dimmer.MAXIMUM_BRIGHTNESS;
         }
-        if (number < -1.0f) {
-            return -1.0f;
+        if (number < -1) {
+            return -1;
         }
-        if (number < 0.0f) {
-            Range.scale((double) number, (double) this.joystickDeadzone, Servo.MAX_POSITION, 0.0d, Servo.MAX_POSITION);
+        if (number < 0) {
+            Range.scale((double) number, (double) this.joystickDeadzone, Servo.MAX_POSITION, 0, Servo.MAX_POSITION);
         }
-        if (number <= 0.0f) {
+        if (number <= 0) {
             return number;
         }
-        Range.scale((double) number, (double) (-this.joystickDeadzone), -1.0d, 0.0d, -1.0d);
+        Range.scale((double) number, (double) (-this.joystickDeadzone), -1, 0, -1);
         return number;
     }
 
