@@ -74,7 +74,7 @@ public class DcMotor implements HardwareDevice {
 
     public double getPower() {
         double motorPower = this.controller.getMotorPower(this.portNumber);
-        if (this.direction != Direction.REVERSE || motorPower == 0.0d) {
+        if ((this.direction != Direction.REVERSE) || (motorPower == 0.0d)) {
             return motorPower;
         }
         return motorPower * -1.0d;

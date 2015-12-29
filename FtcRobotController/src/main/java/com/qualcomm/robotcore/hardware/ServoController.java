@@ -2,7 +2,7 @@ package com.qualcomm.robotcore.hardware;
 
 public interface ServoController extends HardwareDevice {
 
-    public enum PwmStatus {
+    enum PwmStatus {
         ENABLED,
         DISABLED
     }

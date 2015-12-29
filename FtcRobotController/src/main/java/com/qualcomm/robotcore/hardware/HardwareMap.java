@@ -38,7 +38,7 @@ public class HardwareMap {
         private Map<String, DEVICE_TYPE> deviceTypeMap;
 
         public DeviceMapping() {
-            this.deviceTypeMap = new HashMap();
+            this.deviceTypeMap = new HashMap<String, DEVICE_TYPE>();
         }
 
         public DEVICE_TYPE get(String deviceName) {
@@ -72,7 +72,7 @@ public class HardwareMap {
                         HardwareDevice device = (HardwareDevice) entry.getValue();
                         String connectionInfo = ((HardwareDevice) entry.getValue()).getConnectionInfo();
                         String str = (String) entry.getKey();
-                        RobotLog.i(String.format("%-45s %-30s %s", new Object[]{device.getDeviceName(), str, connectionInfo}));
+                        RobotLog.i(String.format("%-45s %-30s %s", device.getDeviceName(), str, connectionInfo));
                     }
                 }
             }
@@ -80,35 +80,35 @@ public class HardwareMap {
     }
 
     public HardwareMap() {
-        this.dcMotorController = new DeviceMapping();
-        this.dcMotor = new DeviceMapping();
-        this.servoController = new DeviceMapping();
-        this.servo = new DeviceMapping();
-        this.legacyModule = new DeviceMapping();
-        this.touchSensorMultiplexer = new DeviceMapping();
-        this.deviceInterfaceModule = new DeviceMapping();
-        this.analogInput = new DeviceMapping();
-        this.digitalChannel = new DeviceMapping();
-        this.opticalDistanceSensor = new DeviceMapping();
-        this.touchSensor = new DeviceMapping();
-        this.pwmOutput = new DeviceMapping();
-        this.i2cDevice = new DeviceMapping();
-        this.analogOutput = new DeviceMapping();
-        this.colorSensor = new DeviceMapping();
-        this.led = new DeviceMapping();
-        this.accelerationSensor = new DeviceMapping();
-        this.compassSensor = new DeviceMapping();
-        this.gyroSensor = new DeviceMapping();
-        this.irSeekerSensor = new DeviceMapping();
-        this.lightSensor = new DeviceMapping();
-        this.ultrasonicSensor = new DeviceMapping();
-        this.voltageSensor = new DeviceMapping();
+        this.dcMotorController = new DeviceMapping<DcMotorController>();
+        this.dcMotor = new DeviceMapping<DcMotor>();
+        this.servoController = new DeviceMapping<ServoController>();
+        this.servo = new DeviceMapping<Servo>();
+        this.legacyModule = new DeviceMapping<LegacyModule>();
+        this.touchSensorMultiplexer = new DeviceMapping<TouchSensorMultiplexer>();
+        this.deviceInterfaceModule = new DeviceMapping<DeviceInterfaceModule>();
+        this.analogInput = new DeviceMapping<AnalogInput>();
+        this.digitalChannel = new DeviceMapping<DigitalChannel>();
+        this.opticalDistanceSensor = new DeviceMapping<OpticalDistanceSensor>();
+        this.touchSensor = new DeviceMapping<TouchSensor>();
+        this.pwmOutput = new DeviceMapping<PWMOutput>();
+        this.i2cDevice = new DeviceMapping<I2cDevice>();
+        this.analogOutput = new DeviceMapping<AnalogOutput>();
+        this.colorSensor = new DeviceMapping<ColorSensor>();
+        this.led = new DeviceMapping<LED>();
+        this.accelerationSensor = new DeviceMapping<AccelerationSensor>();
+        this.compassSensor = new DeviceMapping<CompassSensor>();
+        this.gyroSensor = new DeviceMapping<GyroSensor>();
+        this.irSeekerSensor = new DeviceMapping<IrSeekerSensor>();
+        this.lightSensor = new DeviceMapping<LightSensor>();
+        this.ultrasonicSensor = new DeviceMapping<UltrasonicSensor>();
+        this.voltageSensor = new DeviceMapping<VoltageSensor>();
         this.appContext = null;
     }
 
     public void logDevices() {
         RobotLog.i("========= Device Information ===================================================");
-        RobotLog.i(String.format("%-45s %-30s %s", new Object[]{"Type", "Name", "Connection"}));
+        RobotLog.i(String.format("%-45s %-30s %s", "Type", "Name", "Connection"));
         this.dcMotorController.logDevices();
         this.dcMotor.logDevices();
         this.servoController.logDevices();

@@ -74,7 +74,7 @@ public class Servo implements HardwareDevice {
         if (this.direction == Direction.REVERSE) {
             servoPosition = reversePosition(servoPosition);
         }
-        return Range.clip(Range.scale(servoPosition, this.minPosition, this.maxPosition, 0.0d, MAX_POSITION), 0.0d, (double) MAX_POSITION);
+        return Range.clip(Range.scale(servoPosition, this.minPosition, this.maxPosition, 0.0d, MAX_POSITION), 0.0d, MAX_POSITION);
     }
 
     public void scaleRange(double min, double max) throws IllegalArgumentException {

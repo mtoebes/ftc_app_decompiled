@@ -14,8 +14,8 @@ public class I2cDeviceReader {
 
         public void portIsReady(int port) {
             deviceReader.device.setI2cPortActionFlag();
-            deviceReader.device.readI2cCacheFromModule();
-            deviceReader.device.writeI2cPortFlagOnlyToModule();
+            deviceReader.device.readI2cCacheFromController();
+            deviceReader.device.writeI2cCacheToController();
         }
     }
 
@@ -23,7 +23,7 @@ public class I2cDeviceReader {
         this.device = i2cDevice;
         i2cDevice.enableI2cReadMode(i2cAddress, memAddress, length);
         i2cDevice.setI2cPortActionFlag();
-        i2cDevice.writeI2cCacheToModule();
+        i2cDevice.readI2cCacheFromController();
         i2cDevice.registerForI2cPortReadyCallback(new I2cDeviceReaderCallback(this));
     }
 

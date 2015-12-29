@@ -18,6 +18,6 @@ public abstract class ColorSensor implements HardwareDevice {
     public abstract void setI2cAddress(int newAddress);
 
     public String toString() {
-        return String.format("argb: %d", new Object[]{Integer.valueOf(argb())});
+        return String.format("argb: %d", argb());
     }
 }
