@@ -5,12 +5,9 @@ import android.os.Build.VERSION;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import com.ftdi.j2xx.D2xxManager;
-import com.ftdi.j2xx.ft4222.FT_4222_Defines.SPI_SLAVE_CMD;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
-import com.qualcomm.robotcore.util.Dimmer;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.nio.ByteBuffer;
@@ -277,7 +274,7 @@ public class Gamepad implements RobocolParsable {
             this.left_trigger = wrap.getFloat();
             this.right_trigger = wrap.getFloat();
             int i = wrap.getInt();
-            this.left_stick_button = (i & D2xxManager.FTDI_BREAK_ON) != 0;
+            this.left_stick_button = (i & 16384) != 0;
             z2 = (i & 8192) != 0;
             this.right_stick_button = z2;
             z2 = (i & 4096) != 0;
@@ -290,7 +287,7 @@ public class Gamepad implements RobocolParsable {
             this.dpad_right = z2;
             z2 = (i & Command.MAX_COMMAND_LENGTH) != 0;
             this.a = z2;
-            z2 = (i & SPI_SLAVE_CMD.SPI_MASTER_TRANSFER) != 0;
+            z2 = (i & 128) != 0;
             this.b = z2;
             z2 = (i & 64) != 0;
             this.x = z2;
@@ -420,26 +417,25 @@ public class Gamepad implements RobocolParsable {
 
     @TargetApi(19)
     public static synchronized boolean isGamepadDevice(int deviceId) {
-        boolean z = true;
         synchronized (Gamepad.class) {
-            if (!gamepadDevices.contains(Integer.valueOf(deviceId))) {
+            if (gamepadDevices.contains(Integer.valueOf(deviceId))) {
+                return true; // deviceId is cached
+            } else { // update cache to check for new devices
                 gamepadDevices = new HashSet<Integer>();
-                for (int i : InputDevice.getDeviceIds()) {
-                    InputDevice device = InputDevice.getDevice(i);
+                for (int id : InputDevice.getDeviceIds()) {
+                    InputDevice device = InputDevice.getDevice(id);
                     int sources = device.getSources();
                     if (((sources & 1025) == 1025) || ((sources & 16777232) == 16777232)) {
                         if (VERSION.SDK_INT < 19) {
-                            gamepadDevices.add(i);
+                            gamepadDevices.add(id);
                         } else if ((whitelistDevices == null) || whitelistDevices.contains(new whitelistDevice(device.getVendorId(), device.getProductId()))) {
-                            gamepadDevices.add(i);
+                            gamepadDevices.add(id);
                         }
                     }
                 }
-                if (!gamepadDevices.contains(Integer.valueOf(deviceId))) {
-                    z = false;
-                }
+                // check updated cache for deviceId
+                return gamepadDevices.contains(deviceId);
             }
         }
-        return z;
     }
 }
