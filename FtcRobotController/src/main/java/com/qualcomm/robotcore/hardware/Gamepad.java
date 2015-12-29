@@ -148,10 +148,8 @@ public class Gamepad implements RobocolParsable {
     }
 
     public byte[] toByteArray() throws RobotCoreException {
-        int i = 1;
         ByteBuffer messageBuffer = ByteBuffer.allocate(BUFFER_SIZE);
         try {
-            int i2;
             messageBuffer.put(getRobocolMsgType().asByte());
             messageBuffer.putShort(PAYLOAD_SIZE);
             messageBuffer.put((byte) 2);
