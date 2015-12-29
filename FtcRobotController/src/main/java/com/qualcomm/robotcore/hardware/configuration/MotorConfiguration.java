@@ -8,14 +8,11 @@ public class MotorConfiguration extends DeviceConfiguration {
     }
 
     public MotorConfiguration(int port) {
-        super(ConfigurationType.MOTOR);
-        super.setName(DeviceConfiguration.DISABLED_DEVICE_NAME);
-        super.setPort(port);
+        super(port, ConfigurationType.MOTOR);
     }
 
     public MotorConfiguration(String name) {
         super(ConfigurationType.MOTOR);
         super.setName(name);
-        super.setType(ConfigurationType.MOTOR);
     }
 }
