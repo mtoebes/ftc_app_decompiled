@@ -31,22 +31,17 @@ import java.util.regex.Pattern;
 public class Utility {
     public static final String AUTOCONFIGURE_K9LEGACYBOT = "K9LegacyBot";
     public static final String AUTOCONFIGURE_K9USBBOT = "K9USBBot";
-    public static final String CONFIG_FILES_DIR;
+    public static final String CONFIG_FILES_DIR = Environment.getExternalStorageDirectory() + "/FIRST/";
     public static final String DEFAULT_ROBOT_CONFIG = "robot_config";
     public static final String DEFAULT_ROBOT_CONFIG_FILENAME = "robot_config.xml";
     public static final String FILE_EXT = ".xml";
     public static final String NO_FILE = "No current file!";
     public static final String UNSAVED = "Unsaved";
-    private static int count;
+    private static int count = 1;
     private Activity activity;
     private SharedPreferences preferences;
     private WriteXMLFileHandler writeXMLFileHandler;
     private String xmlOutput;
-
-    static {
-        CONFIG_FILES_DIR = Environment.getExternalStorageDirectory() + "/FIRST/";
-        count = 1;
-    }
 
     public Utility(Activity activity) {
         this.activity = activity;
@@ -68,9 +63,9 @@ public class Utility {
         File[] listFiles = new File(CONFIG_FILES_DIR).listFiles();
         if (listFiles == null) {
             RobotLog.i("robotConfigFiles directory is empty");
-            return new ArrayList();
+            return new ArrayList<String>();
         }
-        ArrayList<String> arrayList = new ArrayList();
+        ArrayList<String> arrayList = new ArrayList<String>();
         for (File file : listFiles) {
             if (file.isFile()) {
                 String name = file.getName();
@@ -83,7 +78,7 @@ public class Utility {
     }
 
     public boolean writeXML(Map<SerialNumber, ControllerConfiguration> deviceControllers) {
-        ArrayList arrayList = new ArrayList();
+        ArrayList<ControllerConfiguration> arrayList = new ArrayList<ControllerConfiguration>();
         arrayList.addAll(deviceControllers.values());
         try {
             this.xmlOutput = this.writeXMLFileHandler.writeXml(arrayList);
@@ -92,6 +87,8 @@ public class Utility {
                 complainToast("Found " + e.getMessage(), this.activity);
                 RobotLog.e("Found " + e.getMessage());
                 return true;
+            } else {
+                e.printStackTrace();
             }
         }
         return false;
@@ -165,14 +162,14 @@ public class Utility {
     }
 
     public ArrayList<DeviceConfiguration> createMotorList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         arrayList.add(new MotorConfiguration(1));
         arrayList.add(new MotorConfiguration(2));
         return arrayList;
     }
 
     public ArrayList<DeviceConfiguration> createServoList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         for (int i = 1; i <= 6; i++) {
             arrayList.add(new ServoConfiguration(i));
         }
@@ -180,7 +177,7 @@ public class Utility {
     }
 
     public ArrayList<DeviceConfiguration> createLegacyModuleList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         for (int i = 0; i < 6; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.NOTHING));
         }
@@ -188,7 +185,7 @@ public class Utility {
     }
 
     public ArrayList<DeviceConfiguration> createPWMList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         for (int i = 0; i < 2; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.PULSE_WIDTH_DEVICE));
         }
@@ -196,7 +193,7 @@ public class Utility {
     }
 
     public ArrayList<DeviceConfiguration> createI2CList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         for (int i = 0; i < 6; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.I2C_DEVICE));
         }
@@ -204,7 +201,7 @@ public class Utility {
     }
 
     public ArrayList<DeviceConfiguration> createAnalogInputList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         for (int i = 0; i < 8; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.ANALOG_INPUT));
         }
@@ -212,7 +209,7 @@ public class Utility {
     }
 
     public ArrayList<DeviceConfiguration> createDigitalList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         for (int i = 0; i < 8; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.DIGITAL_DEVICE));
         }
@@ -220,7 +217,7 @@ public class Utility {
     }
 
     public ArrayList<DeviceConfiguration> createAnalogOutputList() {
-        ArrayList<DeviceConfiguration> arrayList = new ArrayList();
+        ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
         for (int i = 0; i < 2; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.ANALOG_OUTPUT));
         }
