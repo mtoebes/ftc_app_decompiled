@@ -169,9 +169,8 @@ public class WriteXMLFileHandler {
         this.serializer.ignorableWhitespace("\n");
     }
 
-    private void writeDeviceConfigurationXml(DeviceConfiguration deviceConfiguration) {
+    private void writeDeviceConfigurationXml(DeviceConfiguration deviceConfiguration) throws IOException {
         if (deviceConfiguration.isEnabled()) {
-            try {
                 this.serializer.ignorableWhitespace(this.indentation[this.indent]);
                 this.serializer.startTag("", toUpperCamelCase(deviceConfiguration.getType().toString()));
                 checkForDuplicates(deviceConfiguration.getName());
@@ -179,57 +178,24 @@ public class WriteXMLFileHandler {
                 this.serializer.attribute("", "port", String.valueOf(deviceConfiguration.getPort()));
                 this.serializer.endTag("", toUpperCamelCase(deviceConfiguration.getType().toString()));
                 this.serializer.ignorableWhitespace("\n");
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
     public void writeToFile(String data, String folderName, String filename) throws RobotCoreException, IOException {
-        Exception e;
         if (this.duplicates.size() > 0) {
             throw new IOException("Duplicate names: " + this.duplicates);
         }
         filename = filename.replaceFirst("[.][^.]+$", "");
         File file = new File(folderName);
-        boolean z = true;
         if (!file.exists()) {
-            z = file.mkdir();
-        }
-        if (z) {
-            FileOutputStream fileOutputStream;
-            try {
-                fileOutputStream = new FileOutputStream(new File(folderName + filename + Utility.FILE_EXT));
-                try {
-                    fileOutputStream.write(data.getBytes());
-                    try {
-                        fileOutputStream.close();
-                        return;
-                    } catch (IOException e2) {
-                        e2.printStackTrace();
-                        return;
-                    }
-                } catch (Exception e3) {
-                    e = e3;
-                        e.printStackTrace();
-                        try {
-                            fileOutputStream.close();
-                            return;
-                        } catch (IOException e22) {
-                            e22.printStackTrace();
-                            return;
-                        }
-                }
-            } catch (Exception e5) {
-                e = e5;
-                fileOutputStream = null;
-                e.printStackTrace();
-                assert fileOutputStream != null;
-                fileOutputStream.close();
-                return;
+            if(!file.mkdir()) {
+                throw new RobotCoreException("Unable to create directory");
             }
         }
-        throw new RobotCoreException("Unable to create directory");
+
+        FileOutputStream fileOutputStream = new FileOutputStream(new File(folderName + filename + Utility.FILE_EXT));
+        fileOutputStream.write(data.getBytes());
+        fileOutputStream.close();
     }
 
     private String toUpperCamelCase(String str) {
