@@ -232,12 +232,14 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration parseServoControllerConfig(boolean useSerialNumber) throws IOException, XmlPullParserException {
         ControllerConfiguration servoControllerConfiguration;
         String attributeValue = this.xmlPullParser.getAttributeValue(null, "name");
-        int i = -1;
+
+        int port = -1;
         String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
+
         if (useSerialNumber) {
             serialNumber = this.xmlPullParser.getAttributeValue(null, "serialNumber");
         } else {
-            i = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
+            port = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
         }
         List a = createConfigList(SERVO_PORTS, ConfigurationType.SERVO);
         int next = this.xmlPullParser.next();
@@ -248,7 +250,7 @@ public class ReadXMLFileHandler {
                     continue;
                 } else if (a2.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
                     servoControllerConfiguration = new ServoControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-                    servoControllerConfiguration.setPort(i);
+                    servoControllerConfiguration.setPort(port);
                     servoControllerConfiguration.setEnabled(true);
                     return servoControllerConfiguration;
                 }
@@ -261,20 +263,23 @@ public class ReadXMLFileHandler {
             a2 = getConfigurationType(this.xmlPullParser.getName());
         }
         servoControllerConfiguration = new ServoControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-        servoControllerConfiguration.setPort(i);
+        servoControllerConfiguration.setPort(port);
         return servoControllerConfiguration;
     }
 
     private ControllerConfiguration parseMotorControllerConfig(boolean useSerialNumber) throws IOException, XmlPullParserException {
         ControllerConfiguration motorControllerConfiguration;
         String attributeValue = this.xmlPullParser.getAttributeValue(null, "name");
-        int i = -1;
+
+        int port = -1;
         String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
+
         if (useSerialNumber) {
             serialNumber = this.xmlPullParser.getAttributeValue(null, "serialNumber");
         } else {
-            i = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
+            port = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
         }
+
         List a = createConfigList(MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.xmlPullParser.next();
         String a2 = getConfigurationType(this.xmlPullParser.getName());
@@ -284,7 +289,7 @@ public class ReadXMLFileHandler {
                     continue;
                 } else if (a2.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
                     motorControllerConfiguration = new MotorControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-                    motorControllerConfiguration.setPort(i);
+                    motorControllerConfiguration.setPort(port);
                     motorControllerConfiguration.setEnabled(true);
                     return motorControllerConfiguration;
                 }
@@ -297,7 +302,7 @@ public class ReadXMLFileHandler {
             a2 = getConfigurationType(this.xmlPullParser.getName());
         }
         motorControllerConfiguration = new MotorControllerConfiguration(attributeValue, a, new SerialNumber(serialNumber));
-        motorControllerConfiguration.setPort(i);
+        motorControllerConfiguration.setPort(port);
         return motorControllerConfiguration;
     }
 
