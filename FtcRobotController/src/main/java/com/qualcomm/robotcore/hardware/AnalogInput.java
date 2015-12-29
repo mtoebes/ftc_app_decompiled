@@ -1,6 +1,9 @@
 package com.qualcomm.robotcore.hardware;
 
 public class AnalogInput implements HardwareDevice {
+    private static final String DEVICE_NAME = "Analog Input";
+    private static final int VERSION = 1;
+
     private AnalogInputController controller;
     private int channel;
 
@@ -14,7 +17,7 @@ public class AnalogInput implements HardwareDevice {
     }
 
     public String getDeviceName() {
-        return "Analog Input";
+        return DEVICE_NAME;
     }
 
     public String getConnectionInfo() {
@@ -22,7 +25,7 @@ public class AnalogInput implements HardwareDevice {
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

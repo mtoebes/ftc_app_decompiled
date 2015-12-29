@@ -5,6 +5,9 @@ import com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants;
 import java.util.concurrent.locks.Lock;
 
 public class I2cDevice implements HardwareDevice {
+    private static final String DEVICE_NAME = "I2cDevice";
+    private static final int VERSION = 1;
+
     private I2cController controller;
     private int port;
 
@@ -90,7 +93,7 @@ public class I2cDevice implements HardwareDevice {
     }
 
     public String getDeviceName() {
-        return XMLConfigurationConstants.I2C_DEVICE;
+        return DEVICE_NAME;
     }
 
     public String getConnectionInfo() {
@@ -98,7 +101,7 @@ public class I2cDevice implements HardwareDevice {
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

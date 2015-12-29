@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.hardware.DcMotorController.DeviceMode;
 import com.qualcomm.robotcore.hardware.DcMotorController.RunMode;
 
 public class DcMotor implements HardwareDevice {
+    private static final String DEVICE_NAME = "DC Motor";
+    private static final int VERSION = 1;
+
     protected DcMotorController controller;
     protected DeviceMode devMode;
     protected Direction direction;
@@ -28,7 +31,7 @@ public class DcMotor implements HardwareDevice {
     }
 
     public String getDeviceName() {
-        return "DC Motor";
+        return DEVICE_NAME;
     }
 
     public String getConnectionInfo() {
@@ -36,7 +39,7 @@ public class DcMotor implements HardwareDevice {
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

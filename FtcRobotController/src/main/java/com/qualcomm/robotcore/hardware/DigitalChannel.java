@@ -3,6 +3,9 @@ package com.qualcomm.robotcore.hardware;
 import com.qualcomm.robotcore.hardware.DigitalChannelController.Mode;
 
 public class DigitalChannel implements HardwareDevice {
+    private static final String DEVICE_NAME = "Digital Channel";
+    private static final int VERSION = 1;
+
     private DigitalChannelController controller;
     private int channel;
 
@@ -28,7 +31,7 @@ public class DigitalChannel implements HardwareDevice {
     }
 
     public String getDeviceName() {
-        return "Digital Channel";
+        return DEVICE_NAME;
     }
 
     public String getConnectionInfo() {
@@ -36,7 +39,7 @@ public class DigitalChannel implements HardwareDevice {
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

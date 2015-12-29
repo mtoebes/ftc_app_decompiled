@@ -3,6 +3,9 @@ package com.qualcomm.robotcore.hardware;
 import com.qualcomm.robotcore.hardware.DigitalChannelController.Mode;
 
 public class LED implements HardwareDevice {
+    private static final String DEVICE_NAME = null;
+    private static final int VERSION = 0;
+
     private DigitalChannelController controller;
     private int physicalPort;
 
@@ -17,7 +20,7 @@ public class LED implements HardwareDevice {
     }
 
     public String getDeviceName() {
-        return null;
+        return DEVICE_NAME;
     }
 
     public String getConnectionInfo() {
@@ -25,7 +28,7 @@ public class LED implements HardwareDevice {
     }
 
     public int getVersion() {
-        return 0;
+        return VERSION;
     }
 
     public void close() {

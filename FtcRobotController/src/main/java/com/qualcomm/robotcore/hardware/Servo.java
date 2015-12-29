@@ -3,6 +3,9 @@ package com.qualcomm.robotcore.hardware;
 import com.qualcomm.robotcore.util.Range;
 
 public class Servo implements HardwareDevice {
+    private static final String DEVICE_NAME = "Servo";
+    private static final int VERSION = 1;
+
     public static final double MAX_POSITION = 1;
     public static final double MIN_POSITION = 0;
     protected ServoController controller;
@@ -27,7 +30,7 @@ public class Servo implements HardwareDevice {
     }
 
     public String getDeviceName() {
-        return "Servo";
+        return DEVICE_NAME;
     }
 
     public String getConnectionInfo() {
@@ -35,7 +38,7 @@ public class Servo implements HardwareDevice {
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

@@ -1,6 +1,9 @@
 package com.qualcomm.robotcore.hardware;
 
 public class PWMOutput implements HardwareDevice {
+    private static final String DEVICE_NAME = "PWM Output";
+    private static final int VERSION = 1;
+
     private PWMOutputController controller;
     private int port;
 
@@ -26,7 +29,7 @@ public class PWMOutput implements HardwareDevice {
     }
 
     public String getDeviceName() {
-        return "PWM Output";
+        return DEVICE_NAME;
     }
 
     public String getConnectionInfo() {
@@ -34,7 +37,7 @@ public class PWMOutput implements HardwareDevice {
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {
