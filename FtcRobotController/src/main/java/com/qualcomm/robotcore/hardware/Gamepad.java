@@ -20,12 +20,12 @@ import java.util.Set;
 
 public class Gamepad implements RobocolParsable {
     public static final int ID_UNASSOCIATED = -1;
-    private static Set<Integer> f236d;
-    private static Set<C0034a> f237e;
+    private static Set<Integer> gamepadDevices;
+    private static Set<whiteList> whiteListDevices;
     public boolean a;
     public boolean b;
     public boolean back;
-    private final GamepadCallback f240c;
+    private final GamepadCallback gamepadCallback;
     protected float dpadThreshold;
     public boolean dpad_down;
     public boolean dpad_left;
@@ -55,15 +55,15 @@ public class Gamepad implements RobocolParsable {
     }
 
     /* renamed from: com.qualcomm.robotcore.hardware.Gamepad.a */
-    private static class C0034a extends SimpleEntry<Integer, Integer> {
-        public C0034a(int i, int i2) {
-            super(Integer.valueOf(i), Integer.valueOf(i2));
+    private static class whiteList extends SimpleEntry<Integer, Integer> {
+        public whiteList(int vendorId, int productId) {
+            super(Integer.valueOf(vendorId), Integer.valueOf(productId));
         }
     }
 
     static {
-        f236d = new HashSet();
-        f237e = null;
+        gamepadDevices = new HashSet();
+        whiteListDevices = null;
     }
 
     public Gamepad() {
@@ -97,7 +97,7 @@ public class Gamepad implements RobocolParsable {
         this.timestamp = 0;
         this.dpadThreshold = 0.2f;
         this.joystickDeadzone = 0.2f;
-        this.f240c = callback;
+        this.gamepadCallback = callback;
     }
 
     public void copy(Gamepad gamepad) throws RobotCoreException {
@@ -490,40 +490,40 @@ public class Gamepad implements RobocolParsable {
     }
 
     protected void callCallback() {
-        if (this.f240c != null) {
-            this.f240c.gamepadChanged(this);
+        if (this.gamepadCallback != null) {
+            this.gamepadCallback.gamepadChanged(this);
         }
     }
 
     public static void enableWhitelistFilter(int vendorId, int productId) {
-        if (f237e == null) {
-            f237e = new HashSet();
+        if (whiteListDevices == null) {
+            whiteListDevices = new HashSet();
         }
-        f237e.add(new C0034a(vendorId, productId));
+        whiteListDevices.add(new whiteList(vendorId, productId));
     }
 
     public static void clearWhitelistFilter() {
-        f237e = null;
+        whiteListDevices = null;
     }
 
     @TargetApi(19)
     public static synchronized boolean isGamepadDevice(int deviceId) {
         boolean z = true;
         synchronized (Gamepad.class) {
-            if (!f236d.contains(Integer.valueOf(deviceId))) {
-                f236d = new HashSet();
+            if (!gamepadDevices.contains(Integer.valueOf(deviceId))) {
+                gamepadDevices = new HashSet();
                 for (int i : InputDevice.getDeviceIds()) {
                     InputDevice device = InputDevice.getDevice(i);
                     int sources = device.getSources();
                     if ((sources & 1025) == 1025 || (sources & 16777232) == 16777232) {
                         if (VERSION.SDK_INT < 19) {
-                            f236d.add(Integer.valueOf(i));
-                        } else if (f237e == null || f237e.contains(new C0034a(device.getVendorId(), device.getProductId()))) {
-                            f236d.add(Integer.valueOf(i));
+                            gamepadDevices.add(Integer.valueOf(i));
+                        } else if (whiteListDevices == null || whiteListDevices.contains(new whiteList(device.getVendorId(), device.getProductId()))) {
+                            gamepadDevices.add(Integer.valueOf(i));
                         }
                     }
                 }
-                if (!f236d.contains(Integer.valueOf(deviceId))) {
+                if (!gamepadDevices.contains(Integer.valueOf(deviceId))) {
                     z = false;
                 }
             }
