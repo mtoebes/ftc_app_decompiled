@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class Gamepad implements RobocolParsable {
     public static final int ID_UNASSOCIATED = -1;
-    private static Set<Integer> gamepadDevices;
+    private static Set<Integer> gamepadDevices = new HashSet<Integer>();
     private static Set<whitelistDevice> whitelistDevices;
     public boolean a;
     public boolean b;
@@ -55,11 +55,6 @@ public class Gamepad implements RobocolParsable {
         public whitelistDevice(int vendorId, int productId) {
             super(vendorId, productId);
         }
-    }
-
-    static {
-        gamepadDevices = new HashSet<Integer>();
-        whitelistDevices = null;
     }
 
     public Gamepad() {
@@ -110,35 +105,35 @@ public class Gamepad implements RobocolParsable {
         this.id = event.getDeviceId();
         this.timestamp = event.getEventTime();
         int keyCode = event.getKeyCode();
-        if (keyCode == 19) {
+        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             this.dpad_up = pressed(event);
-        } else if (keyCode == 20) {
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             this.dpad_down = pressed(event);
-        } else if (keyCode == 22) {
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
             this.dpad_right = pressed(event);
-        } else if (keyCode == 21) {
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
             this.dpad_left = pressed(event);
-        } else if (keyCode == 96) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_A) {
             this.a = pressed(event);
-        } else if (keyCode == 97) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_B) {
             this.b = pressed(event);
-        } else if (keyCode == 99) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_X) {
             this.x = pressed(event);
-        } else if (keyCode == 100) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_Y) {
             this.y = pressed(event);
-        } else if (keyCode == 110) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_MODE) {
             this.guide = pressed(event);
-        } else if (keyCode == 108) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_START) {
             this.start = pressed(event);
-        } else if (keyCode == 4) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
             this.back = pressed(event);
-        } else if (keyCode == 103) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_R1) {
             this.right_bumper = pressed(event);
-        } else if (keyCode == 102) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_L1) {
             this.left_bumper = pressed(event);
-        } else if (keyCode == 106) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_THUMBL) {
             this.left_stick_button = pressed(event);
-        } else if (keyCode == 107) {
+        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_THUMBR) {
             this.right_stick_button = pressed(event);
         }
         callCallback();
