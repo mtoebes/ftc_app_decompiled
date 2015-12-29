@@ -62,8 +62,8 @@ public class ReadXMLFileHandler {
     }
 
     private ControllerConfiguration parseDeviceInterfaceModuleConfig() throws IOException, XmlPullParserException, RobotCoreException {
-        String attributeValue = this.xmlPullParser.getAttributeValue(null, "name");
-        String attributeValue2 = this.xmlPullParser.getAttributeValue(null, "serialNumber");
+        String name = this.xmlPullParser.getAttributeValue(null, "name");
+        String serialNumber = this.xmlPullParser.getAttributeValue(null, "serialNumber");
         ArrayList<DeviceConfiguration> pwdConfigs = createConfigList(PWM_PORTS, ConfigurationType.PULSE_WIDTH_DEVICE);
         ArrayList<DeviceConfiguration> i2CDeviceConfigs = createConfigList(I2C_PORTS, ConfigurationType.I2C_DEVICE);
         ArrayList<DeviceConfiguration> analogInputDeviceConfigs = createConfigList(ANALOG_INPUT_PORTS, ConfigurationType.ANALOG_INPUT);
@@ -80,7 +80,7 @@ public class ReadXMLFileHandler {
                         RobotLog.e("[handleDeviceInterfaceModule] tagname: " + type);
                     }
                     if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
-                        DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(attributeValue, new SerialNumber(attributeValue2));
+                        DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(name, new SerialNumber(serialNumber));
                         deviceInterfaceModuleConfiguration.setPwmDevices(pwdConfigs);
                         deviceInterfaceModuleConfiguration.setI2cDevices(i2CDeviceConfigs);
                         deviceInterfaceModuleConfiguration.setAnalogInputDevices(analogInputDeviceConfigs);
@@ -118,8 +118,8 @@ public class ReadXMLFileHandler {
     }
 
     private ControllerConfiguration parseLegacyModuleControllerConfig() throws IOException, XmlPullParserException, RobotCoreException {
-        String attributeValue = this.xmlPullParser.getAttributeValue(null, "name");
-        String attributeValue2 = this.xmlPullParser.getAttributeValue(null, "serialNumber");
+        String name = this.xmlPullParser.getAttributeValue(null, "name");
+        String serialNumber = this.xmlPullParser.getAttributeValue(null, "serialNumber");
         List a = createConfigList(LEGACY_MODULE_PORTS, ConfigurationType.NOTHING);
         int next = this.xmlPullParser.next();
         ConfigurationType type = getConfigurationType(this.xmlPullParser.getName());
@@ -129,7 +129,7 @@ public class ReadXMLFileHandler {
                 if (type == null) {
                     continue;
                 } else if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
-                    legacyModuleControllerConfiguration = new LegacyModuleControllerConfiguration(attributeValue, a, new SerialNumber(attributeValue2));
+                    legacyModuleControllerConfiguration = new LegacyModuleControllerConfiguration(name, a, new SerialNumber(serialNumber));
                     legacyModuleControllerConfiguration.setEnabled(true);
                     return legacyModuleControllerConfiguration;
                 }
@@ -154,7 +154,7 @@ public class ReadXMLFileHandler {
             next = this.xmlPullParser.next();
             type = getConfigurationType(this.xmlPullParser.getName());
         }
-        return new LegacyModuleControllerConfiguration(attributeValue, a, new SerialNumber(attributeValue2));
+        return new LegacyModuleControllerConfiguration(name, a, new SerialNumber(serialNumber));
     }
 
     private DeviceConfiguration parseDeviceConfig() {
