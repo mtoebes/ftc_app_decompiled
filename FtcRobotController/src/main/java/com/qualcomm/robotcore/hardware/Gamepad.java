@@ -6,7 +6,6 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -19,6 +18,8 @@ public class Gamepad implements RobocolParsable {
     public static final int ID_UNASSOCIATED = -1;
 
     private static final int MAX_JOYSTICK_VALUE = 1;
+    private static final short PAYLOAD_SIZE = 42;
+    private static final short BUFFER_SIZE = PAYLOAD_SIZE + HEADER_LENGTH;
 
     private static Set<Integer> gamepadDevices = new HashSet<Integer>();
     private static Set<whitelistDevice> whitelistDevices;
@@ -148,11 +149,11 @@ public class Gamepad implements RobocolParsable {
 
     public byte[] toByteArray() throws RobotCoreException {
         int i = 1;
-        ByteBuffer messageBuffer = ByteBuffer.allocate(45);
+        ByteBuffer messageBuffer = ByteBuffer.allocate(BUFFER_SIZE);
         try {
             int i2;
             messageBuffer.put(getRobocolMsgType().asByte());
-            messageBuffer.putShort((short) 42);
+            messageBuffer.putShort(PAYLOAD_SIZE);
             messageBuffer.put((byte) 2);
             messageBuffer.putInt(this.id);
             messageBuffer.putLong(this.timestamp).array();
@@ -189,10 +190,10 @@ public class Gamepad implements RobocolParsable {
     }
 
     public void fromByteArray(byte[] byteArray) throws RobotCoreException {
-        if (byteArray.length < 45) {
-            throw new RobotCoreException("Expected buffer of at least 45 bytes, received " + byteArray.length);
+        if (byteArray.length < BUFFER_SIZE) {
+            throw new RobotCoreException("Expected buffer of at least " + BUFFER_SIZE + " bytes, received " + byteArray.length);
         }
-        ByteBuffer wrap = ByteBuffer.wrap(byteArray, 3, 42);
+        ByteBuffer wrap = ByteBuffer.wrap(byteArray, HEADER_LENGTH, PAYLOAD_SIZE);
         byte version = wrap.get();
         if (version >= 1) {
             this.id = wrap.getInt();
