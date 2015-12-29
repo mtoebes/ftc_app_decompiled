@@ -21,7 +21,7 @@ import java.util.Set;
 public class Gamepad implements RobocolParsable {
     public static final int ID_UNASSOCIATED = -1;
     private static Set<Integer> gamepadDevices;
-    private static Set<whiteList> whiteListDevices;
+    private static Set<whitelistDevice> whitelistDevices;
     public boolean a;
     public boolean b;
     public boolean back;
@@ -54,16 +54,15 @@ public class Gamepad implements RobocolParsable {
         void gamepadChanged(Gamepad gamepad);
     }
 
-    /* renamed from: com.qualcomm.robotcore.hardware.Gamepad.a */
-    private static class whiteList extends SimpleEntry<Integer, Integer> {
-        public whiteList(int vendorId, int productId) {
-            super(Integer.valueOf(vendorId), Integer.valueOf(productId));
+    private static class whitelistDevice extends SimpleEntry<Integer, Integer> {
+        public whitelistDevice(int vendorId, int productId) {
+            super(vendorId, productId);
         }
     }
 
     static {
-        gamepadDevices = new HashSet();
-        whiteListDevices = null;
+        gamepadDevices = new HashSet<Integer>();
+        whitelistDevices = null;
     }
 
     public Gamepad() {
@@ -114,7 +113,7 @@ public class Gamepad implements RobocolParsable {
     }
 
     public void setJoystickDeadzone(float deadzone) {
-        if (deadzone < 0 || deadzone > Dimmer.MAXIMUM_BRIGHTNESS) {
+        if ((deadzone < 0) || (deadzone > Dimmer.MAXIMUM_BRIGHTNESS)) {
             throw new IllegalArgumentException("deadzone cannot be greater than max joystick value");
         }
         this.joystickDeadzone = deadzone;
@@ -209,7 +208,7 @@ public class Gamepad implements RobocolParsable {
             allocate.putFloat(this.right_stick_y).array();
             allocate.putFloat(this.left_trigger).array();
             allocate.putFloat(this.right_trigger).array();
-            int i3 = ((this.left_stick_button ? 1 : 0) + 0) << 1;
+            int i3 = ((this.left_stick_button ? 1 : 0)) << 1;
             if (this.right_stick_button) {
                 i2 = 1;
             } else {
@@ -408,7 +407,7 @@ public class Gamepad implements RobocolParsable {
     }
 
     public boolean atRest() {
-        return this.left_stick_x == 0 && this.left_stick_y == 0 && this.right_stick_x == 0 && this.right_stick_y == 0 && this.left_trigger == 0 && this.right_trigger == 0;
+        return (this.left_stick_x == 0) && (this.left_stick_y == 0) && (this.right_stick_x == 0) && (this.right_stick_y == 0) && (this.left_trigger == 0) && (this.right_trigger == 0);
     }
 
     public String type() {
@@ -416,7 +415,7 @@ public class Gamepad implements RobocolParsable {
     }
 
     public String toString() {
-        String str = new String();
+        String str = "";
         if (this.dpad_up) {
             str = str + "dpad_up ";
         }
@@ -462,11 +461,11 @@ public class Gamepad implements RobocolParsable {
         if (this.right_stick_button) {
             str = str + "right stick button ";
         }
-        return String.format("ID: %2d user: %2d lx: % 1.2f ly: % 1.2f rx: % 1.2f ry: % 1.2f lt: %1.2f rt: %1.2f %s", new Object[]{Integer.valueOf(this.id), Byte.valueOf(this.user), Float.valueOf(this.left_stick_x), Float.valueOf(this.left_stick_y), Float.valueOf(this.right_stick_x), Float.valueOf(this.right_stick_y), Float.valueOf(this.left_trigger), Float.valueOf(this.right_trigger), str});
+        return String.format("ID: %2d user: %2d lx: % 1.2f ly: % 1.2f rx: % 1.2f ry: % 1.2f lt: %1.2f rt: %1.2f %s", this.id, this.user, this.left_stick_x, this.left_stick_y, this.right_stick_x, this.right_stick_y, this.left_trigger, this.right_trigger, str);
     }
 
     protected float cleanMotionValues(float number) {
-        if (number < this.joystickDeadzone && number > (-this.joystickDeadzone)) {
+        if ((number < this.joystickDeadzone) && (number > (-this.joystickDeadzone))) {
             return 0;
         }
         if (number > Dimmer.MAXIMUM_BRIGHTNESS) {
@@ -496,14 +495,14 @@ public class Gamepad implements RobocolParsable {
     }
 
     public static void enableWhitelistFilter(int vendorId, int productId) {
-        if (whiteListDevices == null) {
-            whiteListDevices = new HashSet();
+        if (whitelistDevices == null) {
+            whitelistDevices = new HashSet<whitelistDevice>();
         }
-        whiteListDevices.add(new whiteList(vendorId, productId));
+        whitelistDevices.add(new whitelistDevice(vendorId, productId));
     }
 
     public static void clearWhitelistFilter() {
-        whiteListDevices = null;
+        whitelistDevices = null;
     }
 
     @TargetApi(19)
@@ -511,15 +510,15 @@ public class Gamepad implements RobocolParsable {
         boolean z = true;
         synchronized (Gamepad.class) {
             if (!gamepadDevices.contains(Integer.valueOf(deviceId))) {
-                gamepadDevices = new HashSet();
+                gamepadDevices = new HashSet<Integer>();
                 for (int i : InputDevice.getDeviceIds()) {
                     InputDevice device = InputDevice.getDevice(i);
                     int sources = device.getSources();
-                    if ((sources & 1025) == 1025 || (sources & 16777232) == 16777232) {
+                    if (((sources & 1025) == 1025) || ((sources & 16777232) == 16777232)) {
                         if (VERSION.SDK_INT < 19) {
-                            gamepadDevices.add(Integer.valueOf(i));
-                        } else if (whiteListDevices == null || whiteListDevices.contains(new whiteList(device.getVendorId(), device.getProductId()))) {
-                            gamepadDevices.add(Integer.valueOf(i));
+                            gamepadDevices.add(i);
+                        } else if ((whitelistDevices == null) || whitelistDevices.contains(new whitelistDevice(device.getVendorId(), device.getProductId()))) {
+                            gamepadDevices.add(i);
                         }
                     }
                 }
