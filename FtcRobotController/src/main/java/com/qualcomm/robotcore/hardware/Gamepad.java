@@ -382,20 +382,18 @@ public class Gamepad implements RobocolParsable {
     protected float cleanMotionValues(float number) {
         if ((number < this.joystickDeadzone) && (number > (-this.joystickDeadzone))) {
             return 0;
-        }
-        if (number >  1) {
+        } else if (number >  1) {
             return  1;
-        }
-        if (number < -1) {
+        } else if (number < -1) {
             return -1;
         }
+
         if (number < 0) {
-            Range.scale((double) number, (double) this.joystickDeadzone, 1, 0, 1);
+            Range.scale((double) number, this.joystickDeadzone, 1, 0, 1);
+        } else if (number > 0) {
+            Range.scale((double) number, -this.joystickDeadzone, -1, 0, -1);
         }
-        if (number <= 0) {
-            return number;
-        }
-        Range.scale((double) number, (double) (-this.joystickDeadzone), -1, 0, -1);
+
         return number;
     }
 
