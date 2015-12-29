@@ -35,9 +35,10 @@ public class ReadXMLFileHandler {
             this.parser = newInstance.newPullParser();
             this.parser.setInput(is, null);
 
+            ConfigurationType type;
             int next;
             while ((next = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
-                ConfigurationType type = getConfigurationType(this.parser.getName());
+                type = getConfigurationType(this.parser.getName());
                 if (next == XmlPullParser.START_TAG) {
                     if (type == ConfigurationType.MOTOR_CONTROLLER) {
                         this.controllerConfigurations.add(parseMotorControllerConfig(true));
