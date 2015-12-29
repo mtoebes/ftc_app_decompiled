@@ -41,14 +41,11 @@ public class ReadXMLFileHandler {
                 if (eventType == XmlPullParser.START_TAG) {
                     if (type == ConfigurationType.MOTOR_CONTROLLER) {
                         this.controllerConfigurations.add(parseMotorControllerConfig(true));
-                    }
-                    if (type == ConfigurationType.SERVO_CONTROLLER) {
+                    } else if (type == ConfigurationType.SERVO_CONTROLLER) {
                         this.controllerConfigurations.add(parseServoControllerConfig(true));
-                    }
-                    if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
+                    } else if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
                         this.controllerConfigurations.add(parseLegacyModuleControllerConfig());
-                    }
-                    if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
+                    } else if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
                         this.controllerConfigurations.add(parseDeviceInterfaceModuleConfig());
                     }
                 }
@@ -99,20 +96,16 @@ public class ReadXMLFileHandler {
                 if (type == ConfigurationType.ANALOG_INPUT || type == ConfigurationType.OPTICAL_DISTANCE_SENSOR) {
                     c = parseDeviceConfig();
                     analogInputDeviceConfigs.set(c.getPort(), c);
-                }
-                if (type == ConfigurationType.PULSE_WIDTH_DEVICE) {
+                } else if (type == ConfigurationType.PULSE_WIDTH_DEVICE) {
                     c = parseDeviceConfig();
                     pwdConfigs.set(c.getPort(), c);
-                }
-                if (type == ConfigurationType.I2C_DEVICE || type == ConfigurationType.IR_SEEKER_V3 || type == ConfigurationType.ADAFRUIT_COLOR_SENSOR || type == ConfigurationType.COLOR_SENSOR || type == ConfigurationType.GYRO) {
+                } else if (type == ConfigurationType.I2C_DEVICE || type == ConfigurationType.IR_SEEKER_V3 || type == ConfigurationType.ADAFRUIT_COLOR_SENSOR || type == ConfigurationType.COLOR_SENSOR || type == ConfigurationType.GYRO) {
                     c = parseDeviceConfig();
                     i2CDeviceConfigs.set(c.getPort(), c);
-                }
-                if (type == ConfigurationType.ANALOG_OUTPUT) {
+                } else if (type == ConfigurationType.ANALOG_OUTPUT) {
                     c = parseDeviceConfig();
                     analogOutputDeviceConfigs.set(c.getPort(), c);
-                }
-                if (type == ConfigurationType.DIGITAL_DEVICE || type == ConfigurationType.TOUCH_SENSOR || type == ConfigurationType.LED) {
+                } else if (type == ConfigurationType.DIGITAL_DEVICE || type == ConfigurationType.TOUCH_SENSOR || type == ConfigurationType.LED) {
                     DeviceConfiguration c2 = parseDeviceConfig();
                     digitalDeviceConfigs.set(c2.getPort(), c2);
                 }
@@ -140,8 +133,7 @@ public class ReadXMLFileHandler {
                     legacyModuleControllerConfiguration.setEnabled(true);
                     return legacyModuleControllerConfiguration;
                 }
-            }
-            if (next == XmlPullParser.START_TAG) {
+            } else if (next == XmlPullParser.START_TAG) {
                 if (DEBUG) {
                     RobotLog.e("[handleLegacyModule] tagname: " + type);
                 }
@@ -211,8 +203,7 @@ public class ReadXMLFileHandler {
                     matrixControllerConfiguration.setEnabled(true);
                     return matrixControllerConfiguration;
                 }
-            }
-            if (next == XmlPullParser.START_TAG) {
+            } else if (next == XmlPullParser.START_TAG) {
                 int parseInt2;
                 if (type == ConfigurationType.SERVO) {
                     parseInt2 = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
@@ -254,8 +245,7 @@ public class ReadXMLFileHandler {
                     servoControllerConfiguration.setEnabled(true);
                     return servoControllerConfiguration;
                 }
-            }
-            if (next == XmlPullParser.START_TAG && type == ConfigurationType.SERVO) {
+            } else if (next == XmlPullParser.START_TAG && type == ConfigurationType.SERVO) {
                 int parseInt = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
                 a.set(parseInt - 1, new ServoConfiguration(parseInt, this.xmlPullParser.getAttributeValue(null, "name"), true));
             }
@@ -293,8 +283,7 @@ public class ReadXMLFileHandler {
                     motorControllerConfiguration.setEnabled(true);
                     return motorControllerConfiguration;
                 }
-            }
-            if (next == XmlPullParser.START_TAG && type == ConfigurationType.MOTOR) {
+            } else if (next == XmlPullParser.START_TAG && type == ConfigurationType.MOTOR) {
                 int parseInt = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
                 a.set(parseInt - 1, new MotorConfiguration(parseInt, this.xmlPullParser.getAttributeValue(null, "name"), true));
             }
