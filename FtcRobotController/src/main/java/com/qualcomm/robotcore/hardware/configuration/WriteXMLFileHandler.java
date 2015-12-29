@@ -35,17 +35,16 @@ public class WriteXMLFileHandler {
             this.serializer.ignorableWhitespace("\n");
             this.serializer.startTag("", "Robot");
             this.serializer.ignorableWhitespace("\n");
-            Iterator it = deviceControllerConfigurations.iterator();
-            while (it.hasNext()) {
-                ControllerConfiguration controllerConfiguration = (ControllerConfiguration) it.next();
-                String configurationType = controllerConfiguration.getType().toString();
-                if (configurationType.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString()) || configurationType.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+            for(ControllerConfiguration controllerConfiguration : deviceControllerConfigurations) {
+                ConfigurationType configurationType = controllerConfiguration.getType();
+                if ((configurationType == ConfigurationType.MOTOR_CONTROLLER) ||
+                        (configurationType == ConfigurationType.SERVO_CONTROLLER)) {
                     writeMotorServoConfigurationXml(controllerConfiguration, true);
                 }
-                if (configurationType.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
+                if (configurationType == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
                     writeLegacyControllerXml(controllerConfiguration);
                 }
-                if (configurationType.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
+                if (configurationType == ConfigurationType.DEVICE_INTERFACE_MODULE) {
                     writeInterfaceModuleXml(controllerConfiguration);
                 }
             }
