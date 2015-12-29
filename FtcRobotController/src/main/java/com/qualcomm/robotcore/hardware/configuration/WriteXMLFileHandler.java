@@ -16,27 +16,22 @@ import java.util.Iterator;
 import org.xmlpull.v1.XmlSerializer;
 
 public class WriteXMLFileHandler {
-    private XmlSerializer serializer;
-    private HashSet<String> names;
-    private ArrayList<String> duplicates;
-    private String[] indentation;
+    private XmlSerializer serializer = Xml.newSerializer();;
+    private HashSet<String> names = new HashSet<String>();
+    private ArrayList<String> duplicates = new ArrayList<String>();
+    private String[] indentation = {"    ", "        ", "            "};
     private int indent;
 
     public WriteXMLFileHandler(Context context) {
-        this.names = new HashSet();
-        this.duplicates = new ArrayList();
-        this.indentation = new String[]{"    ", "        ", "            "};
-        this.indent = 0;
-        this.serializer = Xml.newSerializer();
     }
 
     public String writeXml(ArrayList<ControllerConfiguration> deviceControllerConfigurations) {
-        this.duplicates = new ArrayList();
-        this.names = new HashSet();
+        this.duplicates = new ArrayList<String>();
+        this.names = new HashSet<String>();
         Writer stringWriter = new StringWriter();
         try {
             this.serializer.setOutput(stringWriter);
-            this.serializer.startDocument("UTF-8", Boolean.valueOf(true));
+            this.serializer.startDocument("UTF-8", true);
             this.serializer.ignorableWhitespace("\n");
             this.serializer.startTag("", "Robot");
             this.serializer.ignorableWhitespace("\n");
@@ -192,7 +187,6 @@ public class WriteXMLFileHandler {
 
     public void writeToFile(String data, String folderName, String filename) throws RobotCoreException, IOException {
         Exception e;
-        Throwable th;
         if (this.duplicates.size() > 0) {
             throw new IOException("Duplicate names: " + this.duplicates);
         }
@@ -230,6 +224,7 @@ public class WriteXMLFileHandler {
                 e = e5;
                 fileOutputStream = null;
                 e.printStackTrace();
+                assert fileOutputStream != null;
                 fileOutputStream.close();
                 return;
             }
