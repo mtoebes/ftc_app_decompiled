@@ -16,7 +16,7 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
     }
 
     public ControllerConfiguration(String name, SerialNumber serialNumber, ConfigurationType type) {
-        this(name, new ArrayList(), serialNumber, type);
+        this(name, new ArrayList<DeviceConfiguration>(), serialNumber, type);
     }
 
     public ControllerConfiguration(String name, List<DeviceConfiguration> devices, SerialNumber serialNumber, ConfigurationType type) {
@@ -28,10 +28,6 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
 
     public List<DeviceConfiguration> getDevices() {
         return this.devices;
-    }
-
-    public ConfigurationType getType() {
-        return super.getType();
     }
 
     public SerialNumber getSerialNumber() {
