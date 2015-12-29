@@ -138,27 +138,17 @@ public class ReadXMLFileHandler {
                         controllerConfiguration.setEnabled(true);
                         return controllerConfiguration;
                     }
-                } else if (next == XmlPullParser.START_TAG) {
-                    DeviceConfiguration deviceConfiguration = null;
-                    if (type == ConfigurationType.COMPASS ||
-                            type == ConfigurationType.LIGHT_SENSOR ||
-                            type == ConfigurationType.IR_SEEKER ||
-                            type == ConfigurationType.ACCELEROMETER ||
-                            type == ConfigurationType.GYRO ||
-                            type == ConfigurationType.TOUCH_SENSOR ||
-                            type == ConfigurationType.TOUCH_SENSOR_MULTIPLEXER ||
-                            type == ConfigurationType.ULTRASONIC_SENSOR ||
-                            type == ConfigurationType.COLOR_SENSOR ||
-                            type == ConfigurationType.NOTHING) {
-                        deviceConfiguration = parseDeviceConfig();
-                    } else if (type == ConfigurationType.MOTOR_CONTROLLER) {
+                } else if ((next == XmlPullParser.START_TAG) && isLegacyModuleDevice(type)) {
+                    DeviceConfiguration deviceConfiguration;
+                    if (type == ConfigurationType.MOTOR_CONTROLLER) {
                         deviceConfiguration = parseMotorControllerConfig(false);
                     } else if (type == ConfigurationType.SERVO_CONTROLLER) {
                         deviceConfiguration = parseServoControllerConfig(false);
                     } else if (type == ConfigurationType.MATRIX_CONTROLLER) {
                         deviceConfiguration = parseMatrixControllerConfig();
+                    } else {
+                        deviceConfiguration = parseDeviceConfig();
                     }
-
                     if(deviceConfiguration != null) {
                         deviceConfigurationList.set(deviceConfiguration.getPort(), deviceConfiguration);
                     }
@@ -249,7 +239,7 @@ public class ReadXMLFileHandler {
                         controllerConfiguration.setEnabled(true);
                         return controllerConfiguration;
                     }
-                } else if (next == XmlPullParser.START_TAG && type == deviceType) {
+                } else if ((next == XmlPullParser.START_TAG) && (type == deviceType)) {
                     int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                     String deviceName = this.parser.getAttributeValue(null, "name");
                     DeviceConfiguration deviceConfiguration = new DeviceConfiguration(devicePort, type, deviceName, true);
@@ -323,6 +313,22 @@ public class ReadXMLFileHandler {
         } else {
             return null;
         }
+    }
+
+    private boolean isLegacyModuleDevice(ConfigurationType type) {
+        return ((type == ConfigurationType.COMPASS) ||
+                (type == ConfigurationType.LIGHT_SENSOR) ||
+                (type == ConfigurationType.IR_SEEKER) ||
+                (type == ConfigurationType.ACCELEROMETER) ||
+                (type == ConfigurationType.GYRO) ||
+                (type == ConfigurationType.TOUCH_SENSOR) ||
+                (type == ConfigurationType.TOUCH_SENSOR_MULTIPLEXER) ||
+                (type == ConfigurationType.ULTRASONIC_SENSOR) ||
+                (type == ConfigurationType.COLOR_SENSOR) ||
+                (type == ConfigurationType.NOTHING) ||
+                (type == ConfigurationType.MOTOR_CONTROLLER) ||
+                (type == ConfigurationType.SERVO_CONTROLLER) ||
+                (type == ConfigurationType.MATRIX_CONTROLLER));
     }
 
     private class DeviceConfigurationList extends ArrayList<DeviceConfiguration> {
