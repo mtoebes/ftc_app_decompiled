@@ -43,10 +43,11 @@ public class HardwareMap {
 
         public DEVICE_TYPE get(String deviceName) {
             DEVICE_TYPE device_type = this.deviceTypeMap.get(deviceName);
-            if (device_type != null) {
+            if (device_type == null) {
+                throw new IllegalArgumentException(String.format("Unable to find a hardware device with the name \"%s\"", deviceName));
+            } else {
                 return device_type;
             }
-            throw new IllegalArgumentException(String.format("Unable to find a hardware device with the name \"%s\"", new Object[]{deviceName}));
         }
 
         public void put(String deviceName, DEVICE_TYPE device) {
@@ -67,12 +68,10 @@ public class HardwareMap {
 
         public void logDevices() {
             if (!this.deviceTypeMap.isEmpty()) {
-                for (Entry entry : this.deviceTypeMap.entrySet()) {
+                for (Entry<String, DEVICE_TYPE> entry : this.deviceTypeMap.entrySet()) {
                     if (entry.getValue() instanceof HardwareDevice) {
                         HardwareDevice device = (HardwareDevice) entry.getValue();
-                        String connectionInfo = ((HardwareDevice) entry.getValue()).getConnectionInfo();
-                        String str = (String) entry.getKey();
-                        RobotLog.i(String.format("%-45s %-30s %s", device.getDeviceName(), str, connectionInfo));
+                        RobotLog.i(String.format("%-45s %-30s %s", device.getDeviceName(), entry.getKey(), device.getConnectionInfo()));
                     }
                 }
             }

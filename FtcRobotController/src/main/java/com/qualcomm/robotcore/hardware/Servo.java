@@ -3,12 +3,12 @@ package com.qualcomm.robotcore.hardware;
 import com.qualcomm.robotcore.util.Range;
 
 public class Servo implements HardwareDevice {
-    public static final double MAX_POSITION = 1.0d;
-    public static final double MIN_POSITION = 0.0d;
+    public static final double MAX_POSITION = 1;
+    public static final double MIN_POSITION = 0;
     protected ServoController controller;
     protected Direction direction;
-    protected double maxPosition;
-    protected double minPosition;
+    protected double maxPosition = MAX_POSITION;
+    protected double minPosition = MIN_POSITION;
     protected int portNumber;
 
     public enum Direction {
@@ -21,11 +21,6 @@ public class Servo implements HardwareDevice {
     }
 
     public Servo(ServoController controller, int portNumber, Direction direction) {
-        this.controller = null;
-        this.portNumber = -1;
-        this.direction = Direction.FORWARD;
-        this.minPosition = 0.0d;
-        this.maxPosition = MAX_POSITION;
         this.direction = direction;
         this.controller = controller;
         this.portNumber = portNumber;
@@ -66,7 +61,7 @@ public class Servo implements HardwareDevice {
         if (this.direction == Direction.REVERSE) {
             position = reversePosition(position);
         }
-        this.controller.setServoPosition(this.portNumber, Range.scale(position, 0.0d, MAX_POSITION, this.minPosition, this.maxPosition));
+        this.controller.setServoPosition(this.portNumber, Range.scale(position, 0, MAX_POSITION, this.minPosition, this.maxPosition));
     }
 
     public double getPosition() {
@@ -74,12 +69,12 @@ public class Servo implements HardwareDevice {
         if (this.direction == Direction.REVERSE) {
             servoPosition = reversePosition(servoPosition);
         }
-        return Range.clip(Range.scale(servoPosition, this.minPosition, this.maxPosition, 0.0d, MAX_POSITION), 0.0d, MAX_POSITION);
+        return Range.clip(Range.scale(servoPosition, this.minPosition, this.maxPosition, 0, MAX_POSITION), 0, MAX_POSITION);
     }
 
     public void scaleRange(double min, double max) throws IllegalArgumentException {
-        Range.throwIfRangeIsInvalid(min, 0.0d, MAX_POSITION);
-        Range.throwIfRangeIsInvalid(max, 0.0d, MAX_POSITION);
+        Range.throwIfRangeIsInvalid(min, 0, MAX_POSITION);
+        Range.throwIfRangeIsInvalid(max, 0, MAX_POSITION);
         if (min >= max) {
             throw new IllegalArgumentException("min must be less than max");
         }
@@ -88,6 +83,6 @@ public class Servo implements HardwareDevice {
     }
 
     private double reversePosition(double d) {
-        return (MAX_POSITION - d) + 0.0d;
+        return MAX_POSITION - d;
     }
 }
