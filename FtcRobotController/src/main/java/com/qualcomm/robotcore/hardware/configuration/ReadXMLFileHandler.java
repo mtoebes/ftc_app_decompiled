@@ -210,8 +210,12 @@ public class ReadXMLFileHandler {
     }
 
     private ControllerConfiguration parseServoControllerConfig(boolean useSerialNumber) throws IOException, XmlPullParserException {
+        int controllerPorts = SERVO_PORTS;
+        ConfigurationType controllerType = ConfigurationType.SERVO_CONTROLLER;
+        ConfigurationType deviceType = ConfigurationType.SERVO;
+
         ControllerConfiguration controllerConfiguration;
-        DeviceConfigurationList deviceConfigurationList = new DeviceConfigurationList(SERVO_PORTS, ConfigurationType.SERVO);
+        DeviceConfigurationList deviceConfigurationList = new DeviceConfigurationList(controllerPorts, deviceType);
 
         String name = this.parser.getAttributeValue(null, "name");
         int port = -1;
@@ -229,13 +233,13 @@ public class ReadXMLFileHandler {
             type = getConfigurationType(this.parser.getName());
             if (type != null) {
                 if (next == XmlPullParser.END_TAG) {
-                    if (type == ConfigurationType.SERVO_CONTROLLER) {
-                        controllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber));
+                    if (type == controllerType) {
+                        controllerConfiguration = new ControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
                         controllerConfiguration.setPort(port);
                         controllerConfiguration.setEnabled(true);
                         return controllerConfiguration;
                     }
-                } else if (next == XmlPullParser.START_TAG && type == ConfigurationType.SERVO) {
+                } else if (next == XmlPullParser.START_TAG && type == deviceType) {
                     int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                     String deviceName = this.parser.getAttributeValue(null, "name");
                     DeviceConfiguration deviceConfiguration = new DeviceConfiguration(devicePort, type, deviceName, true);
@@ -243,14 +247,18 @@ public class ReadXMLFileHandler {
                 }
             }
         }
-        controllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber));
+        controllerConfiguration = new ControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
         controllerConfiguration.setPort(port);
         return controllerConfiguration;
     }
 
     private ControllerConfiguration parseMotorControllerConfig(boolean useSerialNumber) throws IOException, XmlPullParserException {
+        int controllerPorts = MOTOR_PORTS;
+        ConfigurationType controllerType = ConfigurationType.MOTOR_CONTROLLER;
+        ConfigurationType deviceType = ConfigurationType.MOTOR;
+
         ControllerConfiguration controllerConfiguration;
-        DeviceConfigurationList deviceConfigurationList = new DeviceConfigurationList(MOTOR_PORTS, ConfigurationType.MOTOR);
+        DeviceConfigurationList deviceConfigurationList = new DeviceConfigurationList(controllerPorts, deviceType);
 
         String attributeValue = this.parser.getAttributeValue(null, "name");
         int port = -1;
@@ -268,13 +276,13 @@ public class ReadXMLFileHandler {
             type = getConfigurationType(this.parser.getName());
             if (type != null) {
                 if (next == XmlPullParser.END_TAG) {
-                    if (type == ConfigurationType.MOTOR_CONTROLLER) {
-                        controllerConfiguration = new MotorControllerConfiguration(attributeValue, deviceConfigurationList, new SerialNumber(serialNumber));
+                    if (type == controllerType) {
+                        controllerConfiguration = new ControllerConfiguration(attributeValue, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
                         controllerConfiguration.setPort(port);
                         controllerConfiguration.setEnabled(true);
                         return controllerConfiguration;
                     }
-                } else if (next == XmlPullParser.START_TAG && type == ConfigurationType.MOTOR) {
+                } else if (next == XmlPullParser.START_TAG && type == deviceType) {
                     int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                     String deviceName = this.parser.getAttributeValue(null, "name");
                     DeviceConfiguration deviceConfiguration = new DeviceConfiguration(devicePort, type, deviceName, true);
@@ -282,7 +290,7 @@ public class ReadXMLFileHandler {
                 }
             }
         }
-        controllerConfiguration = new MotorControllerConfiguration(attributeValue, deviceConfigurationList, new SerialNumber(serialNumber));
+        controllerConfiguration = new ControllerConfiguration(attributeValue, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
         controllerConfiguration.setPort(port);
         return controllerConfiguration;
     }
@@ -299,7 +307,7 @@ public class ReadXMLFileHandler {
 
         return new DeviceConfiguration(port, type, name, enabled);
     }
-    
+
     private ConfigurationType getConfigurationType(String str) {
         if (str == null) {
             return null;
