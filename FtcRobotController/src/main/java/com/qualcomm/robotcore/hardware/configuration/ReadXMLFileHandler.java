@@ -78,9 +78,6 @@ public class ReadXMLFileHandler {
             type = getConfigurationType(this.parser.getName());
             if (type != null) {
                 if (next == XmlPullParser.END_TAG) {
-                    if (DEBUG) {
-                        RobotLog.e("[handleDeviceInterfaceModule] tagname: " + type);
-                    }
                     if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
                         deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(name, new SerialNumber(serialNumber));
                         deviceInterfaceModuleConfiguration.setPwmDevices(pwdConfigs);
@@ -142,10 +139,6 @@ public class ReadXMLFileHandler {
                         return controllerConfiguration;
                     }
                 } else if (next == XmlPullParser.START_TAG) {
-                    if (DEBUG) {
-                        RobotLog.e("[handleLegacyModule] tagname: " + type);
-                    }
-
                     DeviceConfiguration deviceConfiguration = null;
                     if (type == ConfigurationType.COMPASS ||
                             type == ConfigurationType.LIGHT_SENSOR ||
@@ -294,6 +287,19 @@ public class ReadXMLFileHandler {
         return controllerConfiguration;
     }
 
+    private DeviceConfiguration parseDeviceConfig() {
+        int port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+        ConfigurationType type = getConfigurationType(this.parser.getName());
+        String name = this.parser.getAttributeValue(null, "name");
+        boolean enabled = !(name.equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME));
+
+        if (DEBUG) {
+            RobotLog.e("[handleDevice] name: " + name + ", port: " + port + ", type: " + type);
+        }
+
+        return new DeviceConfiguration(port, type, name, enabled);
+    }
+    
     private ConfigurationType getConfigurationType(String str) {
         if (str == null) {
             return null;
@@ -342,19 +348,6 @@ public class ReadXMLFileHandler {
         } else {
             return null;
         }
-    }
-
-    private DeviceConfiguration parseDeviceConfig() {
-        int port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        String name = this.parser.getAttributeValue(null, "name");
-        boolean enabled = !(name.equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME));
-
-        if (DEBUG) {
-            RobotLog.e("[handleDevice] name: " + name + ", port: " + port + ", type: " + type);
-        }
-
-        return new DeviceConfiguration(port, type, name, enabled);
     }
 
     private class DeviceConfigurationList extends ArrayList<DeviceConfiguration> {
