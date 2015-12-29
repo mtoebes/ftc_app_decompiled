@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 
 public interface RobotUsbDevice {
 
-    public enum Channel {
+    enum Channel {
         RX,
         TX,
         NONE,
@@ -15,15 +15,15 @@ public interface RobotUsbDevice {
 
     void purge(Channel channel) throws RobotCoreException;
 
-    int read(byte[] bArr) throws RobotCoreException;
+    int read(byte[] data) throws RobotCoreException;
 
-    int read(byte[] bArr, int i, int i2) throws RobotCoreException;
+    int read(byte[] data, int length, int timeout) throws RobotCoreException;
 
     void setBaudRate(int i) throws RobotCoreException;
 
-    void setDataCharacteristics(byte b, byte b2, byte b3) throws RobotCoreException;
+    void setDataCharacteristics(byte dataBits, byte stopBits, byte parity) throws RobotCoreException;
 
-    void setLatencyTimer(int i) throws RobotCoreException;
+    void setLatencyTimer(int latencyTimer) throws RobotCoreException;
 
-    void write(byte[] bArr) throws RobotCoreException;
+    void write(byte[] data) throws RobotCoreException;
 }
