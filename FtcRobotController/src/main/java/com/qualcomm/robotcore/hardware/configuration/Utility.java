@@ -8,6 +8,7 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Color;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -105,9 +106,9 @@ public class Utility {
 
     public void complainToast(String msg, Context context) {
         Toast makeText = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
-        makeText.setGravity(17, 0, 0);
+        makeText.setGravity(Gravity.CENTER, 0, 0);
         TextView textView = (TextView) makeText.getView().findViewById(android.R.id.message);
-        textView.setTextColor(-1);
+        textView.setTextColor(Color.BLACK);
         textView.setTextSize(18.0f);
         makeText.show();
     }
@@ -232,7 +233,7 @@ public class Utility {
         if (replaceFirst.equalsIgnoreCase(NO_FILE)) {
             changeBackground(Color.parseColor("#bf0510"), header_id);
         } else if (replaceFirst.toLowerCase().contains(UNSAVED.toLowerCase())) {
-            changeBackground(-12303292, header_id);
+            changeBackground(Color.DKGRAY, header_id);
         } else {
             changeBackground(Color.parseColor("#790E15"), header_id);
         }
@@ -264,14 +265,14 @@ public class Utility {
         this.activity.getLayoutInflater().inflate(layout_id, linearLayout, true);
         TextView textView = (TextView) linearLayout.findViewById(orange0);
         TextView textView2 = (TextView) linearLayout.findViewById(orange1);
-        textView2.setGravity(3);
+        textView2.setGravity(Gravity.CENTER);
         textView.setText(msg0);
         textView2.setText(msg1);
     }
 
     public void confirmSave() {
         Toast makeText = Toast.makeText(this.activity, "Saved", Toast.LENGTH_SHORT);
-        makeText.setGravity(80, 0, 50);
+        makeText.setGravity(Gravity.BOTTOM, 0, 50);
         makeText.show();
     }
 
