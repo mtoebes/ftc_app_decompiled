@@ -213,50 +213,17 @@ public class ReadXMLFileHandler {
         int controllerPorts = SERVO_PORTS;
         ConfigurationType controllerType = ConfigurationType.SERVO_CONTROLLER;
         ConfigurationType deviceType = ConfigurationType.SERVO;
-
-        ControllerConfiguration controllerConfiguration;
-        DeviceConfigurationList deviceConfigurationList = new DeviceConfigurationList(controllerPorts, deviceType);
-
-        String name = this.parser.getAttributeValue(null, "name");
-        int port = -1;
-        String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
-
-        if (useSerialNumber) {
-            serialNumber = this.parser.getAttributeValue(null, "serialNumber");
-        } else {
-            port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-        }
-
-        int next;
-        ConfigurationType type;
-        while ((next = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
-            type = getConfigurationType(this.parser.getName());
-            if (type != null) {
-                if (next == XmlPullParser.END_TAG) {
-                    if (type == controllerType) {
-                        controllerConfiguration = new ControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
-                        controllerConfiguration.setPort(port);
-                        controllerConfiguration.setEnabled(true);
-                        return controllerConfiguration;
-                    }
-                } else if (next == XmlPullParser.START_TAG && type == deviceType) {
-                    int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-                    String deviceName = this.parser.getAttributeValue(null, "name");
-                    DeviceConfiguration deviceConfiguration = new DeviceConfiguration(devicePort, type, deviceName, true);
-                    deviceConfigurationList.set(devicePort, deviceConfiguration);
-                }
-            }
-        }
-        controllerConfiguration = new ControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
-        controllerConfiguration.setPort(port);
-        return controllerConfiguration;
+        return parseControllerConfig(controllerPorts, controllerType, deviceType, useSerialNumber);
     }
 
     private ControllerConfiguration parseMotorControllerConfig(boolean useSerialNumber) throws IOException, XmlPullParserException {
         int controllerPorts = MOTOR_PORTS;
         ConfigurationType controllerType = ConfigurationType.MOTOR_CONTROLLER;
         ConfigurationType deviceType = ConfigurationType.MOTOR;
+        return parseControllerConfig(controllerPorts, controllerType, deviceType, useSerialNumber);
+    }
 
+    private ControllerConfiguration parseControllerConfig(int controllerPorts, ConfigurationType controllerType, ConfigurationType deviceType, boolean useSerialNumber) throws IOException, XmlPullParserException {
         ControllerConfiguration controllerConfiguration;
         DeviceConfigurationList deviceConfigurationList = new DeviceConfigurationList(controllerPorts, deviceType);
 
