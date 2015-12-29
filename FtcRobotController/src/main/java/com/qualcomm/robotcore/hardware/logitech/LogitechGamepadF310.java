@@ -3,8 +3,6 @@ package com.qualcomm.robotcore.hardware.logitech;
 import android.os.Build.VERSION;
 import android.view.MotionEvent;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Gamepad.GamepadCallback;
-import com.qualcomm.robotcore.util.Dimmer;
 
 public class LogitechGamepadF310 extends Gamepad {
     public LogitechGamepadF310() {
@@ -25,26 +23,26 @@ public class LogitechGamepadF310 extends Gamepad {
             return;
         }
         boolean z2;
-        this.left_stick_x = cleanMotionValues(event.getAxisValue(0));
-        this.left_stick_y = cleanMotionValues(event.getAxisValue(1));
-        this.right_stick_x = cleanMotionValues(event.getAxisValue(12));
-        this.right_stick_y = cleanMotionValues(event.getAxisValue(13));
-        this.left_trigger = (event.getAxisValue(11) + Dimmer.MAXIMUM_BRIGHTNESS) / 2.0f;
-        this.right_trigger = (event.getAxisValue(14) + Dimmer.MAXIMUM_BRIGHTNESS) / 2.0f;
-        this.dpad_down = event.getAxisValue(16) > this.dpadThreshold;
-        if (event.getAxisValue(16) < (-this.dpadThreshold)) {
+        this.left_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.ACTION_DOWN));
+        this.left_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.ACTION_UP));
+        this.right_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RX));
+        this.right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RY));
+        this.left_trigger = (event.getAxisValue(MotionEvent.AXIS_Z) + 1) / 2.0f;
+        this.right_trigger = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1) / 2.0f;
+        this.dpad_down = event.getAxisValue(MotionEvent.AXIS_HAT_Y) > this.dpadThreshold;
+        if (event.getAxisValue(MotionEvent.AXIS_HAT_Y) < (-this.dpadThreshold)) {
             z2 = true;
         } else {
             z2 = false;
         }
         this.dpad_up = z2;
-        if (event.getAxisValue(15) > this.dpadThreshold) {
+        if (event.getAxisValue(MotionEvent.AXIS_HAT_X) > this.dpadThreshold) {
             z2 = true;
         } else {
             z2 = false;
         }
         this.dpad_right = z2;
-        if (event.getAxisValue(15) >= (-this.dpadThreshold)) {
+        if (event.getAxisValue(MotionEvent.AXIS_HAT_X) >= (-this.dpadThreshold)) {
             z = false;
         }
         this.dpad_left = z;
@@ -54,26 +52,26 @@ public class LogitechGamepadF310 extends Gamepad {
     private void m206a(MotionEvent motionEvent) {
         boolean z;
         boolean z2 = true;
-        this.left_stick_x = cleanMotionValues(motionEvent.getAxisValue(0));
-        this.left_stick_y = cleanMotionValues(motionEvent.getAxisValue(1));
-        this.right_stick_x = cleanMotionValues(motionEvent.getAxisValue(11));
-        this.right_stick_y = cleanMotionValues(motionEvent.getAxisValue(14));
-        this.left_trigger = motionEvent.getAxisValue(23);
-        this.right_trigger = motionEvent.getAxisValue(22);
-        this.dpad_down = motionEvent.getAxisValue(16) > this.dpadThreshold;
-        if (motionEvent.getAxisValue(16) < (-this.dpadThreshold)) {
+        this.left_stick_x = cleanMotionValues(motionEvent.getAxisValue(MotionEvent.ACTION_DOWN));
+        this.left_stick_y = cleanMotionValues(motionEvent.getAxisValue(MotionEvent.ACTION_UP));
+        this.right_stick_x = cleanMotionValues(motionEvent.getAxisValue(MotionEvent.AXIS_Z));
+        this.right_stick_y = cleanMotionValues(motionEvent.getAxisValue(MotionEvent.AXIS_RZ));
+        this.left_trigger = motionEvent.getAxisValue(MotionEvent.AXIS_BRAKE);
+        this.right_trigger = motionEvent.getAxisValue(MotionEvent.AXIS_GAS);
+        this.dpad_down = motionEvent.getAxisValue(MotionEvent.AXIS_HAT_Y) > this.dpadThreshold;
+        if (motionEvent.getAxisValue(MotionEvent.AXIS_HAT_Y) < (-this.dpadThreshold)) {
             z = true;
         } else {
             z = false;
         }
         this.dpad_up = z;
-        if (motionEvent.getAxisValue(15) > this.dpadThreshold) {
+        if (motionEvent.getAxisValue(MotionEvent.AXIS_HAT_X) > this.dpadThreshold) {
             z = true;
         } else {
             z = false;
         }
         this.dpad_right = z;
-        if (motionEvent.getAxisValue(15) >= (-this.dpadThreshold)) {
+        if (motionEvent.getAxisValue(MotionEvent.AXIS_HAT_X) >= (-this.dpadThreshold)) {
             z2 = false;
         }
         this.dpad_left = z2;
