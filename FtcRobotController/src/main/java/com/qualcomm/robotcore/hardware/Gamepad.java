@@ -17,6 +17,9 @@ import java.util.Set;
 
 public class Gamepad implements RobocolParsable {
     public static final int ID_UNASSOCIATED = -1;
+
+    private static final int MAX_JOYSTICK_VALUE = 1;
+
     private static Set<Integer> gamepadDevices = new HashSet<Integer>();
     private static Set<whitelistDevice> whitelistDevices;
     public boolean a;
@@ -79,7 +82,7 @@ public class Gamepad implements RobocolParsable {
     }
 
     public void setJoystickDeadzone(float deadzone) {
-        if ((deadzone < 0) || (deadzone >  1)) {
+        if ((deadzone < 0) || (deadzone >  MAX_JOYSTICK_VALUE)) {
             throw new IllegalArgumentException("deadzone cannot be greater than max joystick value");
         }
         this.joystickDeadzone = deadzone;
@@ -290,16 +293,16 @@ public class Gamepad implements RobocolParsable {
     protected float cleanMotionValues(float number) {
         if ((number < this.joystickDeadzone) && (number > (-this.joystickDeadzone))) {
             return 0;
-        } else if (number >  1) {
-            return  1;
-        } else if (number < -1) {
-            return -1;
+        } else if (number >  MAX_JOYSTICK_VALUE) {
+            return  MAX_JOYSTICK_VALUE;
+        } else if (number < -MAX_JOYSTICK_VALUE) {
+            return -MAX_JOYSTICK_VALUE;
         }
 
         if (number < 0) {
-            Range.scale((double) number, this.joystickDeadzone, 1, 0, 1);
+            Range.scale((double) number, this.joystickDeadzone, MAX_JOYSTICK_VALUE, 0, MAX_JOYSTICK_VALUE);
         } else if (number > 0) {
-            Range.scale((double) number, -this.joystickDeadzone, -1, 0, -1);
+            Range.scale((double) number, -this.joystickDeadzone, -MAX_JOYSTICK_VALUE, 0, -MAX_JOYSTICK_VALUE);
         }
 
         return number;
@@ -336,7 +339,8 @@ public class Gamepad implements RobocolParsable {
                 for (int id : InputDevice.getDeviceIds()) {
                     InputDevice device = InputDevice.getDevice(id);
                     int sources = device.getSources();
-                    if (((sources & 1025) == 1025) || ((sources & 16777232) == 16777232)) {
+                    if (((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
+                            ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)) {
                         if (VERSION.SDK_INT < 19) {
                             gamepadDevices.add(id);
                         } else if ((whitelistDevices == null) || whitelistDevices.contains(new whitelistDevice(device.getVendorId(), device.getProductId()))) {
