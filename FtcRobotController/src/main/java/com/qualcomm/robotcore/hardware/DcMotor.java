@@ -66,16 +66,13 @@ public class DcMotor implements HardwareDevice {
         if (this.mode == RunMode.RUN_TO_POSITION) {
             power = Math.abs(power);
         }
+
         this.controller.setMotorPower(this.portNumber, power);
     }
 
     public double getPower() {
         double motorPower = this.controller.getMotorPower(this.portNumber);
-        if (this.direction == Direction.REVERSE) {
-            return motorPower * -1;
-        } else {
-            return motorPower;
-        }
+        return ((this.direction == Direction.FORWARD) ? motorPower : -motorPower);
     }
 
     public boolean isBusy() {
@@ -99,20 +96,12 @@ public class DcMotor implements HardwareDevice {
 
     public int getTargetPosition() {
         int motorTargetPosition = this.controller.getMotorTargetPosition(this.portNumber);
-        if (this.direction == Direction.REVERSE) {
-            return motorTargetPosition * -1;
-        } else {
-            return motorTargetPosition;
-        }
+        return ((this.direction == Direction.FORWARD) ? motorTargetPosition : -motorTargetPosition);
     }
 
     public int getCurrentPosition() {
         int motorCurrentPosition = this.controller.getMotorCurrentPosition(this.portNumber);
-        if (this.direction == Direction.REVERSE) {
-            return motorCurrentPosition * -1;
-        } else {
-            return motorCurrentPosition;
-        }
+        return ((this.direction == Direction.FORWARD) ? motorCurrentPosition : -motorCurrentPosition);
     }
 
     public void setMode(RunMode mode) {
