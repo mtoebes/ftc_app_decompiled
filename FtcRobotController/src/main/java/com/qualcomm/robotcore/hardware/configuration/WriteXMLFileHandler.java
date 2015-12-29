@@ -12,7 +12,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import org.xmlpull.v1.XmlSerializer;
 
 public class WriteXMLFileHandler {
