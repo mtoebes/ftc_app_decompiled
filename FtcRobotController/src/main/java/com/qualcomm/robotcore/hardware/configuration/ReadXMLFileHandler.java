@@ -70,7 +70,7 @@ public class ReadXMLFileHandler {
         DeviceConfigurationList analogOutputDeviceConfigs = new DeviceConfigurationList(ANALOG_OUTPUT_PORTS, ConfigurationType.ANALOG_OUTPUT);
 
         String name = this.parser.getAttributeValue(null, "name");
-        String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+        SerialNumber serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
 
         ConfigurationType type;
         int next;
@@ -79,7 +79,7 @@ public class ReadXMLFileHandler {
             if (type != null) {
                 if (next == XmlPullParser.END_TAG) {
                     if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
-                        deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(name, new SerialNumber(serialNumber));
+                        deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(name, serialNumber);
                         deviceInterfaceModuleConfiguration.setPwmDevices(pwdConfigs);
                         deviceInterfaceModuleConfiguration.setI2cDevices(i2CDeviceConfigs);
                         deviceInterfaceModuleConfiguration.setAnalogInputDevices(analogInputDeviceConfigs);
@@ -125,7 +125,7 @@ public class ReadXMLFileHandler {
         DeviceConfigurationList deviceConfigurationList = new DeviceConfigurationList(LEGACY_MODULE_PORTS, ConfigurationType.NOTHING);
 
         String name = this.parser.getAttributeValue(null, "name");
-        String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+        SerialNumber serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
 
         ConfigurationType type;
         int next;
@@ -134,7 +134,7 @@ public class ReadXMLFileHandler {
             if (type != null) {
                 if (next == XmlPullParser.END_TAG) {
                     if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
-                        controllerConfiguration = new LegacyModuleControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber));
+                        controllerConfiguration = new LegacyModuleControllerConfiguration(name, deviceConfigurationList, serialNumber);
                         controllerConfiguration.setEnabled(true);
                         return controllerConfiguration;
                     }
@@ -155,7 +155,7 @@ public class ReadXMLFileHandler {
                 }
             }
         }
-        return new LegacyModuleControllerConfiguration(name, deviceConfigurationList, new SerialNumber(serialNumber));
+        return new LegacyModuleControllerConfiguration(name, deviceConfigurationList, serialNumber);
     }
 
     private ControllerConfiguration parseMatrixControllerConfig() throws IOException, XmlPullParserException, RobotCoreException {
@@ -219,10 +219,10 @@ public class ReadXMLFileHandler {
 
         String attributeValue = this.parser.getAttributeValue(null, "name");
         int port = -1;
-        String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
+        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
 
         if (useSerialNumber) {
-            serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+            serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
         } else {
             port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
         }
@@ -234,7 +234,7 @@ public class ReadXMLFileHandler {
             if (type != null) {
                 if (next == XmlPullParser.END_TAG) {
                     if (type == controllerType) {
-                        controllerConfiguration = new ControllerConfiguration(attributeValue, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
+                        controllerConfiguration = new ControllerConfiguration(attributeValue, deviceConfigurationList, serialNumber, controllerType);
                         controllerConfiguration.setPort(port);
                         controllerConfiguration.setEnabled(true);
                         return controllerConfiguration;
@@ -247,7 +247,7 @@ public class ReadXMLFileHandler {
                 }
             }
         }
-        controllerConfiguration = new ControllerConfiguration(attributeValue, deviceConfigurationList, new SerialNumber(serialNumber), controllerType);
+        controllerConfiguration = new ControllerConfiguration(attributeValue, deviceConfigurationList, serialNumber, controllerType);
         controllerConfiguration.setPort(port);
         return controllerConfiguration;
     }
