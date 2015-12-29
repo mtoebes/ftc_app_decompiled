@@ -91,20 +91,18 @@ public class Gamepad implements RobocolParsable {
     }
 
     public void update(MotionEvent event) {
-        boolean z;
-        boolean z2 = true;
         this.id = event.getDeviceId();
         this.timestamp = event.getEventTime();
-        this.left_stick_x = cleanMotionValues(event.getAxisValue(0));
-        this.left_stick_y = cleanMotionValues(event.getAxisValue(1));
-        this.right_stick_x = cleanMotionValues(event.getAxisValue(11));
-        this.right_stick_y = cleanMotionValues(event.getAxisValue(14));
-        this.left_trigger = event.getAxisValue(17);
-        this.right_trigger = event.getAxisValue(18);
-        this.dpad_down = event.getAxisValue(16) > this.dpadThreshold;
-        this.dpad_up = event.getAxisValue(16) < (-this.dpadThreshold);
-        this.dpad_right = event.getAxisValue(15) > this.dpadThreshold;
-        this.dpad_left = event.getAxisValue(15) < (-this.dpadThreshold);
+        this.left_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_X));
+        this.left_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Y));
+        this.right_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Z));
+        this.right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RZ));
+        this.left_trigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+        this.right_trigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+        this.dpad_down = event.getAxisValue(MotionEvent.AXIS_HAT_Y) > this.dpadThreshold;
+        this.dpad_up = event.getAxisValue(MotionEvent.AXIS_HAT_Y) < (-this.dpadThreshold);
+        this.dpad_right = event.getAxisValue(MotionEvent.AXIS_HAT_X) > this.dpadThreshold;
+        this.dpad_left = event.getAxisValue(MotionEvent.AXIS_HAT_X) < (-this.dpadThreshold);
         callCallback();
     }
 
