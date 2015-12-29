@@ -4,10 +4,10 @@ import java.io.Serializable;
 
 public class DeviceConfiguration implements Serializable {
     public static final String DISABLED_DEVICE_NAME = "NO DEVICE ATTACHED";
-    private ConfigurationType f257a;
-    private int f258b;
-    private boolean f259c;
-    protected String name;
+    private ConfigurationType type = ConfigurationType.NOTHING;
+    private int port;
+    private boolean enabled;
+    protected String name = DISABLED_DEVICE_NAME;;
 
     public enum ConfigurationType {
         MOTOR,
@@ -40,46 +40,30 @@ public class DeviceConfiguration implements Serializable {
     }
 
     public DeviceConfiguration(int port, ConfigurationType type, String name, boolean enabled) {
-        this.f257a = ConfigurationType.NOTHING;
-        this.f259c = false;
-        this.f258b = port;
-        this.f257a = type;
+        this.port = port;
+        this.type = type;
         this.name = name;
-        this.f259c = enabled;
+        this.enabled = enabled;
     }
 
     public DeviceConfiguration(int port) {
-        this.f257a = ConfigurationType.NOTHING;
-        this.f259c = false;
-        this.name = DISABLED_DEVICE_NAME;
-        this.f257a = ConfigurationType.NOTHING;
-        this.f258b = port;
-        this.f259c = false;
+        this(port, ConfigurationType.NOTHING, DISABLED_DEVICE_NAME, false);
     }
 
     public DeviceConfiguration(ConfigurationType type) {
-        this.f257a = ConfigurationType.NOTHING;
-        this.f259c = false;
-        this.name = "";
-        this.f257a = type;
-        this.f259c = false;
+        this(0, type, "", false);
     }
 
     public DeviceConfiguration(int port, ConfigurationType type) {
-        this.f257a = ConfigurationType.NOTHING;
-        this.f259c = false;
-        this.name = DISABLED_DEVICE_NAME;
-        this.f257a = type;
-        this.f258b = port;
-        this.f259c = false;
+        this(port, type, DISABLED_DEVICE_NAME, false);
     }
 
     public boolean isEnabled() {
-        return this.f259c;
+        return this.enabled;
     }
 
     public void setEnabled(boolean enabled) {
-        this.f259c = enabled;
+        this.enabled = enabled;
     }
 
     public String getName() {
@@ -91,19 +75,19 @@ public class DeviceConfiguration implements Serializable {
     }
 
     public void setType(ConfigurationType type) {
-        this.f257a = type;
+        this.type = type;
     }
 
     public ConfigurationType getType() {
-        return this.f257a;
+        return this.type;
     }
 
     public int getPort() {
-        return this.f258b;
+        return this.port;
     }
 
     public void setPort(int port) {
-        this.f258b = port;
+        this.port = port;
     }
 
     public ConfigurationType typeFromString(String type) {
