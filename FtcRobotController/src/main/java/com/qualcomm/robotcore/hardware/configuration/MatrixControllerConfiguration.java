@@ -2,9 +2,12 @@ package com.qualcomm.robotcore.hardware.configuration;
 
 import com.qualcomm.robotcore.util.SerialNumber;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MatrixControllerConfiguration extends ControllerConfiguration {
+    private static final List<ConfigurationType> SUPPORTED_DEVICE_TYPES = Arrays.asList(ConfigurationType.MOTOR, ConfigurationType.SERVO);
+
     private List<DeviceConfiguration> servos;
     private List<DeviceConfiguration> motors;
 
@@ -28,5 +31,9 @@ public class MatrixControllerConfiguration extends ControllerConfiguration {
 
     public void addMotors(ArrayList<DeviceConfiguration> motors) {
         this.motors = motors;
+    }
+
+    protected static List<ConfigurationType> getSupportedDeviceTypes() {
+        return SUPPORTED_DEVICE_TYPES;
     }
 }

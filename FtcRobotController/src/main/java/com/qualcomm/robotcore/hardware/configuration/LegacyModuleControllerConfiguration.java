@@ -21,7 +21,7 @@ public class LegacyModuleControllerConfiguration extends ControllerConfiguration
         super(name, modules, serialNumber, ConfigurationType.LEGACY_MODULE_CONTROLLER);
     }
 
-    protected List<ConfigurationType> getSupportedDeviceTypes() {
+    protected static List<ConfigurationType> getSupportedDeviceTypes() {
         return SUPPORTED_DEVICE_TYPES;
     }
 }

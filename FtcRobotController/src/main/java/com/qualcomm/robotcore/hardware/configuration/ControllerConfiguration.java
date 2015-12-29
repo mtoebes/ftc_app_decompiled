@@ -67,7 +67,7 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
         return DeviceType.FTDI_USB_UNKNOWN_DEVICE;
     }
 
-    protected List<ConfigurationType> getSupportedDeviceTypes() {
+    protected static List<ConfigurationType> getSupportedDeviceTypes() {
         return SUPPORTED_DEVICE_TYPES;
     }
 }

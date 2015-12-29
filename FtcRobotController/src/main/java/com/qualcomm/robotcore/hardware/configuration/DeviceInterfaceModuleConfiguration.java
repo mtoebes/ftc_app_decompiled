@@ -73,7 +73,7 @@ public class DeviceInterfaceModuleConfiguration extends ControllerConfiguration 
         this.analogOutputDevices = analogOutputDevices;
     }
 
-    protected List<ConfigurationType> getSupportedDeviceTypes() {
+    protected static List<ConfigurationType> getSupportedDeviceTypes() {
         return SUPPORTED_DEVICE_TYPES;
     }
 }
