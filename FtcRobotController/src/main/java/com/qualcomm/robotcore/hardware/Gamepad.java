@@ -26,14 +26,14 @@ public class Gamepad implements RobocolParsable {
     public boolean b;
     public boolean back;
     private final GamepadCallback gamepadCallback;
-    protected float dpadThreshold;
+    protected float dpadThreshold = 0.2f;
     public boolean dpad_down;
     public boolean dpad_left;
     public boolean dpad_right;
     public boolean dpad_up;
     public boolean guide;
-    public int id;
-    protected float joystickDeadzone;
+    public int id = ID_UNASSOCIATED;
+    protected float joystickDeadzone = 0.2f;
     public boolean left_bumper;
     public boolean left_stick_button;
     public float left_stick_x;
@@ -46,7 +46,7 @@ public class Gamepad implements RobocolParsable {
     public float right_trigger;
     public boolean start;
     public long timestamp;
-    public byte user;
+    public byte user = -1;
     public boolean x;
     public boolean y;
 
@@ -70,32 +70,6 @@ public class Gamepad implements RobocolParsable {
     }
 
     public Gamepad(GamepadCallback callback) {
-        this.left_stick_x = 0;
-        this.left_stick_y = 0;
-        this.right_stick_x = 0;
-        this.right_stick_y = 0;
-        this.dpad_up = false;
-        this.dpad_down = false;
-        this.dpad_left = false;
-        this.dpad_right = false;
-        this.a = false;
-        this.b = false;
-        this.x = false;
-        this.y = false;
-        this.guide = false;
-        this.start = false;
-        this.back = false;
-        this.left_bumper = false;
-        this.right_bumper = false;
-        this.left_stick_button = false;
-        this.right_stick_button = false;
-        this.left_trigger = 0;
-        this.right_trigger = 0;
-        this.user = -1;
-        this.id = ID_UNASSOCIATED;
-        this.timestamp = 0;
-        this.dpadThreshold = 0.2f;
-        this.joystickDeadzone = 0.2f;
         this.gamepadCallback = callback;
     }
 
@@ -113,7 +87,7 @@ public class Gamepad implements RobocolParsable {
     }
 
     public void setJoystickDeadzone(float deadzone) {
-        if ((deadzone < 0) || (deadzone > Dimmer.MAXIMUM_BRIGHTNESS)) {
+        if ((deadzone < 0) || (deadzone >  1)) {
             throw new IllegalArgumentException("deadzone cannot be greater than max joystick value");
         }
         this.joystickDeadzone = deadzone;
@@ -131,22 +105,9 @@ public class Gamepad implements RobocolParsable {
         this.left_trigger = event.getAxisValue(17);
         this.right_trigger = event.getAxisValue(18);
         this.dpad_down = event.getAxisValue(16) > this.dpadThreshold;
-        if (event.getAxisValue(16) < (-this.dpadThreshold)) {
-            z = true;
-        } else {
-            z = false;
-        }
-        this.dpad_up = z;
-        if (event.getAxisValue(15) > this.dpadThreshold) {
-            z = true;
-        } else {
-            z = false;
-        }
-        this.dpad_right = z;
-        if (event.getAxisValue(15) >= (-this.dpadThreshold)) {
-            z2 = false;
-        }
-        this.dpad_left = z2;
+        this.dpad_up = event.getAxisValue(16) < (-this.dpadThreshold);
+        this.dpad_right = event.getAxisValue(15) > this.dpadThreshold;
+        this.dpad_left = event.getAxisValue(15) < (-this.dpadThreshold);
         callCallback();
     }
 
@@ -317,83 +278,31 @@ public class Gamepad implements RobocolParsable {
             this.right_trigger = wrap.getFloat();
             int i = wrap.getInt();
             this.left_stick_button = (i & D2xxManager.FTDI_BREAK_ON) != 0;
-            if ((i & 8192) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 8192) != 0;
             this.right_stick_button = z2;
-            if ((i & 4096) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 4096) != 0;
             this.dpad_up = z2;
-            if ((i & 2048) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 2048) != 0;
             this.dpad_down = z2;
-            if ((i & 1024) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 1024) != 0;
             this.dpad_left = z2;
-            if ((i & 512) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 512) != 0;
             this.dpad_right = z2;
-            if ((i & Command.MAX_COMMAND_LENGTH) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & Command.MAX_COMMAND_LENGTH) != 0;
             this.a = z2;
-            if ((i & SPI_SLAVE_CMD.SPI_MASTER_TRANSFER) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & SPI_SLAVE_CMD.SPI_MASTER_TRANSFER) != 0;
             this.b = z2;
-            if ((i & 64) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 64) != 0;
             this.x = z2;
-            if ((i & 32) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 32) != 0;
             this.y = z2;
-            if ((i & 16) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 16) != 0;
             this.guide = z2;
-            if ((i & 8) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 8) != 0;
             this.start = z2;
-            if ((i & 4) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 4) != 0;
             this.back = z2;
-            if ((i & 2) != 0) {
-                z2 = true;
-            } else {
-                z2 = false;
-            }
+            z2 = (i & 2) != 0;
             this.left_bumper = z2;
             if ((i & 1) == 0) {
                 z = false;
@@ -407,7 +316,12 @@ public class Gamepad implements RobocolParsable {
     }
 
     public boolean atRest() {
-        return (this.left_stick_x == 0) && (this.left_stick_y == 0) && (this.right_stick_x == 0) && (this.right_stick_y == 0) && (this.left_trigger == 0) && (this.right_trigger == 0);
+        return !((this.left_stick_x != 0) ||
+                (this.left_stick_y != 0) ||
+                (this.right_stick_x != 0) ||
+                (this.right_stick_y != 0) ||
+                (this.left_trigger != 0) ||
+                (this.right_trigger != 0));
     }
 
     public String type() {
@@ -416,66 +330,67 @@ public class Gamepad implements RobocolParsable {
 
     public String toString() {
         String str = "";
-        if (this.dpad_up) {
-            str = str + "dpad_up ";
+        if (dpad_up) {
+             str += "dpad_up ";
         }
-        if (this.dpad_down) {
-            str = str + "dpad_down ";
+        if (dpad_down) {
+             str += "dpad_down ";
         }
-        if (this.dpad_left) {
-            str = str + "dpad_left ";
+        if (dpad_left) {
+             str += "dpad_left ";
         }
-        if (this.dpad_right) {
-            str = str + "dpad_right ";
+        if (dpad_right) {
+             str += "dpad_right ";
         }
-        if (this.a) {
-            str = str + "a ";
+        if (a) {
+             str += "a ";
         }
-        if (this.b) {
-            str = str + "b ";
+        if (b) {
+             str += "b ";
         }
-        if (this.x) {
-            str = str + "x ";
+        if (x) {
+             str += "x ";
         }
-        if (this.y) {
-            str = str + "y ";
+        if (y) {
+             str += "y ";
         }
-        if (this.guide) {
-            str = str + "guide ";
+        if (guide) {
+             str += "guide ";
         }
-        if (this.start) {
-            str = str + "start ";
+        if (start) {
+             str += "start ";
         }
-        if (this.back) {
-            str = str + "back ";
+        if (back) {
+             str += "back ";
         }
-        if (this.left_bumper) {
-            str = str + "left_bumper ";
+        if (left_bumper) {
+             str += "left_bumper ";
         }
-        if (this.right_bumper) {
-            str = str + "right_bumper ";
+        if (right_bumper) {
+             str += "right_bumper ";
         }
-        if (this.left_stick_button) {
-            str = str + "left stick button ";
+        if (left_stick_button) {
+             str += "left stick button ";
         }
-        if (this.right_stick_button) {
-            str = str + "right stick button ";
+        if (right_stick_button) {
+             str += "right stick button ";
         }
-        return String.format("ID: %2d user: %2d lx: % 1.2f ly: % 1.2f rx: % 1.2f ry: % 1.2f lt: %1.2f rt: %1.2f %s", this.id, this.user, this.left_stick_x, this.left_stick_y, this.right_stick_x, this.right_stick_y, this.left_trigger, this.right_trigger, str);
+        return String.format("ID: %2d user: %2d lx: % 1.2f ly: % 1.2f rx: % 1.2f ry: % 1.2f lt: %1.2f rt: %1.2f %s",
+                id,  user,  left_stick_x,  left_stick_y,  right_stick_x,  right_stick_y,  left_trigger,  right_trigger, str);
     }
 
     protected float cleanMotionValues(float number) {
         if ((number < this.joystickDeadzone) && (number > (-this.joystickDeadzone))) {
             return 0;
         }
-        if (number > Dimmer.MAXIMUM_BRIGHTNESS) {
-            return Dimmer.MAXIMUM_BRIGHTNESS;
+        if (number >  1) {
+            return  1;
         }
         if (number < -1) {
             return -1;
         }
         if (number < 0) {
-            Range.scale((double) number, (double) this.joystickDeadzone, Servo.MAX_POSITION, 0, Servo.MAX_POSITION);
+            Range.scale((double) number, (double) this.joystickDeadzone, 1, 0, 1);
         }
         if (number <= 0) {
             return number;
