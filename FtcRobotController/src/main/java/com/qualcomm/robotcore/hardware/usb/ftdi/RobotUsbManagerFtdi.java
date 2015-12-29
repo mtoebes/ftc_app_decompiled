@@ -11,32 +11,32 @@ import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 public class RobotUsbManagerFtdi implements RobotUsbManager {
-    private Context f302a;
-    private D2xxManager f303b;
+    private Context context;
+    private D2xxManager manager;
 
     public RobotUsbManagerFtdi(Context context) {
-        this.f302a = context;
+        this.context = context;
         try {
-            this.f303b = D2xxManager.getInstance(context);
+            this.manager = D2xxManager.getInstance(context);
         } catch (D2xxException e) {
             RobotLog.e("Unable to create D2xxManager; cannot open USB devices");
         }
     }
 
     public int scanForDevices() throws RobotCoreException {
-        return this.f303b.createDeviceInfoList(this.f302a);
+        return this.manager.createDeviceInfoList(this.context);
     }
 
     public SerialNumber getDeviceSerialNumberByIndex(int index) throws RobotCoreException {
-        return new SerialNumber(this.f303b.getDeviceInfoListDetail(index).serialNumber);
+        return new SerialNumber(this.manager.getDeviceInfoListDetail(index).serialNumber);
     }
 
     public String getDeviceDescriptionByIndex(int index) throws RobotCoreException {
-        return this.f303b.getDeviceInfoListDetail(index).description;
+        return this.manager.getDeviceInfoListDetail(index).description;
     }
 
     public RobotUsbDevice openBySerialNumber(SerialNumber serialNumber) throws RobotCoreException {
-        FT_Device openBySerialNumber = this.f303b.openBySerialNumber(this.f302a, serialNumber.toString());
+        FT_Device openBySerialNumber = this.manager.openBySerialNumber(this.context, serialNumber.toString());
         if (openBySerialNumber != null) {
             return new RobotUsbDeviceFtdi(openBySerialNumber);
         }
