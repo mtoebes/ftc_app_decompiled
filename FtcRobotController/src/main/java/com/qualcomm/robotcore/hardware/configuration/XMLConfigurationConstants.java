@@ -22,4 +22,14 @@ public class XMLConfigurationConstants {
     public static final String TOUCH_SENSOR = "TouchSensor";
     public static final String TOUCH_SENSOR_MULTIPLEXER = "TouchSensorMultiplexer";
     public static final String ULTRASONIC_SENSOR = "UltrasonicSensor";
+
+    public static final int MOTOR_PORTS = 2;
+    public static final int SERVO_PORTS = 6;
+    public static final int LEGACY_MODULE_PORTS = 6;
+    public static final int PWM_PORTS = 2;
+    public static final int I2C_PORTS = 6;
+    public static final int ANALOG_INPUT_PORTS = 8;
+    public static final int DIGITAL_PORTS = 8;
+    public static final int ANALOG_OUTPUT_PORTS = 2;
+
 }
