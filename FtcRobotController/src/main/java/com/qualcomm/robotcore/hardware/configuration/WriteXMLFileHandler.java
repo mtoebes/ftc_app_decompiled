@@ -16,7 +16,7 @@ import java.util.Iterator;
 import org.xmlpull.v1.XmlSerializer;
 
 public class WriteXMLFileHandler {
-    private XmlSerializer serializer = Xml.newSerializer();;
+    private XmlSerializer serializer = Xml.newSerializer();
     private HashSet<String> names = new HashSet<String>();
     private ArrayList<String> duplicates = new ArrayList<String>();
     private String[] indentation = {"    ", "        ", "            "};
@@ -233,15 +233,14 @@ public class WriteXMLFileHandler {
     }
 
     private String toUpperCamelCase(String str) {
-        String str2 = str.substring(0, 1) + str.substring(1).toLowerCase();
-        int lastIndexOf = str.lastIndexOf("_");
-        while (lastIndexOf > 0) {
-            int i = lastIndexOf + 1;
-            String substring = str2.substring(0, lastIndexOf);
-            String toUpperCase = str2.substring(i, i + 1).toUpperCase();
-            str2 = substring + toUpperCase + str2.substring(i + 1);
-            lastIndexOf = str2.lastIndexOf("_");
+        String result = "";
+        String[] words = str.split("_");
+
+        for(String word : words) {
+            word = word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
+            result += word;
         }
-        return str2;
+
+        return result;
     }
 }
