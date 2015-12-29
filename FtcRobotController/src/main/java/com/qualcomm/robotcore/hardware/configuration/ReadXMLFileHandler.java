@@ -36,9 +36,9 @@ public class ReadXMLFileHandler {
             this.xmlPullParser = newInstance.newPullParser();
             this.xmlPullParser.setInput(is, null);
             int eventType = this.xmlPullParser.getEventType();
-            while (eventType != 1) {
+            while (eventType != XmlPullParser.END_DOCUMENT) {
                 String a = getConfigurationType(this.xmlPullParser.getName());
-                if (eventType == 2) {
+                if (eventType == XmlPullParser.START_TAG) {
                     if (a.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
                         this.controllerConfigurations.add(parseMotorControllerConfig(true));
                     }
@@ -74,8 +74,8 @@ public class ReadXMLFileHandler {
         ArrayList<DeviceConfiguration> analogOutputDeviceConfigs = createConfigList(ANALOG_OUTPUT_PORTS, ConfigurationType.ANALOG_OUTPUT);
         int next = this.xmlPullParser.next();
         String a6 = getConfigurationType(this.xmlPullParser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (a6 == null) {
                     continue;
                 } else {
@@ -94,7 +94,7 @@ public class ReadXMLFileHandler {
                     }
                 }
             }
-            if (next == 2) {
+            if (next == XmlPullParser.START_TAG) {
                 DeviceConfiguration c;
                 if (a6.equalsIgnoreCase(ConfigurationType.ANALOG_INPUT.toString()) || a6.equalsIgnoreCase(ConfigurationType.OPTICAL_DISTANCE_SENSOR.toString())) {
                     c = parseDeviceConfig();
@@ -131,8 +131,8 @@ public class ReadXMLFileHandler {
         int next = this.xmlPullParser.next();
         String a2 = getConfigurationType(this.xmlPullParser.getName());
         ControllerConfiguration legacyModuleControllerConfiguration;
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (a2 == null) {
                     continue;
                 } else if (a2.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
@@ -141,7 +141,7 @@ public class ReadXMLFileHandler {
                     return legacyModuleControllerConfiguration;
                 }
             }
-            if (next == 2) {
+            if (next == XmlPullParser.START_TAG) {
                 if (DEBUG) {
                     RobotLog.e("[handleLegacyModule] tagname: " + a2);
                 }
@@ -201,8 +201,8 @@ public class ReadXMLFileHandler {
         ArrayList<DeviceConfiguration> a2 = createConfigList(MATRIX_MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.xmlPullParser.next();
         String a3 = getConfigurationType(this.xmlPullParser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (a3 == null) {
                     continue;
                 } else if (a3.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
@@ -212,7 +212,7 @@ public class ReadXMLFileHandler {
                     return matrixControllerConfiguration;
                 }
             }
-            if (next == 2) {
+            if (next == XmlPullParser.START_TAG) {
                 int parseInt2;
                 if (a3.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
                     parseInt2 = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
@@ -242,8 +242,8 @@ public class ReadXMLFileHandler {
         List a = createConfigList(SERVO_PORTS, ConfigurationType.SERVO);
         int next = this.xmlPullParser.next();
         String a2 = getConfigurationType(this.xmlPullParser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (a2 == null) {
                     continue;
                 } else if (a2.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
@@ -253,7 +253,7 @@ public class ReadXMLFileHandler {
                     return servoControllerConfiguration;
                 }
             }
-            if (next == 2 && a2.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
+            if (next == XmlPullParser.START_TAG && a2.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
                 int parseInt = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
                 a.set(parseInt - 1, new ServoConfiguration(parseInt, this.xmlPullParser.getAttributeValue(null, "name"), true));
             }
@@ -278,8 +278,8 @@ public class ReadXMLFileHandler {
         List a = createConfigList(MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.xmlPullParser.next();
         String a2 = getConfigurationType(this.xmlPullParser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (a2 == null) {
                     continue;
                 } else if (a2.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
@@ -289,7 +289,7 @@ public class ReadXMLFileHandler {
                     return motorControllerConfiguration;
                 }
             }
-            if (next == 2 && a2.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
+            if (next == XmlPullParser.START_TAG && a2.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
                 int parseInt = Integer.parseInt(this.xmlPullParser.getAttributeValue(null, "port"));
                 a.set(parseInt - 1, new MotorConfiguration(parseInt, this.xmlPullParser.getAttributeValue(null, "name"), true));
             }
