@@ -17,11 +17,10 @@ import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationCons
 public class ReadXMLFileHandler {
     private static boolean DEBUG;
 
-    List<ControllerConfiguration> controllerConfigurations;
+    List<ControllerConfiguration> controllerConfigurations = new ArrayList<ControllerConfiguration>();
     private XmlPullParser parser;
 
     public ReadXMLFileHandler(Context context) {
-        this.controllerConfigurations = new ArrayList<ControllerConfiguration>();
     }
 
     public List<ControllerConfiguration> getDeviceControllers() {
@@ -76,9 +75,7 @@ public class ReadXMLFileHandler {
         int next;
         while ((next = this.parser.next()) != XmlPullParser.END_DOCUMENT) {
             if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else {
+                if (type != null) {
                     if (DEBUG) {
                         RobotLog.e("[handleDeviceInterfaceModule] tagname: " + type);
                     }
@@ -93,8 +90,7 @@ public class ReadXMLFileHandler {
                         return deviceInterfaceModuleConfiguration;
                     }
                 }
-            }
-            if (next == XmlPullParser.START_TAG) {
+            } else if (next == XmlPullParser.START_TAG) {
                 DeviceConfiguration c;
                 if (type == ConfigurationType.ANALOG_INPUT || type == ConfigurationType.OPTICAL_DISTANCE_SENSOR) {
                     c = parseDeviceConfig();
