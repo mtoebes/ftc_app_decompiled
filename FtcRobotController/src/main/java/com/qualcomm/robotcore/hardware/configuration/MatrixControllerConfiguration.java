@@ -1,33 +1,32 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
-import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 import com.qualcomm.robotcore.util.SerialNumber;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MatrixControllerConfiguration extends ControllerConfiguration {
-    private List<DeviceConfiguration> f273a;
-    private List<DeviceConfiguration> f274b;
+    private List<DeviceConfiguration> servos;
+    private List<DeviceConfiguration> motors;
 
     public MatrixControllerConfiguration(String name, List<DeviceConfiguration> motors, List<DeviceConfiguration> servos, SerialNumber serialNumber) {
         super(name, serialNumber, ConfigurationType.MATRIX_CONTROLLER);
-        this.f273a = servos;
-        this.f274b = motors;
+        this.servos = servos;
+        this.motors = motors;
     }
 
     public List<DeviceConfiguration> getServos() {
-        return this.f273a;
+        return this.servos;
     }
 
     public void addServos(ArrayList<DeviceConfiguration> servos) {
-        this.f273a = servos;
+        this.servos = servos;
     }
 
     public List<DeviceConfiguration> getMotors() {
-        return this.f274b;
+        return this.motors;
     }
 
     public void addMotors(ArrayList<DeviceConfiguration> motors) {
-        this.f274b = motors;
+        this.motors = motors;
     }
 }

@@ -1,7 +1,6 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
 import com.qualcomm.robotcore.hardware.DeviceManager.DeviceType;
-import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 import com.qualcomm.robotcore.util.SerialNumber;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,8 +8,8 @@ import java.util.List;
 
 public class ControllerConfiguration extends DeviceConfiguration implements Serializable {
     public static final SerialNumber NO_SERIAL_NUMBER;
-    private List<DeviceConfiguration> f260a;
-    private SerialNumber f261b;
+    private List<DeviceConfiguration> devices;
+    private SerialNumber serialNumber;
 
     static {
         NO_SERIAL_NUMBER = new SerialNumber("-1");
@@ -23,12 +22,12 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
     public ControllerConfiguration(String name, List<DeviceConfiguration> devices, SerialNumber serialNumber, ConfigurationType type) {
         super(type);
         super.setName(name);
-        this.f260a = devices;
-        this.f261b = serialNumber;
+        this.devices = devices;
+        this.serialNumber = serialNumber;
     }
 
     public List<DeviceConfiguration> getDevices() {
-        return this.f260a;
+        return this.devices;
     }
 
     public ConfigurationType getType() {
@@ -36,11 +35,11 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
     }
 
     public SerialNumber getSerialNumber() {
-        return this.f261b;
+        return this.serialNumber;
     }
 
     public void addDevices(List<DeviceConfiguration> devices) {
-        this.f260a = devices;
+        this.devices = devices;
     }
 
     public ConfigurationType deviceTypeToConfigType(DeviceType type) {
