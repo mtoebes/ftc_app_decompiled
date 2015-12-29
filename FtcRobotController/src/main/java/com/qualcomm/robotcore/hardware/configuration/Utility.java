@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.*;
 
 public class Utility {
     public static final String AUTOCONFIGURE_K9LEGACYBOT = "K9LegacyBot";
@@ -163,14 +164,15 @@ public class Utility {
 
     public ArrayList<DeviceConfiguration> createMotorList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        arrayList.add(new MotorConfiguration(1));
-        arrayList.add(new MotorConfiguration(2));
+        for (int i = 0; i < MOTOR_PORTS; i++) {
+            arrayList.add(new MotorConfiguration(i));
+        }
         return arrayList;
     }
 
     public ArrayList<DeviceConfiguration> createServoList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        for (int i = 1; i <= 6; i++) {
+        for (int i = 1; i <= SERVO_PORTS; i++) {
             arrayList.add(new ServoConfiguration(i));
         }
         return arrayList;
@@ -178,7 +180,7 @@ public class Utility {
 
     public ArrayList<DeviceConfiguration> createLegacyModuleList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < LEGACY_MODULE_PORTS; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.NOTHING));
         }
         return arrayList;
@@ -186,7 +188,7 @@ public class Utility {
 
     public ArrayList<DeviceConfiguration> createPWMList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < PWM_PORTS; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.PULSE_WIDTH_DEVICE));
         }
         return arrayList;
@@ -194,7 +196,7 @@ public class Utility {
 
     public ArrayList<DeviceConfiguration> createI2CList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < I2C_PORTS; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.I2C_DEVICE));
         }
         return arrayList;
@@ -202,7 +204,7 @@ public class Utility {
 
     public ArrayList<DeviceConfiguration> createAnalogInputList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < ANALOG_INPUT_PORTS; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.ANALOG_INPUT));
         }
         return arrayList;
@@ -210,7 +212,7 @@ public class Utility {
 
     public ArrayList<DeviceConfiguration> createDigitalList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < DIGITAL_PORTS; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.DIGITAL_DEVICE));
         }
         return arrayList;
@@ -218,7 +220,7 @@ public class Utility {
 
     public ArrayList<DeviceConfiguration> createAnalogOutputList() {
         ArrayList<DeviceConfiguration> arrayList = new ArrayList<DeviceConfiguration>();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < ANALOG_OUTPUT_PORTS; i++) {
             arrayList.add(new DeviceConfiguration(i, ConfigurationType.ANALOG_OUTPUT));
         }
         return arrayList;
@@ -244,7 +246,7 @@ public class Utility {
     }
 
     public void changeBackground(int color, int header_id) {
-        ((LinearLayout) this.activity.findViewById(header_id)).setBackgroundColor(color);
+        (this.activity.findViewById(header_id)).setBackgroundColor(color);
     }
 
     public String getFilenameFromPrefs(int pref_hardware_config_filename_id, String default_name) {
@@ -281,7 +283,7 @@ public class Utility {
 
     public String prepareFilename(String currentFile) {
         if (currentFile.toLowerCase().contains(UNSAVED.toLowerCase())) {
-            currentFile = currentFile.substring(7).trim();
+            currentFile = currentFile.substring(UNSAVED.length() + 1).trim();
         }
         if (currentFile.equalsIgnoreCase(NO_FILE)) {
             return "";
