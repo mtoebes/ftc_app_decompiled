@@ -1,18 +1,16 @@
 package com.qualcomm.robotcore.hardware;
 
 public class AnalogInput implements HardwareDevice {
-    private AnalogInputController f224a;
-    private int f225b;
+    private AnalogInputController controller;
+    private int channel;
 
     public AnalogInput(AnalogInputController controller, int channel) {
-        this.f224a = null;
-        this.f225b = -1;
-        this.f224a = controller;
-        this.f225b = channel;
+        this.controller = controller;
+        this.channel = channel;
     }
 
     public int getValue() {
-        return this.f224a.getAnalogInputValue(this.f225b);
+        return this.controller.getAnalogInputValue(this.channel);
     }
 
     public String getDeviceName() {
@@ -20,7 +18,7 @@ public class AnalogInput implements HardwareDevice {
     }
 
     public String getConnectionInfo() {
-        return this.f224a.getConnectionInfo() + "; analog port " + this.f225b;
+        return this.controller.getConnectionInfo() + "; analog port " + this.channel;
     }
 
     public int getVersion() {

@@ -64,7 +64,7 @@ public class Servo implements HardwareDevice {
 
     public void setPosition(double position) {
         if (this.direction == Direction.REVERSE) {
-            position = m191a(position);
+            position = reversePosition(position);
         }
         this.controller.setServoPosition(this.portNumber, Range.scale(position, 0.0d, MAX_POSITION, this.minPosition, this.maxPosition));
     }
@@ -72,7 +72,7 @@ public class Servo implements HardwareDevice {
     public double getPosition() {
         double servoPosition = this.controller.getServoPosition(this.portNumber);
         if (this.direction == Direction.REVERSE) {
-            servoPosition = m191a(servoPosition);
+            servoPosition = reversePosition(servoPosition);
         }
         return Range.clip(Range.scale(servoPosition, this.minPosition, this.maxPosition, 0.0d, MAX_POSITION), 0.0d, (double) MAX_POSITION);
     }
@@ -87,7 +87,7 @@ public class Servo implements HardwareDevice {
         this.maxPosition = max;
     }
 
-    private double m191a(double d) {
+    private double reversePosition(double d) {
         return (MAX_POSITION - d) + 0.0d;
     }
 }

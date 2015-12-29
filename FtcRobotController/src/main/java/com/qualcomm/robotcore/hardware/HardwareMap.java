@@ -35,14 +35,14 @@ public class HardwareMap {
     public DeviceMapping<VoltageSensor> voltageSensor;
 
     public static class DeviceMapping<DEVICE_TYPE> implements Iterable<DEVICE_TYPE> {
-        private Map<String, DEVICE_TYPE> f243a;
+        private Map<String, DEVICE_TYPE> deviceTypeMap;
 
         public DeviceMapping() {
-            this.f243a = new HashMap();
+            this.deviceTypeMap = new HashMap();
         }
 
         public DEVICE_TYPE get(String deviceName) {
-            DEVICE_TYPE device_type = this.f243a.get(deviceName);
+            DEVICE_TYPE device_type = this.deviceTypeMap.get(deviceName);
             if (device_type != null) {
                 return device_type;
             }
@@ -50,24 +50,24 @@ public class HardwareMap {
         }
 
         public void put(String deviceName, DEVICE_TYPE device) {
-            this.f243a.put(deviceName, device);
+            this.deviceTypeMap.put(deviceName, device);
         }
 
         public Iterator<DEVICE_TYPE> iterator() {
-            return this.f243a.values().iterator();
+            return this.deviceTypeMap.values().iterator();
         }
 
         public Set<Entry<String, DEVICE_TYPE>> entrySet() {
-            return this.f243a.entrySet();
+            return this.deviceTypeMap.entrySet();
         }
 
         public int size() {
-            return this.f243a.size();
+            return this.deviceTypeMap.size();
         }
 
         public void logDevices() {
-            if (!this.f243a.isEmpty()) {
-                for (Entry entry : this.f243a.entrySet()) {
+            if (!this.deviceTypeMap.isEmpty()) {
+                for (Entry entry : this.deviceTypeMap.entrySet()) {
                     if (entry.getValue() instanceof HardwareDevice) {
                         HardwareDevice device = (HardwareDevice) entry.getValue();
                         String connectionInfo = ((HardwareDevice) entry.getValue()).getConnectionInfo();
