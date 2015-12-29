@@ -4,12 +4,15 @@ import com.qualcomm.robotcore.hardware.DeviceManager.DeviceType;
 import com.qualcomm.robotcore.util.SerialNumber;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ControllerConfiguration extends DeviceConfiguration implements Serializable {
     public static final SerialNumber NO_SERIAL_NUMBER;
     private List<DeviceConfiguration> devices;
     private SerialNumber serialNumber;
+    private static final List<ConfigurationType> SUPPORTED_DEVICE_TYPES = Collections.emptyList();
 
     static {
         NO_SERIAL_NUMBER = new SerialNumber("-1");
@@ -62,5 +65,9 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
             return DeviceType.MODERN_ROBOTICS_USB_LEGACY_MODULE;
         }
         return DeviceType.FTDI_USB_UNKNOWN_DEVICE;
+    }
+
+    protected List<ConfigurationType> getSupportedDeviceTypes() {
+        return SUPPORTED_DEVICE_TYPES;
     }
 }
