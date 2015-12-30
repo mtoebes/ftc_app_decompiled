@@ -192,16 +192,15 @@ public class ReadXMLFileHandler {
 
     private DeviceConfiguration parseDeviceConfiguration() {
         ConfigurationType type = getConfigurationType(this.parser.getName());
-        DeviceConfiguration deviceConfiguration =
-                new DeviceConfiguration(Integer.parseInt(this.parser.getAttributeValue(null, "port")));
-        deviceConfiguration.setType(type);
-        deviceConfiguration.setName(this.parser.getAttributeValue(null, "name"));
-        if (!deviceConfiguration.getName().equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
-            deviceConfiguration.setEnabled(true);
-        }
+        String name = this.parser.getAttributeValue(null, "name");
+        int port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+        boolean enabled = !(name.equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME));
+        DeviceConfiguration deviceConfiguration = new DeviceConfiguration(port, type, name, enabled);
+
         if (DEBUG) {
-            RobotLog.e("[handleDevice] name: " + deviceConfiguration.getName() + ", port: " + deviceConfiguration.getPort() + ", type: " + deviceConfiguration.getType());
+            RobotLog.e("[handleDevice] name: " + name + ", port: " + port + ", type: " + type);
         }
+
         return deviceConfiguration;
     }
 
