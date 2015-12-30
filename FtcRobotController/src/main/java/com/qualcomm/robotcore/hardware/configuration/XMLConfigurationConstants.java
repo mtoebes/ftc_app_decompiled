@@ -28,7 +28,7 @@ public class XMLConfigurationConstants {
     public static final int MATRIX_MOTOR_PORTS = 4;
     public static final int MATRIX_SERVO_PORTS = 4;
     public static final int LEGACY_MODULE_PORTS = 6;
-    public static final int PWM_PORTS = 2;
+    public static final int PWD_PORTS = 2;
     public static final int I2C_PORTS = 6;
     public static final int ANALOG_INPUT_PORTS = 8;
     public static final int DIGITAL_PORTS = 8;
