@@ -71,7 +71,7 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration parseDeviceInterfaceModule()
             throws IOException, XmlPullParserException, RobotCoreException {
         String name = this.parser.getAttributeValue(null, "name");
-        String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+        SerialNumber serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
         ArrayList<DeviceConfiguration> pwdConfigurations =
                 createDeviceConfigurationList(PWD_PORTS, ConfigurationType.PULSE_WIDTH_DEVICE);
         ArrayList<DeviceConfiguration> i2cConfigurations =
@@ -91,7 +91,7 @@ public class ReadXMLFileHandler {
                 }
                 if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
                     DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration =
-                            new DeviceInterfaceModuleConfiguration(name, new SerialNumber(serialNumber));
+                            new DeviceInterfaceModuleConfiguration(name, serialNumber);
                     deviceInterfaceModuleConfiguration.setPwmDevices(pwdConfigurations);
                     deviceInterfaceModuleConfiguration.setI2cDevices(i2cConfigurations);
                     deviceInterfaceModuleConfiguration.setAnalogInputDevices(analogInputConfigurations);
@@ -141,7 +141,7 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration parseLegacyModuleController()
             throws IOException, XmlPullParserException, RobotCoreException {
         String name = this.parser.getAttributeValue(null, "name");
-        String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+        SerialNumber serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
         List deviceConfigurations =
                 createDeviceConfigurationList(LEGACY_MODULE_PORTS, ConfigurationType.NOTHING);
         int next = this.parser.next();
@@ -151,7 +151,7 @@ public class ReadXMLFileHandler {
             if (next == XmlPullParser.END_TAG && type != null) {
                 if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
                     legacyModuleControllerConfiguration =
-                            new LegacyModuleControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
+                            new LegacyModuleControllerConfiguration(name, deviceConfigurations, serialNumber);
                     legacyModuleControllerConfiguration.setEnabled(true);
                     return legacyModuleControllerConfiguration;
                 }
@@ -187,7 +187,7 @@ public class ReadXMLFileHandler {
             next = this.parser.next();
             type = getConfigurationType(this.parser.getName());
         }
-        return new LegacyModuleControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
+        return new LegacyModuleControllerConfiguration(name, deviceConfigurations, serialNumber);
     }
 
     private DeviceConfiguration parseDeviceConfiguration() {
@@ -220,7 +220,7 @@ public class ReadXMLFileHandler {
 
     private ControllerConfiguration parseMatrixController() throws IOException, XmlPullParserException, RobotCoreException {
         String name = this.parser.getAttributeValue(null, "name");
-        String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
+        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
         int port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
         ArrayList<DeviceConfiguration> servoConfigurations =
                 createDeviceConfigurationList(MATRIX_SERVO_PORTS, ConfigurationType.SERVO);
@@ -232,7 +232,7 @@ public class ReadXMLFileHandler {
             if (next == XmlPullParser.END_TAG && type != null) {
                 if (type == ConfigurationType.MATRIX_CONTROLLER) {
                     ControllerConfiguration matrixControllerConfiguration =
-                            new MatrixControllerConfiguration(name, motorConfigurations, servoConfigurations, new SerialNumber(serialNumber));
+                            new MatrixControllerConfiguration(name, motorConfigurations, servoConfigurations, serialNumber);
                     matrixControllerConfiguration.setPort(port);
                     matrixControllerConfiguration.setEnabled(true);
                     return matrixControllerConfiguration;
@@ -260,9 +260,9 @@ public class ReadXMLFileHandler {
         ControllerConfiguration servoControllerConfiguration;
         String name = this.parser.getAttributeValue(null, "name");
         int port = -1;
-        String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
+        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
         if (useSerialNumber) {
-            serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+            serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
         } else {
             port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
         }
@@ -273,7 +273,7 @@ public class ReadXMLFileHandler {
             if (next == XmlPullParser.END_TAG && type != null) {
                 if (type == ConfigurationType.SERVO_CONTROLLER) {
                     servoControllerConfiguration =
-                            new ServoControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
+                            new ServoControllerConfiguration(name, deviceConfigurations, serialNumber);
                     servoControllerConfiguration.setPort(port);
                     servoControllerConfiguration.setEnabled(true);
                     return servoControllerConfiguration;
@@ -286,7 +286,7 @@ public class ReadXMLFileHandler {
             next = this.parser.next();
             type = getConfigurationType(this.parser.getName());
         }
-        servoControllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
+        servoControllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurations, serialNumber);
         servoControllerConfiguration.setPort(port);
         return servoControllerConfiguration;
     }
@@ -295,9 +295,9 @@ public class ReadXMLFileHandler {
         ControllerConfiguration motorControllerConfiguration;
         String name = this.parser.getAttributeValue(null, "name");
         int port = -1;
-        String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
+        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
         if (useSerialNumber) {
-            serialNumber = this.parser.getAttributeValue(null, "serialNumber");
+            serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
         } else {
             port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
         }
@@ -308,7 +308,7 @@ public class ReadXMLFileHandler {
             if (next == XmlPullParser.END_TAG && type != null) {
                 if (type == ConfigurationType.MOTOR_CONTROLLER) {
                     motorControllerConfiguration =
-                            new MotorControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
+                            new MotorControllerConfiguration(name, deviceConfigurations, serialNumber);
                     motorControllerConfiguration.setPort(port);
                     motorControllerConfiguration.setEnabled(true);
                     return motorControllerConfiguration;
@@ -322,7 +322,7 @@ public class ReadXMLFileHandler {
             type = getConfigurationType(this.parser.getName());
         }
         motorControllerConfiguration =
-                new MotorControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
+                new MotorControllerConfiguration(name, deviceConfigurations, serialNumber);
         motorControllerConfiguration.setPort(port);
         return motorControllerConfiguration;
     }
