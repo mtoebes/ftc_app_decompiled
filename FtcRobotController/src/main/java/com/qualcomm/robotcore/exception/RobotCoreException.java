@@ -1,24 +1,22 @@
 package com.qualcomm.robotcore.exception;
 
 public class RobotCoreException extends Exception {
-    private Exception f220a;
+    private Exception exception;
 
     public RobotCoreException(String message) {
         super(message);
-        this.f220a = null;
     }
 
-    public RobotCoreException(String message, Exception e) {
+    public RobotCoreException(String message, Exception exception) {
         super(message);
-        this.f220a = null;
-        this.f220a = e;
+        this.exception = exception;
     }
 
     public boolean isChainedException() {
-        return this.f220a != null;
+        return this.exception != null;
     }
 
     public Exception getChainedException() {
-        return this.f220a;
+        return this.exception;
     }
 }
