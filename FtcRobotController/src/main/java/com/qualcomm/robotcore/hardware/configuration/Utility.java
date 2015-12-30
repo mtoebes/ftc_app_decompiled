@@ -12,12 +12,10 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.ftdi.j2xx.ft4222.FT_4222_Defines;
-import com.ftdi.j2xx.protocol.SpiSlaveResponseEvent;
+
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager.DeviceType;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
-import com.qualcomm.robotcore.robocol.RobocolConfig;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 import java.io.File;
@@ -116,16 +114,16 @@ public class Utility {
         for (Entry<SerialNumber, DeviceType> entry : entries) {
             switch (entry.getValue()) {
                 case MODERN_ROBOTICS_USB_DC_MOTOR_CONTROLLER:
-                    deviceControllers.put(entry.getKey(), buildMotorController((SerialNumber) entry.getKey()));
+                    deviceControllers.put(entry.getKey(), buildMotorController(entry.getKey()));
                     break;
                 case MODERN_ROBOTICS_USB_SERVO_CONTROLLER :
-                    deviceControllers.put(entry.getKey(), buildServoController((SerialNumber) entry.getKey()));
+                    deviceControllers.put(entry.getKey(), buildServoController(entry.getKey()));
                     break;
                 case MODERN_ROBOTICS_USB_LEGACY_MODULE :
-                    deviceControllers.put(entry.getKey(), buildLegacyModule((SerialNumber) entry.getKey()));
+                    deviceControllers.put(entry.getKey(), buildLegacyModule(entry.getKey()));
                     break;
                 case MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE :
-                    deviceControllers.put(entry.getKey(), buildDeviceInterfaceModule((SerialNumber) entry.getKey()));
+                    deviceControllers.put(entry.getKey(), buildDeviceInterfaceModule(entry.getKey()));
                     break;
                 default:
                     break;
