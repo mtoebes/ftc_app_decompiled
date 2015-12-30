@@ -75,10 +75,7 @@ public class ReadXMLFileHandler {
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
-            if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else {
+            if (next == XmlPullParser.END_TAG && type != null) {
                     if (DEBUG) {
                         RobotLog.e("[handleDeviceInterfaceModule] tagname: " + type);
                     }
@@ -92,7 +89,6 @@ public class ReadXMLFileHandler {
                         deviceInterfaceModuleConfiguration.setEnabled(true);
                         return deviceInterfaceModuleConfiguration;
                     }
-                }
             }
             if (next == XmlPullParser.START_TAG) {
                 DeviceConfiguration deviceConfiguration;
@@ -132,10 +128,8 @@ public class ReadXMLFileHandler {
         String type = getConfigurationType(this.parser.getName());
         ControllerConfiguration legacyModuleControllerConfiguration;
         while (next != XmlPullParser.END_DOCUMENT) {
-            if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
+            if (next == XmlPullParser.END_TAG && type != null) {
+                if (type.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
                     legacyModuleControllerConfiguration = new LegacyModuleControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
                     legacyModuleControllerConfiguration.setEnabled(true);
                     return legacyModuleControllerConfiguration;
@@ -203,10 +197,8 @@ public class ReadXMLFileHandler {
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
-            if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
+            if (next == XmlPullParser.END_TAG && type != null) {
+                if (type.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
                     ControllerConfiguration matrixControllerConfiguration = new MatrixControllerConfiguration(name, motorConfigurations, servoConfigurations, new SerialNumber(serialNumber));
                     matrixControllerConfiguration.setPort(port);
                     matrixControllerConfiguration.setEnabled(true);
@@ -244,10 +236,8 @@ public class ReadXMLFileHandler {
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
-            if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+            if (next == XmlPullParser.END_TAG && type != null) {
+                if (type.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
                     servoControllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
                     servoControllerConfiguration.setPort(port);
                     servoControllerConfiguration.setEnabled(true);
@@ -280,10 +270,8 @@ public class ReadXMLFileHandler {
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
-            if (next == XmlPullParser.END_TAG) {
-                if (type == null) {
-                    continue;
-                } else if (type.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+            if (next == XmlPullParser.END_TAG && type != null) {
+                if (type.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
                     motorControllerConfiguration = new MotorControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
                     motorControllerConfiguration.setPort(port);
                     motorControllerConfiguration.setEnabled(true);
