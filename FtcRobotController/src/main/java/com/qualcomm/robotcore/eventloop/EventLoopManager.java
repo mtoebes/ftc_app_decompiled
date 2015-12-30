@@ -28,51 +28,22 @@ public class EventLoopManager {
     public static final String RC_BATTERY_LEVEL_KEY = "RobotController Battery Level";
     public static final String ROBOT_BATTERY_LEVEL_KEY = "Robot Battery Level";
     public static final String SYSTEM_TELEMETRY = "SYSTEM_TELEMETRY";
-    private static final EventLoop f183a;
-    private Thread f184b;
-    private Thread f185c;
-    private final RobocolDatagramSocket f186d;
-    private boolean f187e;
-    private ElapsedTime f188f;
-    private EventLoop f189g;
-    private final Gamepad[] f190h;
-    private Heartbeat f191i;
-    private EventLoopMonitor f192j;
-    private final Set<SyncdDevice> f193k;
-    private final Command[] f194l;
-    private int f195m;
-    private final Set<Command> f196n;
-    private InetAddress f197o;
+    private static final EventLoop EVENT_LOOP;
+    private Thread EventLoopThread;
+    private Thread sendCommandThread;
+    private final RobocolDatagramSocket socket;
+    private boolean isRunning;
+    private ElapsedTime elapsedTime;
+    private EventLoop eventLoop;
+    private final Gamepad[] gamepads;
+    private Heartbeat heartbeat;
+    private EventLoopMonitor monitor;
+    private final Set<SyncdDevice> syncdDevices;
+    private final Command[] recvCommandCache;
+    private int recvCommandCachePosition;
+    private final Set<Command> sendCommandCache;
+    private InetAddress inetAddress;
     public RobotState state;
-
-    /* renamed from: com.qualcomm.robotcore.eventloop.EventLoopManager.1 */
-    static /* synthetic */ class C00261 {
-        static final /* synthetic */ int[] f176a;
-
-        static {
-            f176a = new int[MsgType.values().length];
-            try {
-                f176a[MsgType.GAMEPAD.ordinal()] = 1;
-            } catch (NoSuchFieldError e) {
-            }
-            try {
-                f176a[MsgType.HEARTBEAT.ordinal()] = 2;
-            } catch (NoSuchFieldError e2) {
-            }
-            try {
-                f176a[MsgType.PEER_DISCOVERY.ordinal()] = 3;
-            } catch (NoSuchFieldError e3) {
-            }
-            try {
-                f176a[MsgType.COMMAND.ordinal()] = 4;
-            } catch (NoSuchFieldError e4) {
-            }
-            try {
-                f176a[MsgType.EMPTY.ordinal()] = 5;
-            } catch (NoSuchFieldError e5) {
-            }
-        }
-    }
 
     public interface EventLoopMonitor {
         void onStateChange(RobotState robotState);
@@ -88,8 +59,8 @@ public class EventLoopManager {
     }
 
     /* renamed from: com.qualcomm.robotcore.eventloop.EventLoopManager.a */
-    private static class C0027a implements EventLoop {
-        private C0027a() {
+    private static class InactiveEventLoop implements EventLoop {
+        private InactiveEventLoop() {
         }
 
         public void init(EventLoopManager eventProcessor) {
@@ -110,12 +81,11 @@ public class EventLoopManager {
         }
     }
 
-    /* renamed from: com.qualcomm.robotcore.eventloop.EventLoopManager.b */
-    private class C0028b implements Runnable {
-        final /* synthetic */ EventLoopManager f178a;
+    private class EventLoopRunnable implements Runnable {
+        final EventLoopManager eventLoopManager;
 
-        private C0028b(EventLoopManager eventLoopManager) {
-            this.f178a = eventLoopManager;
+        private EventLoopRunnable(EventLoopManager eventLoopManager) {
+            this.eventLoopManager = eventLoopManager;
         }
 
         public void run() {
@@ -128,69 +98,66 @@ public class EventLoopManager {
                     }
                     elapsedTime.reset();
                     if (RobotLog.hasGlobalErrorMsg()) {
-                        this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+                        this.eventLoopManager.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                     }
-                    if (this.f178a.f188f.startTime() == 0.0d) {
+                    if (this.eventLoopManager.elapsedTime.startTime() == 0.0d) {
                         Thread.sleep(500);
-                    } else if (this.f178a.f188f.time() > 2.0d) {
-                        this.f178a.handleDroppedConnection();
-                        this.f178a.f197o = null;
-                        this.f178a.f188f = new ElapsedTime(0);
+                    } else if (this.eventLoopManager.elapsedTime.time() > 2.0d) {
+                        this.eventLoopManager.handleDroppedConnection();
+                        this.eventLoopManager.inetAddress = null;
+                        this.eventLoopManager.elapsedTime = new ElapsedTime(0);
                     }
-                    for (SyncdDevice blockUntilReady : this.f178a.f193k) {
+                    for (SyncdDevice blockUntilReady : this.eventLoopManager.syncdDevices) {
                         blockUntilReady.blockUntilReady();
                     }
                     try {
-                        this.f178a.f189g.loop();
-                        for (SyncdDevice blockUntilReady2 : this.f178a.f193k) {
-                            blockUntilReady2.startBlockingWork();
+                        this.eventLoopManager.eventLoop.loop();
+                        for (SyncdDevice blockUntilReady : this.eventLoopManager.syncdDevices) {
+                            blockUntilReady.startBlockingWork();
                         }
                     } catch (Exception e) {
                         RobotLog.e("Event loop threw an exception");
                         RobotLog.logStacktrace(e);
                         RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + (e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "")));
-                        this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+                        this.eventLoopManager.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                         throw new RobotCoreException("EventLoop Exception in loop()");
                     } catch (Throwable th) {
-                        Throwable th2 = th;
-                        for (SyncdDevice blockUntilReady22 : this.f178a.f193k) {
-                            blockUntilReady22.startBlockingWork();
+                        for (SyncdDevice blockUntilReady : this.eventLoopManager.syncdDevices) {
+                            blockUntilReady.startBlockingWork();
                         }
                     }
                 }
             } catch (InterruptedException e2) {
                 RobotLog.v("EventLoopRunnable interrupted");
-                this.f178a.m164a(RobotState.STOPPED);
+                this.eventLoopManager.setState(RobotState.STOPPED);
             } catch (RobotCoreException e3) {
                 RobotLog.v("RobotCoreException in EventLoopManager: " + e3.getMessage());
-                this.f178a.m164a(RobotState.EMERGENCY_STOP);
-                this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+                this.eventLoopManager.setState(RobotState.EMERGENCY_STOP);
+                this.eventLoopManager.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
             }
             try {
-                this.f178a.f189g.teardown();
+                this.eventLoopManager.eventLoop.teardown();
             } catch (Exception e4) {
                 RobotLog.w("Caught exception during looper teardown: " + e4.toString());
                 RobotLog.logStacktrace(e4);
                 if (RobotLog.hasGlobalErrorMsg()) {
-                    this.f178a.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
+                    this.eventLoopManager.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                 }
             }
             RobotLog.v("EventLoopRunnable has exited");
         }
     }
 
-    /* renamed from: com.qualcomm.robotcore.eventloop.EventLoopManager.c */
-    private class C0029c implements Runnable {
-        ElapsedTime f179a;
-        final /* synthetic */ EventLoopManager f180b;
+    private class ProcessEventRunnable implements Runnable {
+        ElapsedTime time;
+        final EventLoopManager eventLoopManager;
 
-        private C0029c(EventLoopManager eventLoopManager) {
-            this.f180b = eventLoopManager;
-            this.f179a = new ElapsedTime();
+        private ProcessEventRunnable(EventLoopManager eventLoopManager) {
+            this.eventLoopManager = eventLoopManager;
+            this.time = new ElapsedTime();
         }
 
         public void run() {
-
             RobotLog.v("EventLoopRunnable has started");
             try {
                 ElapsedTime runnableElapseTime = new ElapsedTime();
@@ -203,18 +170,18 @@ public class EventLoopManager {
                     if (RobotLog.hasGlobalErrorMsg()) {
                         buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                     }
-                    if (f188f.startTime() == 0.0) {
+                    if (elapsedTime.startTime() == 0.0) {
                         Thread.sleep(500);
-                    } else if (f188f.time() > 2.0) {
+                    } else if (elapsedTime.time() > 2.0) {
                         handleDroppedConnection();
-                        f188f = new ElapsedTime(0);
+                        elapsedTime = new ElapsedTime(0);
                     }
-                    for (SyncdDevice syncdDevice : f193k) {
+                    for (SyncdDevice syncdDevice : syncdDevices) {
                         syncdDevice.blockUntilReady();
                     }
 
                     try {
-                        f189g.loop();
+                        eventLoop.loop();
                     } catch (Exception e) {
                         RobotLog.e("Event loop threw an exception");
                         RobotLog.logStacktrace(e);
@@ -222,7 +189,7 @@ public class EventLoopManager {
                         buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                         throw new RobotCoreException("EventLoop Exception in loop()");
                     } finally {
-                        for (SyncdDevice syncDevice : f193k) {
+                        for (SyncdDevice syncDevice : syncdDevices) {
                             syncDevice.startBlockingWork();
                         }
                     }
@@ -230,14 +197,14 @@ public class EventLoopManager {
 
             } catch (InterruptedException e2) {
                 RobotLog.v("EventLoopRunnable interrupted");
-                m164a(RobotState.STOPPED);
+                setState(RobotState.STOPPED);
             } catch (RobotCoreException e3) {
                 RobotLog.v("RobotCoreException in EventLoopManager: " + e3.getMessage());
-                m164a(RobotState.EMERGENCY_STOP);
+                setState(RobotState.EMERGENCY_STOP);
                 buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
             }
             try {
-                f189g.teardown();
+                eventLoop.teardown();
             } catch (Exception e4) {
                 RobotLog.w("Caught exception during looper teardown: " + e4.toString());
                 RobotLog.logStacktrace(e4);
@@ -249,37 +216,36 @@ public class EventLoopManager {
         }
     }
 
-    /* renamed from: com.qualcomm.robotcore.eventloop.EventLoopManager.d */
-    private class C0030d implements Runnable {
-        final /* synthetic */ EventLoopManager f181a;
-        private Set<Command> f182b;
+    private class SendCommandRunnable implements Runnable {
+        final EventLoopManager eventLoopManager;
+        private Set<Command> sentCommands;
 
-        private C0030d(EventLoopManager eventLoopManager) {
-            this.f181a = eventLoopManager;
-            this.f182b = new HashSet();
+        private SendCommandRunnable(EventLoopManager eventLoopManager) {
+            this.eventLoopManager = eventLoopManager;
+            this.sentCommands = new HashSet();
         }
 
         public void run() {
             while (!Thread.interrupted()) {
-                for (Command command : this.f181a.f196n) {
+                for (Command command : this.eventLoopManager.sendCommandCache) {
                     if (command.getAttempts() > 10) {
                         RobotLog.w("Failed to send command, too many attempts: " + command.toString());
-                        this.f182b.add(command);
+                        this.sentCommands.add(command);
                     } else if (command.isAcknowledged()) {
                         RobotLog.v("Command " + command.getName() + " has been acknowledged by remote device");
-                        this.f182b.add(command);
+                        this.sentCommands.add(command);
                     } else {
                         try {
                             RobotLog.v("Sending command: " + command.getName() + ", attempt " + command.getAttempts());
-                            this.f181a.f186d.send(new RobocolDatagram(command.toByteArray()));
+                            this.eventLoopManager.socket.send(new RobocolDatagram(command.toByteArray()));
                         } catch (RobotCoreException e) {
                             RobotLog.w("Failed to send command " + command.getName());
                             RobotLog.logStacktrace(e);
                         }
                     }
                 }
-                this.f181a.f196n.removeAll(this.f182b);
-                this.f182b.clear();
+                this.eventLoopManager.sendCommandCache.removeAll(this.sentCommands);
+                this.sentCommands.clear();
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e2) {
@@ -290,75 +256,75 @@ public class EventLoopManager {
     }
 
     static {
-        f183a = new C0027a();
+        EVENT_LOOP = new InactiveEventLoop();
     }
 
     public void handleDroppedConnection() {
-        OpModeManager opModeManager = this.f189g.getOpModeManager();
-        String str = "Lost connection while running op mode: " + opModeManager.getActiveOpModeName();
+        OpModeManager opModeManager = this.eventLoop.getOpModeManager();
+        String message = "Lost connection while running op mode: " + opModeManager.getActiveOpModeName();
         resetGamepads();
         opModeManager.initActiveOpMode(OpModeManager.DEFAULT_OP_MODE_NAME);
-        m164a(RobotState.DROPPED_CONNECTION);
-        RobotLog.i(str);
+        setState(RobotState.DROPPED_CONNECTION);
+        RobotLog.i(message);
     }
 
     public EventLoopManager(RobocolDatagramSocket socket) {
         this.state = RobotState.NOT_STARTED;
-        this.f184b = new Thread();
-        this.f185c = new Thread();
-        this.f187e = false;
-        this.f188f = new ElapsedTime();
-        this.f189g = f183a;
-        this.f190h = new Gamepad[]{new Gamepad(), new Gamepad()};
-        this.f191i = new Heartbeat(Token.EMPTY);
-        this.f192j = null;
-        this.f193k = new CopyOnWriteArraySet();
-        this.f194l = new Command[8];
-        this.f195m = 0;
-        this.f196n = new CopyOnWriteArraySet();
-        this.f186d = socket;
-        m164a(RobotState.NOT_STARTED);
+        this.EventLoopThread = new Thread();
+        this.sendCommandThread = new Thread();
+        this.isRunning = false;
+        this.elapsedTime = new ElapsedTime();
+        this.eventLoop = EVENT_LOOP;
+        this.gamepads = new Gamepad[]{new Gamepad(), new Gamepad()};
+        this.heartbeat = new Heartbeat(Token.EMPTY);
+        this.monitor = null;
+        this.syncdDevices = new CopyOnWriteArraySet();
+        this.recvCommandCache = new Command[8];
+        this.recvCommandCachePosition = 0;
+        this.sendCommandCache = new CopyOnWriteArraySet();
+        this.socket = socket;
+        setState(RobotState.NOT_STARTED);
     }
 
     public void setMonitor(EventLoopMonitor monitor) {
-        this.f192j = monitor;
+        this.monitor = monitor;
     }
 
     public void start(EventLoop eventLoop) throws RobotCoreException {
-        this.f187e = false;
+        this.isRunning = false;
         setEventLoop(eventLoop);
-        this.f185c = new Thread(new C0030d(this), "Scheduled Sends");
-        this.f185c.start();
-        new Thread(new C0029c(this)).start();
+        this.sendCommandThread = new Thread(new SendCommandRunnable(this), "Scheduled Sends");
+        this.sendCommandThread.start();
+        new Thread(new ProcessEventRunnable(this)).start();
     }
 
     public void shutdown() {
-        this.f186d.close();
-        this.f185c.interrupt();
-        this.f187e = true;
-        m166b();
+        this.socket.close();
+        this.sendCommandThread.interrupt();
+        this.isRunning = true;
+        stopRobot();
     }
 
     public void registerSyncdDevice(SyncdDevice device) {
-        this.f193k.add(device);
+        this.syncdDevices.add(device);
     }
 
     public void unregisterSyncdDevice(SyncdDevice device) {
-        this.f193k.remove(device);
+        this.syncdDevices.remove(device);
     }
 
     public void setEventLoop(EventLoop eventLoop) throws RobotCoreException {
         if (eventLoop == null) {
-            eventLoop = f183a;
+            eventLoop = EVENT_LOOP;
             RobotLog.d("Event loop cannot be null, using empty event loop");
         }
-        m166b();
-        this.f189g = eventLoop;
-        m160a();
+        stopRobot();
+        this.eventLoop = eventLoop;
+        startRobot();
     }
 
     public EventLoop getEventLoop() {
-        return this.f189g;
+        return this.eventLoop;
     }
 
     public Gamepad getGamepad() {
@@ -366,27 +332,27 @@ public class EventLoopManager {
     }
 
     public Gamepad getGamepad(int port) {
-        Range.throwIfRangeIsInvalid((double) port, 0.0d, Servo.MAX_POSITION);
-        return this.f190h[port];
+        Range.throwIfRangeIsInvalid((double) port, 0, Servo.MAX_POSITION);
+        return this.gamepads[port];
     }
 
     public Gamepad[] getGamepads() {
-        return this.f190h;
+        return this.gamepads;
     }
 
     public void resetGamepads() {
-        for (Gamepad reset : this.f190h) {
+        for (Gamepad reset : this.gamepads) {
             reset.reset();
         }
     }
 
     public Heartbeat getHeartbeat() {
-        return this.f191i;
+        return this.heartbeat;
     }
 
     public void sendTelemetryData(Telemetry telemetry) {
         try {
-            this.f186d.send(new RobocolDatagram(telemetry.toByteArray()));
+            this.socket.send(new RobocolDatagram(telemetry.toByteArray()));
         } catch (RobotCoreException e) {
             RobotLog.w("Failed to send telemetry data");
             RobotLog.logStacktrace(e);
@@ -395,24 +361,24 @@ public class EventLoopManager {
     }
 
     public void sendCommand(Command command) {
-        this.f196n.add(command);
+        this.sendCommandCache.add(command);
     }
 
-    private void m160a() throws RobotCoreException {
+    private void startRobot() throws RobotCoreException {
         try {
-            m164a(RobotState.INIT);
-            this.f189g.init(this);
-            for (SyncdDevice startBlockingWork : this.f193k) {
+            setState(RobotState.INIT);
+            this.eventLoop.init(this);
+            for (SyncdDevice startBlockingWork : this.syncdDevices) {
                 startBlockingWork.startBlockingWork();
             }
-            this.f188f = new ElapsedTime(0);
-            m164a(RobotState.RUNNING);
-            this.f184b = new Thread(new C0028b(this), "Event Loop");
-            this.f184b.start();
+            this.elapsedTime = new ElapsedTime(0);
+            setState(RobotState.RUNNING);
+            this.EventLoopThread = new Thread(new EventLoopRunnable(this), "Event Loop");
+            this.EventLoopThread.start();
         } catch (Exception e) {
             RobotLog.w("Caught exception during looper init: " + e.toString());
             RobotLog.logStacktrace(e);
-            m164a(RobotState.EMERGENCY_STOP);
+            setState(RobotState.EMERGENCY_STOP);
             if (RobotLog.hasGlobalErrorMsg()) {
                 buildAndSendTelemetry(SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
             }
@@ -420,88 +386,88 @@ public class EventLoopManager {
         }
     }
 
-    private void m166b() {
-        this.f184b.interrupt();
+    private void stopRobot() {
+        this.EventLoopThread.interrupt();
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {
         }
-        m164a(RobotState.STOPPED);
-        this.f189g = f183a;
-        this.f193k.clear();
+        setState(RobotState.STOPPED);
+        this.eventLoop = EVENT_LOOP;
+        this.syncdDevices.clear();
     }
 
-    private void m164a(RobotState robotState) {
+    private void setState(RobotState robotState) {
         this.state = robotState;
         RobotLog.v("EventLoopManager state is " + robotState.toString());
-        if (this.f192j != null) {
-            this.f192j.onStateChange(robotState);
+        if (this.monitor != null) {
+            this.monitor.onStateChange(robotState);
         }
     }
 
-    private void m163a(RobocolDatagram robocolDatagram) throws RobotCoreException {
+    private void processGamepadEvent(RobocolDatagram robocolDatagram) throws RobotCoreException {
         Gamepad gamepad = new Gamepad();
         gamepad.fromByteArray(robocolDatagram.getData());
         if (gamepad.user < (byte) 1 || gamepad.user > 2) {
             RobotLog.d("Gamepad with user %d received. Only users 1 and 2 are valid");
             return;
         }
-        int i = gamepad.user - 1;
-        this.f190h[i].copy(gamepad);
-        if (this.f190h[0].id == this.f190h[1].id) {
+        int userIndex = gamepad.user - 1;
+        this.gamepads[userIndex].copy(gamepad);
+        if (this.gamepads[0].id == this.gamepads[1].id) {
             RobotLog.v("Gamepad moved position, removing stale gamepad");
-            if (i == 0) {
-                this.f190h[1].copy(new Gamepad());
+            if (userIndex == 0) {
+                this.gamepads[1].copy(new Gamepad());
             }
-            if (i == 1) {
-                this.f190h[0].copy(new Gamepad());
+            if (userIndex == 1) {
+                this.gamepads[0].copy(new Gamepad());
             }
         }
     }
 
-    private void m168b(RobocolDatagram robocolDatagram) throws RobotCoreException {
+    private void processHeartbeatEvent(RobocolDatagram robocolDatagram) throws RobotCoreException {
         Heartbeat heartbeat = new Heartbeat(Token.EMPTY);
         heartbeat.fromByteArray(robocolDatagram.getData());
         heartbeat.setRobotState(this.state);
         robocolDatagram.setData(heartbeat.toByteArray());
-        this.f186d.send(robocolDatagram);
-        this.f188f.reset();
-        this.f191i = heartbeat;
+        this.socket.send(robocolDatagram);
+        this.elapsedTime.reset();
+        this.heartbeat = heartbeat;
     }
 
-    private void m171c(RobocolDatagram robocolDatagram) throws RobotCoreException {
-        if (!robocolDatagram.getAddress().equals(this.f197o)) {
+    private void processPeerDiscoveryEvent(RobocolDatagram robocolDatagram) throws RobotCoreException {
+        if (!robocolDatagram.getAddress().equals(this.inetAddress)) {
             if (this.state == RobotState.DROPPED_CONNECTION) {
-                m164a(RobotState.RUNNING);
+                setState(RobotState.RUNNING);
             }
-            if (this.f189g != f183a) {
-                this.f197o = robocolDatagram.getAddress();
-                RobotLog.i("new remote peer discovered: " + this.f197o.getHostAddress());
+            if (this.eventLoop != EVENT_LOOP) {
+                this.inetAddress = robocolDatagram.getAddress();
+                RobotLog.i("new remote peer discovered: " + this.inetAddress.getHostAddress());
                 try {
-                    this.f186d.connect(this.f197o);
+                    this.socket.connect(this.inetAddress);
                 } catch (SocketException e) {
                     RobotLog.e("Unable to connect to peer:" + e.toString());
                 }
                 RobocolParsable peerDiscovery = new PeerDiscovery(PeerType.PEER);
                 RobotLog.v("Sending peer discovery packet");
-                RobocolDatagram robocolDatagram2 = new RobocolDatagram(peerDiscovery);
-                if (this.f186d.getInetAddress() == null) {
-                    robocolDatagram2.setAddress(this.f197o);
+                RobocolDatagram peerRobocolDatagram = new RobocolDatagram(peerDiscovery);
+                if (this.socket.getInetAddress() == null) {
+                    peerRobocolDatagram.setAddress(this.inetAddress);
                 }
-                this.f186d.send(robocolDatagram2);
+                this.socket.send(peerRobocolDatagram);
             }
         }
     }
 
-    private void m175d(RobocolDatagram robocolDatagram) throws RobotCoreException {
+    private void processCommandEvent(RobocolDatagram robocolDatagram) throws RobotCoreException {
         Command command = new Command(robocolDatagram.getData());
         if (command.isAcknowledged()) {
-            this.f196n.remove(command);
+            this.sendCommandCache.remove(command);
             return;
         }
         command.acknowledge();
-        this.f186d.send(new RobocolDatagram(command));
-        Command[] commandArr = this.f194l;
+        this.socket.send(new RobocolDatagram(command));
+        Command[] commandArr = this.recvCommandCache;
         int length = commandArr.length;
         int i = 0;
         while (i < length) {
@@ -512,22 +478,22 @@ public class EventLoopManager {
                 return;
             }
         }
-        Command[] commandArr2 = this.f194l;
-        int i2 = this.f195m;
-        this.f195m = i2 + 1;
-        commandArr2[i2 % this.f194l.length] = command;
+        Command[] commandArr2 = this.recvCommandCache;
+        int i2 = this.recvCommandCachePosition;
+        this.recvCommandCachePosition = i2 + 1;
+        commandArr2[i2 % this.recvCommandCache.length] = command;
         try {
-            this.f189g.processCommand(command);
+            this.eventLoop.processCommand(command);
         } catch (Exception e) {
             RobotLog.e("Event loop threw an exception while processing a command");
             RobotLog.logStacktrace(e);
         }
     }
 
-    private void m169c() {
+    private void processEmptyEvent() {
     }
 
-    private void m178e(RobocolDatagram robocolDatagram) {
+    private void processUnknownEvent(RobocolDatagram robocolDatagram) {
         RobotLog.w("RobotCore event loop received unknown event type: " + robocolDatagram.getMsgType().name());
     }
 
