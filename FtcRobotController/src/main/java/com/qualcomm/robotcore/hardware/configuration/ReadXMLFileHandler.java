@@ -25,7 +25,7 @@ public class ReadXMLFileHandler {
     private XmlPullParser parser;
 
     public ReadXMLFileHandler(Context context) {
-        this.controllerConfigurations = new ArrayList();
+        this.controllerConfigurations = new ArrayList<ControllerConfiguration>();
     }
 
     public List<ControllerConfiguration> getDeviceControllers() {
@@ -142,7 +142,7 @@ public class ReadXMLFileHandler {
             throws IOException, XmlPullParserException, RobotCoreException {
         String name = this.parser.getAttributeValue(null, "name");
         SerialNumber serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
-        List deviceConfigurations =
+        List<DeviceConfiguration> deviceConfigurations =
                 createDeviceConfigurationList(LEGACY_MODULE_PORTS, ConfigurationType.NOTHING);
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
@@ -205,7 +205,7 @@ public class ReadXMLFileHandler {
     }
 
     private ArrayList<DeviceConfiguration> createDeviceConfigurationList(int ports, ConfigurationType type) {
-        ArrayList<DeviceConfiguration> deviceConfigurations = new ArrayList();
+        ArrayList<DeviceConfiguration> deviceConfigurations = new ArrayList<DeviceConfiguration>();
         for (int port = 0; port < ports; port++) {
             if (type == ConfigurationType.SERVO) {
                 deviceConfigurations.add(new ServoConfiguration(port + 1, DeviceConfiguration.DISABLED_DEVICE_NAME, false));
@@ -266,7 +266,7 @@ public class ReadXMLFileHandler {
         } else {
             port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
         }
-        List deviceConfigurations = createDeviceConfigurationList(SERVO_PORTS, ConfigurationType.SERVO);
+        List<DeviceConfiguration> deviceConfigurations = createDeviceConfigurationList(SERVO_PORTS, ConfigurationType.SERVO);
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
@@ -301,7 +301,7 @@ public class ReadXMLFileHandler {
         } else {
             port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
         }
-        List deviceConfigurations = createDeviceConfigurationList(MOTOR_PORTS, ConfigurationType.MOTOR);
+        List<DeviceConfiguration> deviceConfigurations = createDeviceConfigurationList(MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.parser.next();
         ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
