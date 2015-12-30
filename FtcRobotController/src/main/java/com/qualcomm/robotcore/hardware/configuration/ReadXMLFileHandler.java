@@ -7,16 +7,25 @@ import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.Configu
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.*;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.ANALOG_INPUT_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.ANALOG_OUTPUT_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.DIGITAL_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.I2C_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.LEGACY_MODULE_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.MATRIX_MOTOR_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.MATRIX_SERVO_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.MOTOR_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.PWD_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.SERVO_PORTS;
 
 public class ReadXMLFileHandler {
     private static boolean DEBUG;
@@ -148,15 +157,12 @@ public class ReadXMLFileHandler {
         ConfigurationType type = getConfigurationType(this.parser.getName());
         ControllerConfiguration legacyModuleControllerConfiguration;
         while (next != XmlPullParser.END_DOCUMENT) {
-            if ((next == XmlPullParser.END_TAG) && (type != null)) {
-                if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
-                    legacyModuleControllerConfiguration =
-                            new LegacyModuleControllerConfiguration(name, deviceConfigurations, serialNumber);
-                    legacyModuleControllerConfiguration.setEnabled(true);
-                    return legacyModuleControllerConfiguration;
-                }
-            }
-            if (next == XmlPullParser.START_TAG) {
+            if ((next == XmlPullParser.END_TAG) && (type == ConfigurationType.LEGACY_MODULE_CONTROLLER)) {
+                legacyModuleControllerConfiguration =
+                        new LegacyModuleControllerConfiguration(name, deviceConfigurations, serialNumber);
+                legacyModuleControllerConfiguration.setEnabled(true);
+                return legacyModuleControllerConfiguration;
+            } else if (next == XmlPullParser.START_TAG) {
                 if (DEBUG) {
                     RobotLog.e("[handleLegacyModule] tagname: " + type);
                 }
@@ -179,8 +185,8 @@ public class ReadXMLFileHandler {
                 } else if (type == ConfigurationType.MATRIX_CONTROLLER) {
                     deviceConfiguration = parseMatrixController();
                 }
-                
-                if(deviceConfiguration != null) {
+
+                if (deviceConfiguration != null) {
                     deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 }
 
@@ -189,6 +195,124 @@ public class ReadXMLFileHandler {
             type = getConfigurationType(this.parser.getName());
         }
         return new LegacyModuleControllerConfiguration(name, deviceConfigurations, serialNumber);
+    }
+
+    private ControllerConfiguration parseMatrixController()
+            throws IOException, XmlPullParserException, RobotCoreException {
+        String name = this.parser.getAttributeValue(null, "name");
+        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
+        int port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+        ArrayList<DeviceConfiguration> servoConfigurations =
+                createDeviceConfigurationList(MATRIX_SERVO_PORTS, ConfigurationType.SERVO);
+        ArrayList<DeviceConfiguration> motorConfigurations =
+                createDeviceConfigurationList(MATRIX_MOTOR_PORTS, ConfigurationType.MOTOR);
+        int next = this.parser.next();
+        ConfigurationType type = getConfigurationType(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if ((next == XmlPullParser.END_TAG) && (type == ConfigurationType.MATRIX_CONTROLLER)) {
+                ControllerConfiguration matrixControllerConfiguration =
+                        new MatrixControllerConfiguration(name, motorConfigurations, servoConfigurations, serialNumber);
+                matrixControllerConfiguration.setPort(port);
+                matrixControllerConfiguration.setEnabled(true);
+                return matrixControllerConfiguration;
+
+            } else if (next == XmlPullParser.START_TAG) {
+                if ((type == ConfigurationType.SERVO) || (type == ConfigurationType.MOTOR)) {
+                    int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+                    String deviceName = this.parser.getAttributeValue(null, "name");
+
+                    DeviceConfiguration deviceConfiguration =
+                            new DeviceConfiguration(devicePort, type, deviceName, true);
+
+                    if (type == ConfigurationType.SERVO) {
+                        servoConfigurations.set(devicePort - 1, deviceConfiguration);
+                    } else {
+                        motorConfigurations.set(devicePort - 1, deviceConfiguration);
+                    }
+                }
+            }
+            next = this.parser.next();
+            type = getConfigurationType(this.parser.getName());
+        }
+        RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
+        return null;
+    }
+
+    private ControllerConfiguration parseServoController(boolean useSerialNumber)
+            throws IOException, XmlPullParserException {
+        ControllerConfiguration servoControllerConfiguration;
+        String name = this.parser.getAttributeValue(null, "name");
+        int port;
+        SerialNumber serialNumber;
+        if (useSerialNumber) {
+            port = -1;
+            serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
+        } else {
+            port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+            serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
+        }
+        List<DeviceConfiguration> deviceConfigurations = createDeviceConfigurationList(SERVO_PORTS, ConfigurationType.SERVO);
+        int next = this.parser.next();
+        ConfigurationType type = getConfigurationType(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if ((next == XmlPullParser.END_TAG) && (type == ConfigurationType.SERVO_CONTROLLER)) {
+                servoControllerConfiguration =
+                        new ServoControllerConfiguration(name, deviceConfigurations, serialNumber);
+                servoControllerConfiguration.setPort(port);
+                servoControllerConfiguration.setEnabled(true);
+                return servoControllerConfiguration;
+            } else if ((next == XmlPullParser.START_TAG) && (type == ConfigurationType.SERVO)) {
+                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+                String deviceName = this.parser.getAttributeValue(null, "name");
+                DeviceConfiguration deviceConfiguration =
+                        new MotorConfiguration(devicePort, deviceName, true);
+                deviceConfigurations.set(devicePort - 1, deviceConfiguration);
+            }
+            next = this.parser.next();
+            type = getConfigurationType(this.parser.getName());
+        }
+        servoControllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurations, serialNumber);
+        servoControllerConfiguration.setPort(port);
+        return servoControllerConfiguration;
+    }
+
+    private ControllerConfiguration parseMotorController(boolean useSerialNumber) throws IOException, XmlPullParserException {
+        ControllerConfiguration motorControllerConfiguration;
+        String name = this.parser.getAttributeValue(null, "name");
+        int port;
+        SerialNumber serialNumber;
+        if (useSerialNumber) {
+            port = -1;
+            serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
+        } else {
+            port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+            serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
+        }
+
+        List<DeviceConfiguration> deviceConfigurations = createDeviceConfigurationList(MOTOR_PORTS, ConfigurationType.MOTOR);
+        int next = this.parser.next();
+        ConfigurationType type = getConfigurationType(this.parser.getName());
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if ((next == XmlPullParser.END_TAG) && (type == ConfigurationType.MOTOR_CONTROLLER)) {
+                motorControllerConfiguration =
+                        new MotorControllerConfiguration(name, deviceConfigurations, serialNumber);
+                motorControllerConfiguration.setPort(port);
+                motorControllerConfiguration.setEnabled(true);
+                return motorControllerConfiguration;
+            } else if ((next == XmlPullParser.START_TAG) && (type == ConfigurationType.MOTOR)) {
+                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
+                String deviceName = this.parser.getAttributeValue(null, "name");
+                DeviceConfiguration deviceConfiguration =
+                        new MotorConfiguration(devicePort, deviceName, true);
+                deviceConfigurations.set(devicePort - 1, deviceConfiguration);
+            }
+            next = this.parser.next();
+            type = getConfigurationType(this.parser.getName());
+        }
+        motorControllerConfiguration =
+                new MotorControllerConfiguration(name, deviceConfigurations, serialNumber);
+        motorControllerConfiguration.setPort(port);
+        return motorControllerConfiguration;
     }
 
     private DeviceConfiguration parseDeviceConfiguration() {
@@ -217,115 +341,6 @@ public class ReadXMLFileHandler {
             }
         }
         return deviceConfigurations;
-    }
-
-    private ControllerConfiguration parseMatrixController() throws IOException, XmlPullParserException, RobotCoreException {
-        String name = this.parser.getAttributeValue(null, "name");
-        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
-        int port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-        ArrayList<DeviceConfiguration> servoConfigurations =
-                createDeviceConfigurationList(MATRIX_SERVO_PORTS, ConfigurationType.SERVO);
-        ArrayList<DeviceConfiguration> motorConfigurations =
-                createDeviceConfigurationList(MATRIX_MOTOR_PORTS, ConfigurationType.MOTOR);
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
-            if ((next == XmlPullParser.END_TAG) && (type != null)) {
-                if (type == ConfigurationType.MATRIX_CONTROLLER) {
-                    ControllerConfiguration matrixControllerConfiguration =
-                            new MatrixControllerConfiguration(name, motorConfigurations, servoConfigurations, serialNumber);
-                    matrixControllerConfiguration.setPort(port);
-                    matrixControllerConfiguration.setEnabled(true);
-                    return matrixControllerConfiguration;
-                }
-            }
-            if (next == XmlPullParser.START_TAG) {
-                int devicePort;
-                if (type == ConfigurationType.SERVO) {
-                    devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-                    servoConfigurations.set(devicePort - 1, new ServoConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
-                } else if (type == ConfigurationType.MOTOR) {
-                    devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-                    motorConfigurations.set(devicePort - 1, new MotorConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
-                }
-            }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
-        }
-        RobotLog.logAndThrow("Reached the end of the XML file while parsing.");
-        return null;
-    }
-
-    private ControllerConfiguration parseServoController(boolean useSerialNumber)
-            throws IOException, XmlPullParserException {
-        ControllerConfiguration servoControllerConfiguration;
-        String name = this.parser.getAttributeValue(null, "name");
-        int port = -1;
-        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
-        if (useSerialNumber) {
-            serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
-        } else {
-            port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-        }
-        List<DeviceConfiguration> deviceConfigurations = createDeviceConfigurationList(SERVO_PORTS, ConfigurationType.SERVO);
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
-            if ((next == XmlPullParser.END_TAG) && (type != null)) {
-                if (type == ConfigurationType.SERVO_CONTROLLER) {
-                    servoControllerConfiguration =
-                            new ServoControllerConfiguration(name, deviceConfigurations, serialNumber);
-                    servoControllerConfiguration.setPort(port);
-                    servoControllerConfiguration.setEnabled(true);
-                    return servoControllerConfiguration;
-                }
-            }
-            if ((next == XmlPullParser.START_TAG) && (type == ConfigurationType.SERVO)) {
-                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-                deviceConfigurations.set(devicePort - 1, new ServoConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
-            }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
-        }
-        servoControllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurations, serialNumber);
-        servoControllerConfiguration.setPort(port);
-        return servoControllerConfiguration;
-    }
-
-    private ControllerConfiguration parseMotorController(boolean useSerialNumber) throws IOException, XmlPullParserException {
-        ControllerConfiguration motorControllerConfiguration;
-        String name = this.parser.getAttributeValue(null, "name");
-        int port = -1;
-        SerialNumber serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER;
-        if (useSerialNumber) {
-            serialNumber = new SerialNumber(this.parser.getAttributeValue(null, "serialNumber"));
-        } else {
-            port = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-        }
-        List<DeviceConfiguration> deviceConfigurations = createDeviceConfigurationList(MOTOR_PORTS, ConfigurationType.MOTOR);
-        int next = this.parser.next();
-        ConfigurationType type = getConfigurationType(this.parser.getName());
-        while (next != XmlPullParser.END_DOCUMENT) {
-            if ((next == XmlPullParser.END_TAG) && (type != null)) {
-                if (type == ConfigurationType.MOTOR_CONTROLLER) {
-                    motorControllerConfiguration =
-                            new MotorControllerConfiguration(name, deviceConfigurations, serialNumber);
-                    motorControllerConfiguration.setPort(port);
-                    motorControllerConfiguration.setEnabled(true);
-                    return motorControllerConfiguration;
-                }
-            }
-            if ((next == XmlPullParser.START_TAG) && (type == ConfigurationType.MOTOR)) {
-                int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
-                deviceConfigurations.set(devicePort - 1, new MotorConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
-            }
-            next = this.parser.next();
-            type = getConfigurationType(this.parser.getName());
-        }
-        motorControllerConfiguration =
-                new MotorControllerConfiguration(name, deviceConfigurations, serialNumber);
-        motorControllerConfiguration.setPort(port);
-        return motorControllerConfiguration;
     }
 
     private static ConfigurationType getConfigurationType(String str) {
