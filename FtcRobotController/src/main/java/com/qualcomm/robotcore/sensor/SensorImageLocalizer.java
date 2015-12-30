@@ -141,9 +141,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
     }
 
     private TrackedTargetInfo getBestTarget(List<TrackedTargetInfo> targetPoses) {
-        boolean foundTarget = false;
         double bestConfidence = Double.MIN_VALUE;
-        long currentTimeMillis = System.currentTimeMillis() / 1000;
         TrackedTargetInfo bestInfo = null;
 
         for (TrackedTargetInfo info : targetPoses) {

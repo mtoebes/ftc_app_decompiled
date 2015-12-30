@@ -35,7 +35,7 @@ public class EventLoopManager {
     private boolean isRunning;
     private ElapsedTime elapsedTime = new ElapsedTime();
     private EventLoop eventLoop = EVENT_LOOP;
-    private final Gamepad[] gamepads = new Gamepad[]{new Gamepad(), new Gamepad()};
+    private final Gamepad[] gamepads = {new Gamepad(), new Gamepad()};
     private Heartbeat heartbeat = new Heartbeat(Token.EMPTY);
     private EventLoopMonitor monitor;
     private final Set<SyncdDevice> syncdDevices = new CopyOnWriteArraySet<SyncdDevice>();

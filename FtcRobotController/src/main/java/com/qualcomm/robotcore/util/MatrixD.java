@@ -97,7 +97,7 @@ public class MatrixD {
             throw new IllegalArgumentException("Attempted to access out of bounds data with row or col offset out of range");
         } else if ((rows > inData.numRows()) || (cols > inData.numCols())) {
             throw new IllegalArgumentException("Input matrix small for setSubMatrix");
-        } else if (((rowOffset + rows) > inData.numRows()) || ((colOffset + cols) > numCols())) {
+        } else if (((rowOffset + rows) > inData.numRows()) || ((colOffset + cols) > inData.numCols())) {
             throw new IllegalArgumentException("Input matrix Attempted to access out of bounds data with row or col offset out of range");
         } else {
             for (int row = 0; row < rows; row++) {

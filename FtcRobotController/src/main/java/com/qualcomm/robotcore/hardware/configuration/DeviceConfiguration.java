@@ -7,7 +7,7 @@ public class DeviceConfiguration implements Serializable {
     private ConfigurationType type = ConfigurationType.NOTHING;
     private int port;
     private boolean enabled;
-    protected String name = DISABLED_DEVICE_NAME;;
+    protected String name = DISABLED_DEVICE_NAME;
 
     public enum ConfigurationType {
         MOTOR,

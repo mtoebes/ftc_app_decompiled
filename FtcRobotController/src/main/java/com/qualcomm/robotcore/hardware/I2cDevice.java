@@ -1,7 +1,7 @@
 package com.qualcomm.robotcore.hardware;
 
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
-import com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants;
+
 import java.util.concurrent.locks.Lock;
 
 public class I2cDevice implements HardwareDevice {
