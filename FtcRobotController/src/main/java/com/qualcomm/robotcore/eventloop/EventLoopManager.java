@@ -33,7 +33,7 @@ public class EventLoopManager {
     private Thread sendCommandThread = new Thread();
     private final RobocolDatagramSocket socket;
     private boolean isRunning;
-    private ElapsedTime elapsedTime;
+    private ElapsedTime elapsedTime = new ElapsedTime();
     private EventLoop eventLoop = EVENT_LOOP;
     private final Gamepad[] gamepads = new Gamepad[]{new Gamepad(), new Gamepad()};
     private Heartbeat heartbeat = new Heartbeat(Token.EMPTY);
@@ -265,7 +265,6 @@ public class EventLoopManager {
     }
 
     public EventLoopManager(RobocolDatagramSocket socket) {
-        this.elapsedTime = new ElapsedTime();
         this.socket = socket;
         setState(RobotState.NOT_STARTED);
     }
