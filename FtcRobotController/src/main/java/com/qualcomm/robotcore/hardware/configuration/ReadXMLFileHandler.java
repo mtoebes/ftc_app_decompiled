@@ -160,7 +160,7 @@ public class ReadXMLFileHandler {
                 if (DEBUG) {
                     RobotLog.e("[handleLegacyModule] tagname: " + type);
                 }
-                DeviceConfiguration deviceConfiguration;
+                DeviceConfiguration deviceConfiguration = null;
                 if ((type == ConfigurationType.COMPASS) ||
                         (type == ConfigurationType.LIGHT_SENSOR) ||
                         (type == ConfigurationType.IR_SEEKER) ||
@@ -172,17 +172,18 @@ public class ReadXMLFileHandler {
                         (type == ConfigurationType.COLOR_SENSOR) ||
                         (type == ConfigurationType.NOTHING)) {
                     deviceConfiguration = parseDeviceConfiguration();
-                    deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 } else if (type == ConfigurationType.MOTOR_CONTROLLER) {
                     deviceConfiguration = parseMotorController(false);
-                    deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 } else if (type == ConfigurationType.SERVO_CONTROLLER) {
                     deviceConfiguration = parseServoController(false);
-                    deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 } else if (type == ConfigurationType.MATRIX_CONTROLLER) {
                     deviceConfiguration = parseMatrixController();
+                }
+                
+                if(deviceConfiguration != null) {
                     deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 }
+
             }
             next = this.parser.next();
             type = getConfigurationType(this.parser.getName());
