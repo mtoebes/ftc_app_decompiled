@@ -12,241 +12,187 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import org.xmlpull.v1.XmlSerializer;
 
 public class WriteXMLFileHandler {
-    private XmlSerializer f294a;
-    private HashSet<String> f295b;
-    private ArrayList<String> f296c;
-    private String[] f297d;
-    private int f298e;
+    private XmlSerializer serializer = Xml.newSerializer();
+    private HashSet<String> names = new HashSet<String>();
+    private ArrayList<String> duplicates = new ArrayList<String>();
+    private String[] indentation = {"    ", "        ", "            "};
+    private int indent;
 
     public WriteXMLFileHandler(Context context) {
-        this.f295b = new HashSet();
-        this.f296c = new ArrayList();
-        this.f297d = new String[]{"    ", "        ", "            "};
-        this.f298e = 0;
-        this.f294a = Xml.newSerializer();
     }
 
     public String writeXml(ArrayList<ControllerConfiguration> deviceControllerConfigurations) {
-        this.f296c = new ArrayList();
-        this.f295b = new HashSet();
+        this.duplicates = new ArrayList<String>();
+        this.names = new HashSet<String>();
         Writer stringWriter = new StringWriter();
         try {
-            this.f294a.setOutput(stringWriter);
-            this.f294a.startDocument("UTF-8", Boolean.valueOf(true));
-            this.f294a.ignorableWhitespace("\n");
-            this.f294a.startTag("", "Robot");
-            this.f294a.ignorableWhitespace("\n");
-            Iterator it = deviceControllerConfigurations.iterator();
-            while (it.hasNext()) {
-                ControllerConfiguration controllerConfiguration = (ControllerConfiguration) it.next();
-                String configurationType = controllerConfiguration.getType().toString();
-                if (configurationType.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString()) || configurationType.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
-                    m201a(controllerConfiguration, true);
+            this.serializer.setOutput(stringWriter);
+            this.serializer.startDocument("UTF-8", true);
+            this.serializer.ignorableWhitespace("\n");
+            this.serializer.startTag("", "Robot");
+            this.serializer.ignorableWhitespace("\n");
+            for(ControllerConfiguration controllerConfiguration : deviceControllerConfigurations) {
+                ConfigurationType configurationType = controllerConfiguration.getType();
+                if ((configurationType == ConfigurationType.MOTOR_CONTROLLER) ||
+                        (configurationType == ConfigurationType.SERVO_CONTROLLER)) {
+                    writeMotorServoConfigurationXml(controllerConfiguration, true);
                 }
-                if (configurationType.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
-                    m205b(controllerConfiguration);
+                if (configurationType == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
+                    writeLegacyControllerXml(controllerConfiguration);
                 }
-                if (configurationType.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
-                    m200a(controllerConfiguration);
+                if (configurationType == ConfigurationType.DEVICE_INTERFACE_MODULE) {
+                    writeInterfaceModuleXml(controllerConfiguration);
                 }
             }
-            this.f294a.endTag("", "Robot");
-            this.f294a.ignorableWhitespace("\n");
-            this.f294a.endDocument();
+            this.serializer.endTag("", "Robot");
+            this.serializer.ignorableWhitespace("\n");
+            this.serializer.endDocument();
             return stringWriter.toString();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void m203a(String str) {
+    private void checkForDuplicates(String str) {
         if (!str.equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
-            if (this.f295b.contains(str)) {
-                this.f296c.add(str);
+            if (this.names.contains(str)) {
+                this.duplicates.add(str);
             } else {
-                this.f295b.add(str);
+                this.names.add(str);
             }
         }
     }
 
-    private void m200a(ControllerConfiguration controllerConfiguration) throws IOException {
-        this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.startTag("", m204b(controllerConfiguration.getType().toString()));
-        m203a(controllerConfiguration.getName());
-        this.f294a.attribute("", "name", controllerConfiguration.getName());
-        this.f294a.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
-        this.f294a.ignorableWhitespace("\n");
-        this.f298e++;
+    private void writeInterfaceModuleXml(ControllerConfiguration controllerConfiguration) throws IOException {
+        this.serializer.ignorableWhitespace(this.indentation[this.indent]);
+        this.serializer.startTag("", toUpperCamelCase(controllerConfiguration.getType().toString()));
+        checkForDuplicates(controllerConfiguration.getName());
+        this.serializer.attribute("", "name", controllerConfiguration.getName());
+        this.serializer.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
+        this.serializer.ignorableWhitespace("\n");
+        this.indent++;
         DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = (DeviceInterfaceModuleConfiguration) controllerConfiguration;
-        Iterator it = ((ArrayList) deviceInterfaceModuleConfiguration.getPwmDevices()).iterator();
-        while (it.hasNext()) {
-            m202a((DeviceConfiguration) it.next());
+
+        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getPwmDevices()) {
+            writeDeviceConfigurationXml(deviceConfiguration);
         }
-        it = ((ArrayList) deviceInterfaceModuleConfiguration.getI2cDevices()).iterator();
-        while (it.hasNext()) {
-            m202a((DeviceConfiguration) it.next());
+        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getI2cDevices()) {
+            writeDeviceConfigurationXml(deviceConfiguration);
         }
-        it = ((ArrayList) deviceInterfaceModuleConfiguration.getAnalogInputDevices()).iterator();
-        while (it.hasNext()) {
-            m202a((DeviceConfiguration) it.next());
+        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getAnalogInputDevices()) {
+            writeDeviceConfigurationXml(deviceConfiguration);
         }
-        it = ((ArrayList) deviceInterfaceModuleConfiguration.getDigitalDevices()).iterator();
-        while (it.hasNext()) {
-            m202a((DeviceConfiguration) it.next());
+        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getDigitalDevices()) {
+            writeDeviceConfigurationXml(deviceConfiguration);
         }
-        Iterator it2 = ((ArrayList) deviceInterfaceModuleConfiguration.getAnalogOutputDevices()).iterator();
-        while (it2.hasNext()) {
-            m202a((DeviceConfiguration) it2.next());
+        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getAnalogOutputDevices()) {
+            writeDeviceConfigurationXml(deviceConfiguration);
         }
-        this.f298e--;
-        this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.endTag("", m204b(controllerConfiguration.getType().toString()));
-        this.f294a.ignorableWhitespace("\n");
+
+        this.indent--;
+        this.serializer.ignorableWhitespace(this.indentation[this.indent]);
+        this.serializer.endTag("", toUpperCamelCase(controllerConfiguration.getType().toString()));
+        this.serializer.ignorableWhitespace("\n");
     }
 
-    private void m205b(ControllerConfiguration controllerConfiguration) throws IOException {
-        this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.startTag("", m204b(controllerConfiguration.getType().toString()));
-        m203a(controllerConfiguration.getName());
-        this.f294a.attribute("", "name", controllerConfiguration.getName());
-        this.f294a.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
-        this.f294a.ignorableWhitespace("\n");
-        this.f298e++;
-        Iterator it = ((ArrayList) controllerConfiguration.getDevices()).iterator();
-        while (it.hasNext()) {
-            DeviceConfiguration deviceConfiguration = (DeviceConfiguration) it.next();
+    private void writeLegacyControllerXml(ControllerConfiguration controllerConfiguration) throws IOException {
+        this.serializer.ignorableWhitespace(this.indentation[this.indent]);
+        this.serializer.startTag("", toUpperCamelCase(controllerConfiguration.getType().toString()));
+        checkForDuplicates(controllerConfiguration.getName());
+        this.serializer.attribute("", "name", controllerConfiguration.getName());
+        this.serializer.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
+        this.serializer.ignorableWhitespace("\n");
+        this.indent++;
+        for (DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
             String configurationType = deviceConfiguration.getType().toString();
-            if (configurationType.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString()) || configurationType.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString()) || configurationType.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
-                m201a((ControllerConfiguration) deviceConfiguration, false);
-            } else if (deviceConfiguration.isEnabled()) {
-                m202a(deviceConfiguration);
+            if (configurationType.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString()) ||
+                    configurationType.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString()) ||
+                    configurationType.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
+                writeMotorServoConfigurationXml((ControllerConfiguration) deviceConfiguration, false);
+            } else {
+                writeDeviceConfigurationXml(deviceConfiguration);
             }
         }
-        this.f298e--;
-        this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.endTag("", m204b(controllerConfiguration.getType().toString()));
-        this.f294a.ignorableWhitespace("\n");
+        this.indent--;
+        this.serializer.ignorableWhitespace(this.indentation[this.indent]);
+        this.serializer.endTag("", toUpperCamelCase(controllerConfiguration.getType().toString()));
+        this.serializer.ignorableWhitespace("\n");
     }
 
-    private void m201a(ControllerConfiguration controllerConfiguration, boolean z) throws IOException {
-        this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.startTag("", m204b(controllerConfiguration.getType().toString()));
-        m203a(controllerConfiguration.getName());
-        this.f294a.attribute("", "name", controllerConfiguration.getName());
-        if (z) {
-            this.f294a.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
+    private void writeMotorServoConfigurationXml(ControllerConfiguration controllerConfiguration, boolean useSerialNumber) throws IOException {
+        this.serializer.ignorableWhitespace(this.indentation[this.indent]);
+        this.serializer.startTag("", toUpperCamelCase(controllerConfiguration.getType().toString()));
+        checkForDuplicates(controllerConfiguration.getName());
+        this.serializer.attribute("", "name", controllerConfiguration.getName());
+
+        if (useSerialNumber) {
+            this.serializer.attribute("", "serialNumber", controllerConfiguration.getSerialNumber().toString());
         } else {
-            this.f294a.attribute("", "port", String.valueOf(controllerConfiguration.getPort()));
+            this.serializer.attribute("", "port", String.valueOf(controllerConfiguration.getPort()));
         }
-        this.f294a.ignorableWhitespace("\n");
-        this.f298e++;
-        Iterator it = ((ArrayList) controllerConfiguration.getDevices()).iterator();
-        while (it.hasNext()) {
-            DeviceConfiguration deviceConfiguration = (DeviceConfiguration) it.next();
-            if (deviceConfiguration.isEnabled()) {
-                m202a(deviceConfiguration);
-            }
+        this.serializer.ignorableWhitespace("\n");
+        this.indent++;
+        for(DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
+            writeDeviceConfigurationXml(deviceConfiguration);
         }
+
         if (controllerConfiguration.getType() == ConfigurationType.MATRIX_CONTROLLER) {
-            it = ((ArrayList) ((MatrixControllerConfiguration) controllerConfiguration).getMotors()).iterator();
-            DeviceConfiguration deviceConfiguration;
-            while (it.hasNext()) {
-                deviceConfiguration = (DeviceConfiguration) it.next();
-                if (deviceConfiguration.isEnabled()) {
-                    m202a(deviceConfiguration);
-                }
+            for(DeviceConfiguration deviceConfiguration : ((MatrixControllerConfiguration) controllerConfiguration).getMotors()) {
+                writeDeviceConfigurationXml(deviceConfiguration);
             }
-            it = ((ArrayList) ((MatrixControllerConfiguration) controllerConfiguration).getServos()).iterator();
-            while (it.hasNext()) {
-                deviceConfiguration = (DeviceConfiguration) it.next();
-                if (deviceConfiguration.isEnabled()) {
-                    m202a(deviceConfiguration);
-                }
+
+            for(DeviceConfiguration deviceConfiguration : ((MatrixControllerConfiguration) controllerConfiguration).getServos()) {
+                writeDeviceConfigurationXml(deviceConfiguration);
             }
         }
-        this.f298e--;
-        this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-        this.f294a.endTag("", m204b(controllerConfiguration.getType().toString()));
-        this.f294a.ignorableWhitespace("\n");
+
+        this.indent--;
+        this.serializer.ignorableWhitespace(this.indentation[this.indent]);
+        this.serializer.endTag("", toUpperCamelCase(controllerConfiguration.getType().toString()));
+        this.serializer.ignorableWhitespace("\n");
     }
 
-    private void m202a(DeviceConfiguration deviceConfiguration) {
+    private void writeDeviceConfigurationXml(DeviceConfiguration deviceConfiguration) throws IOException {
         if (deviceConfiguration.isEnabled()) {
-            try {
-                this.f294a.ignorableWhitespace(this.f297d[this.f298e]);
-                this.f294a.startTag("", m204b(deviceConfiguration.getType().toString()));
-                m203a(deviceConfiguration.getName());
-                this.f294a.attribute("", "name", deviceConfiguration.getName());
-                this.f294a.attribute("", "port", String.valueOf(deviceConfiguration.getPort()));
-                this.f294a.endTag("", m204b(deviceConfiguration.getType().toString()));
-                this.f294a.ignorableWhitespace("\n");
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+            this.serializer.ignorableWhitespace(this.indentation[this.indent]);
+            this.serializer.startTag("", toUpperCamelCase(deviceConfiguration.getType().toString()));
+            checkForDuplicates(deviceConfiguration.getName());
+            this.serializer.attribute("", "name", deviceConfiguration.getName());
+            this.serializer.attribute("", "port", String.valueOf(deviceConfiguration.getPort()));
+            this.serializer.endTag("", toUpperCamelCase(deviceConfiguration.getType().toString()));
+            this.serializer.ignorableWhitespace("\n");
         }
     }
 
     public void writeToFile(String data, String folderName, String filename) throws RobotCoreException, IOException {
-        Exception e;
-        Throwable th;
-        if (this.f296c.size() > 0) {
-            throw new IOException("Duplicate names: " + this.f296c);
+        if (this.duplicates.size() > 0) {
+            throw new IOException("Duplicate names: " + this.duplicates);
         }
         filename = filename.replaceFirst("[.][^.]+$", "");
         File file = new File(folderName);
-        boolean z = true;
         if (!file.exists()) {
-            z = file.mkdir();
-        }
-        if (z) {
-            FileOutputStream fileOutputStream;
-            try {
-                fileOutputStream = new FileOutputStream(new File(folderName + filename + Utility.FILE_EXT));
-                try {
-                    fileOutputStream.write(data.getBytes());
-                    try {
-                        fileOutputStream.close();
-                        return;
-                    } catch (IOException e2) {
-                        e2.printStackTrace();
-                        return;
-                    }
-                } catch (Exception e3) {
-                    e = e3;
-                        e.printStackTrace();
-                        try {
-                            fileOutputStream.close();
-                            return;
-                        } catch (IOException e22) {
-                            e22.printStackTrace();
-                            return;
-                        }
-                }
-            } catch (Exception e5) {
-                e = e5;
-                fileOutputStream = null;
-                e.printStackTrace();
-                fileOutputStream.close();
-                return;
+            if(!file.mkdir()) {
+                throw new RobotCoreException("Unable to create directory");
             }
         }
-        throw new RobotCoreException("Unable to create directory");
+
+        FileOutputStream fileOutputStream = new FileOutputStream(new File(folderName + filename + Utility.FILE_EXT));
+        fileOutputStream.write(data.getBytes());
+        fileOutputStream.close();
     }
 
-    private String m204b(String str) {
-        String str2 = str.substring(0, 1) + str.substring(1).toLowerCase();
-        int lastIndexOf = str.lastIndexOf("_");
-        while (lastIndexOf > 0) {
-            int i = lastIndexOf + 1;
-            String substring = str2.substring(0, lastIndexOf);
-            String toUpperCase = str2.substring(i, i + 1).toUpperCase();
-            str2 = substring + toUpperCase + str2.substring(i + 1);
-            lastIndexOf = str2.lastIndexOf("_");
+    private String toUpperCamelCase(String str) {
+        String result = "";
+        String[] words = str.split("_");
+
+        for(String word : words) {
+            word = word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
+            result += word;
         }
-        return str2;
+
+        return result;
     }
 }
