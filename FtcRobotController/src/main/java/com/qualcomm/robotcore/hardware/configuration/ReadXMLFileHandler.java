@@ -12,34 +12,16 @@ import java.util.List;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.*;
 
 public class ReadXMLFileHandler {
     private static boolean f275b;
-    private static int f276c;
-    private static int f277d;
-    private static int f278e;
-    private static int f279f;
-    private static int f280g;
-    private static int f281h;
-    private static int f282i;
-    private static int f283j;
-    private static int f284k;
-    private static int f285l;
+
     List<ControllerConfiguration> f286a;
     private XmlPullParser f287m;
 
     static {
         f275b = false;
-        f276c = 2;
-        f277d = 8;
-        f278e = 8;
-        f279f = 2;
-        f280g = 6;
-        f281h = 6;
-        f282i = 6;
-        f283j = 2;
-        f284k = 4;
-        f285l = 4;
     }
 
     public ReadXMLFileHandler(Context context) {
@@ -89,11 +71,11 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration m192a() throws IOException, XmlPullParserException, RobotCoreException {
         String attributeValue = this.f287m.getAttributeValue(null, "name");
         String attributeValue2 = this.f287m.getAttributeValue(null, "serialNumber");
-        ArrayList<DeviceConfiguration> a = m195a(f276c, ConfigurationType.PULSE_WIDTH_DEVICE);
-        ArrayList<DeviceConfiguration> a2 = m195a(f280g, ConfigurationType.I2C_DEVICE);
-        ArrayList<DeviceConfiguration> a3 = m195a(f278e, ConfigurationType.ANALOG_INPUT);
-        ArrayList<DeviceConfiguration> a4 = m195a(f277d, ConfigurationType.DIGITAL_DEVICE);
-        ArrayList<DeviceConfiguration> a5 = m195a(f279f, ConfigurationType.ANALOG_OUTPUT);
+        ArrayList<DeviceConfiguration> a = m195a(PWM_PORTS, ConfigurationType.PULSE_WIDTH_DEVICE);
+        ArrayList<DeviceConfiguration> a2 = m195a(I2C_PORTS, ConfigurationType.I2C_DEVICE);
+        ArrayList<DeviceConfiguration> a3 = m195a(ANALOG_INPUT_PORTS, ConfigurationType.ANALOG_INPUT);
+        ArrayList<DeviceConfiguration> a4 = m195a(DIGITAL_PORTS, ConfigurationType.DIGITAL_DEVICE);
+        ArrayList<DeviceConfiguration> a5 = m195a(ANALOG_OUTPUT_PORTS, ConfigurationType.ANALOG_OUTPUT);
         int next = this.f287m.next();
         String a6 = m194a(this.f287m.getName());
         while (next != 1) {
@@ -149,7 +131,7 @@ public class ReadXMLFileHandler {
     private ControllerConfiguration m196b() throws IOException, XmlPullParserException, RobotCoreException {
         String attributeValue = this.f287m.getAttributeValue(null, "name");
         String attributeValue2 = this.f287m.getAttributeValue(null, "serialNumber");
-        List a = m195a(f281h, ConfigurationType.NOTHING);
+        List a = m195a(LEGACY_MODULE_PORTS, ConfigurationType.NOTHING);
         int next = this.f287m.next();
         String a2 = m194a(this.f287m.getName());
         ControllerConfiguration legacyModuleControllerConfiguration;
@@ -219,8 +201,8 @@ public class ReadXMLFileHandler {
         String attributeValue = this.f287m.getAttributeValue(null, "name");
         String serialNumber = ControllerConfiguration.NO_SERIAL_NUMBER.toString();
         int parseInt = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
-        ArrayList<DeviceConfiguration> a = m195a(f285l, ConfigurationType.SERVO);
-        ArrayList<DeviceConfiguration> a2 = m195a(f284k, ConfigurationType.MOTOR);
+        ArrayList<DeviceConfiguration> a = m195a(MATRIX_SERVO_PORTS, ConfigurationType.SERVO);
+        ArrayList<DeviceConfiguration> a2 = m195a(MATRIX_MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.f287m.next();
         String a3 = m194a(this.f287m.getName());
         while (next != 1) {
@@ -261,7 +243,7 @@ public class ReadXMLFileHandler {
         } else {
             i = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
         }
-        List a = m195a(f282i, ConfigurationType.SERVO);
+        List a = m195a(SERVO_PORTS, ConfigurationType.SERVO);
         int next = this.f287m.next();
         String a2 = m194a(this.f287m.getName());
         while (next != 1) {
@@ -297,7 +279,7 @@ public class ReadXMLFileHandler {
         } else {
             i = Integer.parseInt(this.f287m.getAttributeValue(null, "port"));
         }
-        List a = m195a(f283j, ConfigurationType.MOTOR);
+        List a = m195a(MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.f287m.next();
         String a2 = m194a(this.f287m.getName());
         while (next != 1) {
