@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.robocol.PeerDiscovery.PeerType;
 import com.qualcomm.robotcore.robocol.RobocolDatagram;
 import com.qualcomm.robotcore.robocol.RobocolDatagramSocket;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
-import com.qualcomm.robotcore.robocol.RobocolParsable.MsgType;
 import com.qualcomm.robotcore.robocol.Telemetry;
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -222,7 +221,7 @@ public class EventLoopManager {
 
         private SendCommandRunnable(EventLoopManager eventLoopManager) {
             this.eventLoopManager = eventLoopManager;
-            this.sentCommands = new HashSet();
+            this.sentCommands = new HashSet<Command>();
         }
 
         public void run() {
@@ -278,10 +277,10 @@ public class EventLoopManager {
         this.gamepads = new Gamepad[]{new Gamepad(), new Gamepad()};
         this.heartbeat = new Heartbeat(Token.EMPTY);
         this.monitor = null;
-        this.syncdDevices = new CopyOnWriteArraySet();
+        this.syncdDevices = new CopyOnWriteArraySet<SyncdDevice>();
         this.recvCommandCache = new Command[8];
         this.recvCommandCachePosition = 0;
-        this.sendCommandCache = new CopyOnWriteArraySet();
+        this.sendCommandCache = new CopyOnWriteArraySet<Command>();
         this.socket = socket;
         setState(RobotState.NOT_STARTED);
     }
@@ -390,7 +389,7 @@ public class EventLoopManager {
         this.EventLoopThread.interrupt();
         try {
             Thread.sleep(200);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
         setState(RobotState.STOPPED);
         this.eventLoop = EVENT_LOOP;
@@ -408,7 +407,7 @@ public class EventLoopManager {
     private void processGamepadEvent(RobocolDatagram robocolDatagram) throws RobotCoreException {
         Gamepad gamepad = new Gamepad();
         gamepad.fromByteArray(robocolDatagram.getData());
-        if (gamepad.user < (byte) 1 || gamepad.user > 2) {
+        if ((gamepad.user < (byte) 1) || (gamepad.user > 2)) {
             RobotLog.d("Gamepad with user %d received. Only users 1 and 2 are valid");
             return;
         }
@@ -472,7 +471,7 @@ public class EventLoopManager {
         int i = 0;
         while (i < length) {
             Command command2 = commandArr[i];
-            if (command2 == null || !command2.equals(command)) {
+            if ((command2 == null) || !command2.equals(command)) {
                 i++;
             } else {
                 return;
@@ -488,9 +487,6 @@ public class EventLoopManager {
             RobotLog.e("Event loop threw an exception while processing a command");
             RobotLog.logStacktrace(e);
         }
-    }
-
-    private void processEmptyEvent() {
     }
 
     private void processUnknownEvent(RobocolDatagram robocolDatagram) {
