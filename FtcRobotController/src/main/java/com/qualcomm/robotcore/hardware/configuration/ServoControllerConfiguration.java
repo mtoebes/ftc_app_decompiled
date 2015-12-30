@@ -6,10 +6,14 @@ import java.util.Collections;
 import java.util.List;
 
 public class ServoControllerConfiguration extends ControllerConfiguration {
-    private static final List<ConfigurationType> SUPPORTED_DEVICE_TYPES = Collections.singletonList(ConfigurationType.SERVO);
+    private static final ConfigurationType DEVICES_TYPE = ConfigurationType.SERVO;
 
     public ServoControllerConfiguration() {
         super("", new ArrayList<DeviceConfiguration>(), new SerialNumber(ControllerConfiguration.NO_SERIAL_NUMBER.getSerialNumber()), ConfigurationType.SERVO_CONTROLLER);
+    }
+
+    public ServoControllerConfiguration(String name, SerialNumber serialNumber) {
+        this(name, null, serialNumber);
     }
 
     public ServoControllerConfiguration(String name, List<DeviceConfiguration> servos, SerialNumber serialNumber) {
@@ -23,8 +27,24 @@ public class ServoControllerConfiguration extends ControllerConfiguration {
     public void addServos(ArrayList<DeviceConfiguration> servos) {
         super.addDevices(servos);
     }
+    @Override
+    public void addDevices(ConfigurationType type, List<DeviceConfiguration> devices) {
+        if (type == DEVICES_TYPE) {
+            this.addDevices(devices);
+        }
+    }
 
-    protected static List<ConfigurationType> getSupportedDeviceTypes() {
-        return SUPPORTED_DEVICE_TYPES;
+    @Override
+    public List<ConfigurationType> getDevicesTypes() {
+        return Collections.singletonList(DEVICES_TYPE);
+    }
+
+    @Override
+    public ConfigurationType getDevicesType(ConfigurationType type) {
+        if (type == DEVICES_TYPE) {
+            return type;
+        } else {
+            return null;
+        }
     }
 }

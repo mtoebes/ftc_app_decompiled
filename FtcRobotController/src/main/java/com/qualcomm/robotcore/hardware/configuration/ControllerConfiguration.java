@@ -2,17 +2,17 @@ package com.qualcomm.robotcore.hardware.configuration;
 
 import com.qualcomm.robotcore.hardware.DeviceManager.DeviceType;
 import com.qualcomm.robotcore.util.SerialNumber;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class ControllerConfiguration extends DeviceConfiguration implements Serializable {
     public static final SerialNumber NO_SERIAL_NUMBER;
     private List<DeviceConfiguration> devices;
     private SerialNumber serialNumber;
-    private static final List<ConfigurationType> SUPPORTED_DEVICE_TYPES = Collections.emptyList();
 
     static {
         NO_SERIAL_NUMBER = new SerialNumber("-1");
@@ -35,6 +35,17 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
 
     public SerialNumber getSerialNumber() {
         return this.serialNumber;
+    }
+
+    public void addDevices(Map<ConfigurationType, List<DeviceConfiguration>> devicesMap) {
+        for (Map.Entry<ConfigurationType, List<DeviceConfiguration>> entry : devicesMap.entrySet()) {
+            ConfigurationType type = entry.getKey();
+            List<DeviceConfiguration> devices = entry.getValue();
+            addDevices(type, devices);
+        }
+    }
+
+    public void addDevices(ConfigurationType type, List<DeviceConfiguration> devices) {
     }
 
     public void addDevices(List<DeviceConfiguration> devices) {
@@ -67,7 +78,11 @@ public class ControllerConfiguration extends DeviceConfiguration implements Seri
         return DeviceType.FTDI_USB_UNKNOWN_DEVICE;
     }
 
-    protected static List<ConfigurationType> getSupportedDeviceTypes() {
-        return SUPPORTED_DEVICE_TYPES;
+    public List<ConfigurationType> getDevicesTypes() {
+        return Collections.emptyList();
+    }
+
+    public ConfigurationType getDevicesType(ConfigurationType type) {
+        return null;
     }
 }
