@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.HashSet;
@@ -27,22 +28,22 @@ public class EventLoopManager {
     public static final String RC_BATTERY_LEVEL_KEY = "RobotController Battery Level";
     public static final String ROBOT_BATTERY_LEVEL_KEY = "Robot Battery Level";
     public static final String SYSTEM_TELEMETRY = "SYSTEM_TELEMETRY";
-    private static final EventLoop EVENT_LOOP;
-    private Thread EventLoopThread;
-    private Thread sendCommandThread;
+    private static final EventLoop EVENT_LOOP = new InactiveEventLoop();
+    private Thread EventLoopThread = new Thread();
+    private Thread sendCommandThread = new Thread();
     private final RobocolDatagramSocket socket;
     private boolean isRunning;
     private ElapsedTime elapsedTime;
-    private EventLoop eventLoop;
-    private final Gamepad[] gamepads;
-    private Heartbeat heartbeat;
+    private EventLoop eventLoop = EVENT_LOOP;
+    private final Gamepad[] gamepads = new Gamepad[]{new Gamepad(), new Gamepad()};
+    private Heartbeat heartbeat = new Heartbeat(Token.EMPTY);
     private EventLoopMonitor monitor;
-    private final Set<SyncdDevice> syncdDevices;
-    private final Command[] recvCommandCache;
+    private final Set<SyncdDevice> syncdDevices = new CopyOnWriteArraySet<SyncdDevice>();
+    private final Command[] recvCommandCache = new Command[8];
     private int recvCommandCachePosition;
-    private final Set<Command> sendCommandCache;
+    private final Set<Command> sendCommandCache = new CopyOnWriteArraySet<Command>();
     private InetAddress inetAddress;
-    public RobotState state;
+    public RobotState state = RobotState.NOT_STARTED;
 
     public interface EventLoopMonitor {
         void onStateChange(RobotState robotState);
@@ -57,7 +58,6 @@ public class EventLoopManager {
         DROPPED_CONNECTION
     }
 
-    /* renamed from: com.qualcomm.robotcore.eventloop.EventLoopManager.a */
     private static class InactiveEventLoop implements EventLoop {
         private InactiveEventLoop() {
         }
@@ -92,16 +92,16 @@ public class EventLoopManager {
             try {
                 ElapsedTime elapsedTime = new ElapsedTime();
                 while (!Thread.interrupted()) {
-                    while (elapsedTime.time() < 0.001d) {
+                    while (elapsedTime.time() < 0.001) {
                         Thread.sleep(5);
                     }
                     elapsedTime.reset();
                     if (RobotLog.hasGlobalErrorMsg()) {
                         this.eventLoopManager.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                     }
-                    if (this.eventLoopManager.elapsedTime.startTime() == 0.0d) {
+                    if (this.eventLoopManager.elapsedTime.startTime() == 0.) {
                         Thread.sleep(500);
-                    } else if (this.eventLoopManager.elapsedTime.time() > 2.0d) {
+                    } else if (this.eventLoopManager.elapsedTime.time() > 2) {
                         this.eventLoopManager.handleDroppedConnection();
                         this.eventLoopManager.inetAddress = null;
                         this.eventLoopManager.elapsedTime = new ElapsedTime(0);
@@ -117,7 +117,8 @@ public class EventLoopManager {
                     } catch (Exception e) {
                         RobotLog.e("Event loop threw an exception");
                         RobotLog.logStacktrace(e);
-                        RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + (e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "")));
+                        RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " +
+                                (e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "")));
                         this.eventLoopManager.buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                         throw new RobotCoreException("EventLoop Exception in loop()");
                     } catch (Throwable th) {
@@ -169,9 +170,9 @@ public class EventLoopManager {
                     if (RobotLog.hasGlobalErrorMsg()) {
                         buildAndSendTelemetry(EventLoopManager.SYSTEM_TELEMETRY, RobotLog.getGlobalErrorMsg());
                     }
-                    if (elapsedTime.startTime() == 0.0) {
+                    if (elapsedTime.startTime() == 0) {
                         Thread.sleep(500);
-                    } else if (elapsedTime.time() > 2.0) {
+                    } else if (elapsedTime.time() > 2) {
                         handleDroppedConnection();
                         elapsedTime = new ElapsedTime(0);
                     }
@@ -254,10 +255,6 @@ public class EventLoopManager {
         }
     }
 
-    static {
-        EVENT_LOOP = new InactiveEventLoop();
-    }
-
     public void handleDroppedConnection() {
         OpModeManager opModeManager = this.eventLoop.getOpModeManager();
         String message = "Lost connection while running op mode: " + opModeManager.getActiveOpModeName();
@@ -268,19 +265,7 @@ public class EventLoopManager {
     }
 
     public EventLoopManager(RobocolDatagramSocket socket) {
-        this.state = RobotState.NOT_STARTED;
-        this.EventLoopThread = new Thread();
-        this.sendCommandThread = new Thread();
-        this.isRunning = false;
         this.elapsedTime = new ElapsedTime();
-        this.eventLoop = EVENT_LOOP;
-        this.gamepads = new Gamepad[]{new Gamepad(), new Gamepad()};
-        this.heartbeat = new Heartbeat(Token.EMPTY);
-        this.monitor = null;
-        this.syncdDevices = new CopyOnWriteArraySet<SyncdDevice>();
-        this.recvCommandCache = new Command[8];
-        this.recvCommandCachePosition = 0;
-        this.sendCommandCache = new CopyOnWriteArraySet<Command>();
         this.socket = socket;
         setState(RobotState.NOT_STARTED);
     }
@@ -408,17 +393,17 @@ public class EventLoopManager {
         Gamepad gamepad = new Gamepad();
         gamepad.fromByteArray(robocolDatagram.getData());
         if ((gamepad.user < (byte) 1) || (gamepad.user > 2)) {
-            RobotLog.d("Gamepad with user %d received. Only users 1 and 2 are valid");
+            RobotLog.d("Gamepad with invalid user received. Only users 1 and 2 are valid");
             return;
         }
-        int userIndex = gamepad.user - 1;
-        this.gamepads[userIndex].copy(gamepad);
+        int port = gamepad.user - 1;
+        this.gamepads[port].copy(gamepad);
         if (this.gamepads[0].id == this.gamepads[1].id) {
             RobotLog.v("Gamepad moved position, removing stale gamepad");
-            if (userIndex == 0) {
+            if (port == 0) {
                 this.gamepads[1].copy(new Gamepad());
             }
-            if (userIndex == 1) {
+            if (port == 1) {
                 this.gamepads[0].copy(new Gamepad());
             }
         }
@@ -466,21 +451,16 @@ public class EventLoopManager {
         }
         command.acknowledge();
         this.socket.send(new RobocolDatagram(command));
-        Command[] commandArr = this.recvCommandCache;
-        int length = commandArr.length;
-        int i = 0;
-        while (i < length) {
-            Command command2 = commandArr[i];
-            if ((command2 == null) || !command2.equals(command)) {
-                i++;
-            } else {
+
+        for (Command recvCommand : this.recvCommandCache) {
+            if ((recvCommand != null) && recvCommand.equals(command)) {
                 return;
             }
         }
-        Command[] commandArr2 = this.recvCommandCache;
-        int i2 = this.recvCommandCachePosition;
-        this.recvCommandCachePosition = i2 + 1;
-        commandArr2[i2 % this.recvCommandCache.length] = command;
+
+        int cachePosition = this.recvCommandCachePosition;
+        this.recvCommandCache[cachePosition % this.recvCommandCache.length] = command;
+        this.recvCommandCachePosition++;
         try {
             this.eventLoop.processCommand(command);
         } catch (Exception e) {
