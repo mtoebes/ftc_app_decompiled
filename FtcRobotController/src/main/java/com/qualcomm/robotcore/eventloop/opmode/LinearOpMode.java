@@ -4,61 +4,54 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 public abstract class LinearOpMode extends OpMode {
-    private C0031a f202a;
-    private Thread f203b;
-    private ElapsedTime f204c;
-    private volatile boolean f205d;
+    private LinearOpModeRunnable linearOpModeRunnable;
+    private Thread linearOpModeThread;
+    private ElapsedTime elapsedTime = new ElapsedTime();
+    private volatile boolean isRunning;
 
-    /* renamed from: com.qualcomm.robotcore.eventloop.opmode.LinearOpMode.a */
-    private static class C0031a implements Runnable {
-        private RuntimeException f198a;
-        private boolean f199b;
-        private final LinearOpMode f200c;
+    private static class LinearOpModeRunnable implements Runnable {
+        private RuntimeException runtimeException;
+        private boolean isRunning;
+        private final LinearOpMode linearOpMode;
 
-        public C0031a(LinearOpMode linearOpMode) {
-            this.f198a = null;
-            this.f199b = false;
-            this.f200c = linearOpMode;
+        public LinearOpModeRunnable(LinearOpMode linearOpMode) {
+            this.linearOpMode = linearOpMode;
         }
 
         public void run() {
-            this.f198a = null;
-            this.f199b = false;
+            this.runtimeException = null;
+            this.isRunning = false;
             try {
-                this.f200c.runOpMode();
+                this.linearOpMode.runOpMode();
             } catch (InterruptedException e) {
                 RobotLog.d("LinearOpMode received an Interrupted Exception; shutting down this linear op mode");
             } catch (RuntimeException e2) {
-                this.f198a = e2;
+                this.runtimeException = e2;
             } finally {
-                this.f199b = true;
+                this.isRunning = true;
             }
         }
 
-        public boolean m181a() {
-            return this.f198a != null;
+        public boolean encounteredRuntimeException() {
+            return this.runtimeException != null;
         }
 
-        public RuntimeException m182b() {
-            return this.f198a;
+        public RuntimeException getRuntimeException() {
+            return this.runtimeException;
         }
 
-        public boolean m183c() {
-            return this.f199b;
+        public boolean isRunning() {
+            return this.isRunning;
         }
     }
 
     public abstract void runOpMode() throws InterruptedException;
 
     public LinearOpMode() {
-        this.f202a = null;
-        this.f203b = null;
-        this.f204c = new ElapsedTime();
-        this.f205d = false;
     }
 
     public synchronized void waitForStart() throws InterruptedException {
-        while(!this.f205d) {
+        while(!this.isRunning) {
             synchronized (this) {
                 this.wait();
             }
@@ -82,40 +75,40 @@ public abstract class LinearOpMode extends OpMode {
     }
 
     public boolean opModeIsActive() {
-        return this.f205d;
+        return this.isRunning;
     }
 
     public final void init() {
-        this.f202a = new C0031a(this);
-        this.f203b = new Thread(this.f202a, "Linear OpMode Helper");
-        this.f203b.start();
+        this.linearOpModeRunnable = new LinearOpModeRunnable(this);
+        this.linearOpModeThread = new Thread(this.linearOpModeRunnable, "Linear OpMode Helper");
+        this.linearOpModeThread.start();
     }
 
     public final void init_loop() {
-        m184a();
+        performLoop();
     }
 
     public final void start() {
-        this.f205d = true;
+        this.isRunning = true;
         synchronized (this) {
             notifyAll();
         }
     }
 
     public final void loop() {
-        m184a();
+        performLoop();
     }
 
     public final void stop() {
-        this.f205d = false;
-        if (!this.f202a.m183c()) {
-            this.f203b.interrupt();
+        this.isRunning = false;
+        if (!this.linearOpModeRunnable.isRunning()) {
+            this.linearOpModeThread.interrupt();
         }
-        this.f204c.reset();
-        while (!this.f202a.m183c() && this.f204c.time() < 0.5d) {
+        this.elapsedTime.reset();
+        while ((!this.linearOpModeRunnable.isRunning()) && (this.elapsedTime.time() < 0.5d)) {
             Thread.yield();
         }
-        if (!this.f202a.m183c()) {
+        if (!this.linearOpModeRunnable.isRunning()) {
             RobotLog.e("*****************************************************************");
             RobotLog.e("User Linear Op Mode took too long to exit; emergency killing app.");
             RobotLog.e("Possible infinite loop in user code?");
@@ -124,9 +117,9 @@ public abstract class LinearOpMode extends OpMode {
         }
     }
 
-    private void m184a() {
-        if (this.f202a.m181a()) {
-            throw this.f202a.m182b();
+    private void performLoop() {
+        if (this.linearOpModeRunnable.encounteredRuntimeException()) {
+            throw this.linearOpModeRunnable.getRuntimeException();
         }
         synchronized (this) {
             notifyAll();
