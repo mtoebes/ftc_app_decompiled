@@ -37,18 +37,18 @@ public class ReadXMLFileHandler {
             this.parser.setInput(is, null);
             int next = this.parser.getEventType();
             while (next != XmlPullParser.END_DOCUMENT) {
-                String type = getConfigurationType(this.parser.getName());
+                ConfigurationType type = getConfigurationType(this.parser.getName());
                 if (next == XmlPullParser.START_TAG) {
-                    if (type.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+                    if (type == ConfigurationType.MOTOR_CONTROLLER) {
                         this.controllerConfigurations.add(parseMotorController(true));
                     }
-                    if (type.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+                    if (type == ConfigurationType.SERVO_CONTROLLER) {
                         this.controllerConfigurations.add(parseServoController(true));
                     }
-                    if (type.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
+                    if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
                         this.controllerConfigurations.add(parseLegacyModuleController());
                     }
-                    if (type.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
+                    if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
                         this.controllerConfigurations.add(parseDeviceInterfaceModule());
                     }
                 }
@@ -73,13 +73,13 @@ public class ReadXMLFileHandler {
         ArrayList<DeviceConfiguration> digitalDeviceConfigurations = createDeviceConfigurationList(DIGITAL_PORTS, ConfigurationType.DIGITAL_DEVICE);
         ArrayList<DeviceConfiguration> analogOutputConfigurations = createDeviceConfigurationList(ANALOG_OUTPUT_PORTS, ConfigurationType.ANALOG_OUTPUT);
         int next = this.parser.next();
-        String type = getConfigurationType(this.parser.getName());
+        ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
             if (next == XmlPullParser.END_TAG && type != null) {
                     if (DEBUG) {
                         RobotLog.e("[handleDeviceInterfaceModule] tagname: " + type);
                     }
-                    if (type.equalsIgnoreCase(ConfigurationType.DEVICE_INTERFACE_MODULE.toString())) {
+                    if (type == ConfigurationType.DEVICE_INTERFACE_MODULE) {
                         DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = new DeviceInterfaceModuleConfiguration(name, new SerialNumber(serialNumber));
                         deviceInterfaceModuleConfiguration.setPwmDevices(pwdConfigurations);
                         deviceInterfaceModuleConfiguration.setI2cDevices(i2cConfigurations);
@@ -92,23 +92,23 @@ public class ReadXMLFileHandler {
             }
             if (next == XmlPullParser.START_TAG) {
                 DeviceConfiguration deviceConfiguration;
-                if (type.equalsIgnoreCase(ConfigurationType.ANALOG_INPUT.toString()) || type.equalsIgnoreCase(ConfigurationType.OPTICAL_DISTANCE_SENSOR.toString())) {
+                if (type == ConfigurationType.ANALOG_INPUT || type == ConfigurationType.OPTICAL_DISTANCE_SENSOR) {
                     deviceConfiguration = parseDeviceConfiguration();
                     analogInputConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 }
-                if (type.equalsIgnoreCase(ConfigurationType.PULSE_WIDTH_DEVICE.toString())) {
+                if (type == ConfigurationType.PULSE_WIDTH_DEVICE) {
                     deviceConfiguration = parseDeviceConfiguration();
                     pwdConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 }
-                if (type.equalsIgnoreCase(ConfigurationType.I2C_DEVICE.toString()) || type.equalsIgnoreCase(ConfigurationType.IR_SEEKER_V3.toString()) || type.equalsIgnoreCase(ConfigurationType.ADAFRUIT_COLOR_SENSOR.toString()) || type.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) || type.equalsIgnoreCase(ConfigurationType.GYRO.toString())) {
+                if (type == ConfigurationType.I2C_DEVICE || type == ConfigurationType.IR_SEEKER_V3 || type == ConfigurationType.ADAFRUIT_COLOR_SENSOR || type == ConfigurationType.COLOR_SENSOR || type == ConfigurationType.GYRO) {
                     deviceConfiguration = parseDeviceConfiguration();
                     i2cConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 }
-                if (type.equalsIgnoreCase(ConfigurationType.ANALOG_OUTPUT.toString())) {
+                if (type == ConfigurationType.ANALOG_OUTPUT) {
                     deviceConfiguration = parseDeviceConfiguration();
                     analogOutputConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 }
-                if (type.equalsIgnoreCase(ConfigurationType.DIGITAL_DEVICE.toString()) || type.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) || type.equalsIgnoreCase(ConfigurationType.LED.toString())) {
+                if (type == ConfigurationType.DIGITAL_DEVICE || type == ConfigurationType.TOUCH_SENSOR || type == ConfigurationType.LED) {
                     DeviceConfiguration c2 = parseDeviceConfiguration();
                     digitalDeviceConfigurations.set(c2.getPort(), c2);
                 }
@@ -125,11 +125,11 @@ public class ReadXMLFileHandler {
         String serialNumber = this.parser.getAttributeValue(null, "serialNumber");
         List deviceConfigurations = createDeviceConfigurationList(LEGACY_MODULE_PORTS, ConfigurationType.NOTHING);
         int next = this.parser.next();
-        String type = getConfigurationType(this.parser.getName());
+        ConfigurationType type = getConfigurationType(this.parser.getName());
         ControllerConfiguration legacyModuleControllerConfiguration;
         while (next != XmlPullParser.END_DOCUMENT) {
             if (next == XmlPullParser.END_TAG && type != null) {
-                if (type.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
+                if (type == ConfigurationType.LEGACY_MODULE_CONTROLLER) {
                     legacyModuleControllerConfiguration = new LegacyModuleControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
                     legacyModuleControllerConfiguration.setEnabled(true);
                     return legacyModuleControllerConfiguration;
@@ -140,16 +140,16 @@ public class ReadXMLFileHandler {
                     RobotLog.e("[handleLegacyModule] tagname: " + type);
                 }
                 DeviceConfiguration deviceConfiguration;
-                if (type.equalsIgnoreCase(ConfigurationType.COMPASS.toString()) || type.equalsIgnoreCase(ConfigurationType.LIGHT_SENSOR.toString()) || type.equalsIgnoreCase(ConfigurationType.IR_SEEKER.toString()) || type.equalsIgnoreCase(ConfigurationType.ACCELEROMETER.toString()) || type.equalsIgnoreCase(ConfigurationType.GYRO.toString()) || type.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR.toString()) || type.equalsIgnoreCase(ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.toString()) || type.equalsIgnoreCase(ConfigurationType.ULTRASONIC_SENSOR.toString()) || type.equalsIgnoreCase(ConfigurationType.COLOR_SENSOR.toString()) || type.equalsIgnoreCase(ConfigurationType.NOTHING.toString())) {
+                if (type == ConfigurationType.COMPASS || type == ConfigurationType.LIGHT_SENSOR || type == ConfigurationType.IR_SEEKER || type == ConfigurationType.ACCELEROMETER || type == ConfigurationType.GYRO || type == ConfigurationType.TOUCH_SENSOR || type == ConfigurationType.TOUCH_SENSOR_MULTIPLEXER || type == ConfigurationType.ULTRASONIC_SENSOR || type == ConfigurationType.COLOR_SENSOR || type == ConfigurationType.NOTHING) {
                     deviceConfiguration = parseDeviceConfiguration();
                     deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
-                } else if (type.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+                } else if (type == ConfigurationType.MOTOR_CONTROLLER) {
                     deviceConfiguration = parseMotorController(false);
                     deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
-                } else if (type.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+                } else if (type == ConfigurationType.SERVO_CONTROLLER) {
                     deviceConfiguration = parseServoController(false);
                     deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
-                } else if (type.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
+                } else if (type == ConfigurationType.MATRIX_CONTROLLER) {
                     deviceConfiguration = parseMatrixController();
                     deviceConfigurations.set(deviceConfiguration.getPort(), deviceConfiguration);
                 }
@@ -161,9 +161,9 @@ public class ReadXMLFileHandler {
     }
 
     private DeviceConfiguration parseDeviceConfiguration() {
-        String type = getConfigurationType(this.parser.getName());
+        ConfigurationType type = getConfigurationType(this.parser.getName());
         DeviceConfiguration deviceConfiguration = new DeviceConfiguration(Integer.parseInt(this.parser.getAttributeValue(null, "port")));
-        deviceConfiguration.setType(deviceConfiguration.typeFromString(type));
+        deviceConfiguration.setType(type);
         deviceConfiguration.setName(this.parser.getAttributeValue(null, "name"));
         if (!deviceConfiguration.getName().equalsIgnoreCase(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
             deviceConfiguration.setEnabled(true);
@@ -195,10 +195,10 @@ public class ReadXMLFileHandler {
         ArrayList<DeviceConfiguration> servoConfigurations = createDeviceConfigurationList(MATRIX_SERVO_PORTS, ConfigurationType.SERVO);
         ArrayList<DeviceConfiguration> motorConfigurations = createDeviceConfigurationList(MATRIX_MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.parser.next();
-        String type = getConfigurationType(this.parser.getName());
+        ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
             if (next == XmlPullParser.END_TAG && type != null) {
-                if (type.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
+                if (type == ConfigurationType.MATRIX_CONTROLLER) {
                     ControllerConfiguration matrixControllerConfiguration = new MatrixControllerConfiguration(name, motorConfigurations, servoConfigurations, new SerialNumber(serialNumber));
                     matrixControllerConfiguration.setPort(port);
                     matrixControllerConfiguration.setEnabled(true);
@@ -207,10 +207,10 @@ public class ReadXMLFileHandler {
             }
             if (next == XmlPullParser.START_TAG) {
                 int devicePort;
-                if (type.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
+                if (type == ConfigurationType.SERVO) {
                     devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                     servoConfigurations.set(devicePort - 1, new ServoConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
-                } else if (type.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
+                } else if (type == ConfigurationType.MOTOR) {
                     devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                     motorConfigurations.set(devicePort - 1, new MotorConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
                 }
@@ -234,17 +234,17 @@ public class ReadXMLFileHandler {
         }
         List deviceConfigurations = createDeviceConfigurationList(SERVO_PORTS, ConfigurationType.SERVO);
         int next = this.parser.next();
-        String type = getConfigurationType(this.parser.getName());
+        ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
             if (next == XmlPullParser.END_TAG && type != null) {
-                if (type.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
+                if (type == ConfigurationType.SERVO_CONTROLLER) {
                     servoControllerConfiguration = new ServoControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
                     servoControllerConfiguration.setPort(port);
                     servoControllerConfiguration.setEnabled(true);
                     return servoControllerConfiguration;
                 }
             }
-            if (next == XmlPullParser.START_TAG && type.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
+            if (next == XmlPullParser.START_TAG && type == ConfigurationType.SERVO) {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 deviceConfigurations.set(devicePort - 1, new ServoConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
             }
@@ -268,17 +268,17 @@ public class ReadXMLFileHandler {
         }
         List deviceConfigurations = createDeviceConfigurationList(MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.parser.next();
-        String type = getConfigurationType(this.parser.getName());
+        ConfigurationType type = getConfigurationType(this.parser.getName());
         while (next != XmlPullParser.END_DOCUMENT) {
             if (next == XmlPullParser.END_TAG && type != null) {
-                if (type.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
+                if (type == ConfigurationType.MOTOR_CONTROLLER) {
                     motorControllerConfiguration = new MotorControllerConfiguration(name, deviceConfigurations, new SerialNumber(serialNumber));
                     motorControllerConfiguration.setPort(port);
                     motorControllerConfiguration.setEnabled(true);
                     return motorControllerConfiguration;
                 }
             }
-            if (next == XmlPullParser.START_TAG && type.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
+            if (next == XmlPullParser.START_TAG && type == ConfigurationType.MOTOR) {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 deviceConfigurations.set(devicePort - 1, new MotorConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
             }
@@ -290,73 +290,73 @@ public class ReadXMLFileHandler {
         return motorControllerConfiguration;
     }
 
-    private String getConfigurationType(String str) {
-        if (str == null) {
+        private static ConfigurationType getConfigurationType(String str) {
+            if (str == null) {
+                return null;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.MOTOR_CONTROLLER)) {
+                return DeviceConfiguration.ConfigurationType.MOTOR_CONTROLLER;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.SERVO_CONTROLLER)) {
+                return DeviceConfiguration.ConfigurationType.SERVO_CONTROLLER;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.LEGACY_MODULE_CONTROLLER)) {
+                return DeviceConfiguration.ConfigurationType.LEGACY_MODULE_CONTROLLER;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.DEVICE_INTERFACE_MODULE)) {
+                return DeviceConfiguration.ConfigurationType.DEVICE_INTERFACE_MODULE;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.ANALOG_INPUT)) {
+                return DeviceConfiguration.ConfigurationType.ANALOG_INPUT;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.OPTICAL_DISTANCE_SENSOR)) {
+                return DeviceConfiguration.ConfigurationType.OPTICAL_DISTANCE_SENSOR;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.IR_SEEKER)) {
+                return DeviceConfiguration.ConfigurationType.IR_SEEKER;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.LIGHT_SENSOR)) {
+                return DeviceConfiguration.ConfigurationType.LIGHT_SENSOR;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.DIGITAL_DEVICE)) {
+                return DeviceConfiguration.ConfigurationType.DIGITAL_DEVICE;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.TOUCH_SENSOR)) {
+                return DeviceConfiguration.ConfigurationType.TOUCH_SENSOR;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.IR_SEEKER_V3)) {
+                return DeviceConfiguration.ConfigurationType.IR_SEEKER_V3;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.PULSE_WIDTH_DEVICE)) {
+                return DeviceConfiguration.ConfigurationType.PULSE_WIDTH_DEVICE;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.I2C_DEVICE)) {
+                return DeviceConfiguration.ConfigurationType.I2C_DEVICE;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.ANALOG_OUTPUT)) {
+                return DeviceConfiguration.ConfigurationType.ANALOG_OUTPUT;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.TOUCH_SENSOR_MULTIPLEXER)) {
+                return DeviceConfiguration.ConfigurationType.TOUCH_SENSOR_MULTIPLEXER;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.MATRIX_CONTROLLER)) {
+                return DeviceConfiguration.ConfigurationType.MATRIX_CONTROLLER;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.ULTRASONIC_SENSOR)) {
+                return DeviceConfiguration.ConfigurationType.ULTRASONIC_SENSOR;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.ADAFRUIT_COLOR_SENSOR)) {
+                return DeviceConfiguration.ConfigurationType.ADAFRUIT_COLOR_SENSOR;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.COLOR_SENSOR)) {
+                return DeviceConfiguration.ConfigurationType.COLOR_SENSOR;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.LED)) {
+                return DeviceConfiguration.ConfigurationType.LED;
+            }
+            if (str.equalsIgnoreCase(XMLConfigurationConstants.GYRO)) {
+                return DeviceConfiguration.ConfigurationType.GYRO;
+            }
             return null;
         }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.MOTOR_CONTROLLER)) {
-            return ConfigurationType.MOTOR_CONTROLLER.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.SERVO_CONTROLLER)) {
-            return ConfigurationType.SERVO_CONTROLLER.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.LEGACY_MODULE_CONTROLLER)) {
-            return ConfigurationType.LEGACY_MODULE_CONTROLLER.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.DEVICE_INTERFACE_MODULE)) {
-            return ConfigurationType.DEVICE_INTERFACE_MODULE.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.ANALOG_INPUT)) {
-            return ConfigurationType.ANALOG_INPUT.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.OPTICAL_DISTANCE_SENSOR)) {
-            return ConfigurationType.OPTICAL_DISTANCE_SENSOR.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.IR_SEEKER)) {
-            return ConfigurationType.IR_SEEKER.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.LIGHT_SENSOR)) {
-            return ConfigurationType.LIGHT_SENSOR.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.DIGITAL_DEVICE)) {
-            return ConfigurationType.DIGITAL_DEVICE.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.TOUCH_SENSOR)) {
-            return ConfigurationType.TOUCH_SENSOR.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.IR_SEEKER_V3)) {
-            return ConfigurationType.IR_SEEKER_V3.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.PULSE_WIDTH_DEVICE)) {
-            return ConfigurationType.PULSE_WIDTH_DEVICE.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.I2C_DEVICE)) {
-            return ConfigurationType.I2C_DEVICE.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.ANALOG_OUTPUT)) {
-            return ConfigurationType.ANALOG_OUTPUT.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.TOUCH_SENSOR_MULTIPLEXER)) {
-            return ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.MATRIX_CONTROLLER)) {
-            return ConfigurationType.MATRIX_CONTROLLER.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.ULTRASONIC_SENSOR)) {
-            return ConfigurationType.ULTRASONIC_SENSOR.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.ADAFRUIT_COLOR_SENSOR)) {
-            return ConfigurationType.ADAFRUIT_COLOR_SENSOR.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.COLOR_SENSOR)) {
-            return ConfigurationType.COLOR_SENSOR.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.LED)) {
-            return ConfigurationType.LED.toString();
-        }
-        if (str.equalsIgnoreCase(XMLConfigurationConstants.GYRO)) {
-            return ConfigurationType.GYRO.toString();
-        }
-        return str;
-    }
 }
