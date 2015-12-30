@@ -36,9 +36,9 @@ public class ReadXMLFileHandler {
             this.parser = newInstance.newPullParser();
             this.parser.setInput(is, null);
             int next = this.parser.getEventType();
-            while (next != 1) {
+            while (next != XmlPullParser.END_DOCUMENT) {
                 String type = getConfigurationType(this.parser.getName());
-                if (next == 2) {
+                if (next == XmlPullParser.START_TAG) {
                     if (type.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
                         this.controllerConfigurations.add(parseMotorController(true));
                     }
@@ -74,8 +74,8 @@ public class ReadXMLFileHandler {
         ArrayList<DeviceConfiguration> analogOutputConfigurations = createDeviceConfigurationList(ANALOG_OUTPUT_PORTS, ConfigurationType.ANALOG_OUTPUT);
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (type == null) {
                     continue;
                 } else {
@@ -94,7 +94,7 @@ public class ReadXMLFileHandler {
                     }
                 }
             }
-            if (next == 2) {
+            if (next == XmlPullParser.START_TAG) {
                 DeviceConfiguration deviceConfiguration;
                 if (type.equalsIgnoreCase(ConfigurationType.ANALOG_INPUT.toString()) || type.equalsIgnoreCase(ConfigurationType.OPTICAL_DISTANCE_SENSOR.toString())) {
                     deviceConfiguration = parseDeviceConfiguration();
@@ -131,8 +131,8 @@ public class ReadXMLFileHandler {
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
         ControllerConfiguration legacyModuleControllerConfiguration;
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (type == null) {
                     continue;
                 } else if (type.equalsIgnoreCase(ConfigurationType.LEGACY_MODULE_CONTROLLER.toString())) {
@@ -141,7 +141,7 @@ public class ReadXMLFileHandler {
                     return legacyModuleControllerConfiguration;
                 }
             }
-            if (next == 2) {
+            if (next == XmlPullParser.START_TAG) {
                 if (DEBUG) {
                     RobotLog.e("[handleLegacyModule] tagname: " + type);
                 }
@@ -202,8 +202,8 @@ public class ReadXMLFileHandler {
         ArrayList<DeviceConfiguration> motorConfigurations = createDeviceConfigurationList(MATRIX_MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (type == null) {
                     continue;
                 } else if (type.equalsIgnoreCase(ConfigurationType.MATRIX_CONTROLLER.toString())) {
@@ -213,7 +213,7 @@ public class ReadXMLFileHandler {
                     return matrixControllerConfiguration;
                 }
             }
-            if (next == 2) {
+            if (next == XmlPullParser.START_TAG) {
                 int devicePort;
                 if (type.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
                     devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
@@ -243,8 +243,8 @@ public class ReadXMLFileHandler {
         List deviceConfigurations = createDeviceConfigurationList(SERVO_PORTS, ConfigurationType.SERVO);
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (type == null) {
                     continue;
                 } else if (type.equalsIgnoreCase(ConfigurationType.SERVO_CONTROLLER.toString())) {
@@ -254,7 +254,7 @@ public class ReadXMLFileHandler {
                     return servoControllerConfiguration;
                 }
             }
-            if (next == 2 && type.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
+            if (next == XmlPullParser.START_TAG && type.equalsIgnoreCase(ConfigurationType.SERVO.toString())) {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 deviceConfigurations.set(devicePort - 1, new ServoConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
             }
@@ -279,8 +279,8 @@ public class ReadXMLFileHandler {
         List deviceConfigurations = createDeviceConfigurationList(MOTOR_PORTS, ConfigurationType.MOTOR);
         int next = this.parser.next();
         String type = getConfigurationType(this.parser.getName());
-        while (next != 1) {
-            if (next == 3) {
+        while (next != XmlPullParser.END_DOCUMENT) {
+            if (next == XmlPullParser.END_TAG) {
                 if (type == null) {
                     continue;
                 } else if (type.equalsIgnoreCase(ConfigurationType.MOTOR_CONTROLLER.toString())) {
@@ -290,7 +290,7 @@ public class ReadXMLFileHandler {
                     return motorControllerConfiguration;
                 }
             }
-            if (next == 2 && type.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
+            if (next == XmlPullParser.START_TAG && type.equalsIgnoreCase(ConfigurationType.MOTOR.toString())) {
                 int devicePort = Integer.parseInt(this.parser.getAttributeValue(null, "port"));
                 deviceConfigurations.set(devicePort - 1, new MotorConfiguration(devicePort, this.parser.getAttributeValue(null, "name"), true));
             }
