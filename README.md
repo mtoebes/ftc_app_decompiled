@@ -2,11 +2,17 @@
 
 This is an attempt to decompile the qualcomm libraries used by ftc_app's [opmodes](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/src/main/java/com/qualcomm/ftcrobotcontroller/opmodes)
 
-This project is intended to expose the full ftc_app implementation and to allow for improvments to the documentation both within the logic and in the javadocs.
+This project is intended to expose the full ftc_app implementation. 
+
+Currently, you are able to browse decompiled classes within android studio but it can be difficult to follow due to auto-generated variable/method names, lack of documentation, compile errors, and unintutive logic. In particular, the limited javadoc documentation is very frustrating. 
+
+These are all issues I would like to see eased by this project. 
+
+Any refactoring of logicis intended to aid readability, not enhance functionality. 
 
 I <b>strongly</b> recommend that you still build your APK with the offical libraries to avoid any unforseen bugs. 
 
-Places of note:
+Files of note:
 * [Docompiler-Libs](https://github.com/mtoebes/ftc_app_decompiled/tree/master/Decompiled-Libs) : Raw output from JADX decompiler
 * [doc/javadoc](https://github.com/mtoebes/ftc_app_decompiled/tree/master/doc/javadoc) : Documentation for this project. You can view it online [here](http://mtoebes.github.io/ftc_app_decompiled/doc/javadoc/)
 * [FtcRobotController/src/.../qualcomm](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/src/main/java/com/qualcomm) : Java packages
