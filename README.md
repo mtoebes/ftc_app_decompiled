@@ -4,12 +4,12 @@ This is an attempt to decompile the qualcomm libraries used by ftc_app's [opmode
 
 This project is intended to expose the full ftc_app implementation and to allow for improvments to the documentation both within the logic and in the javadocs.
 
-I strongly recommend that you still build your APK with the offical libraries to avoid any unforseen bugs. 
+I <b>strongly</b> recommend that you still build your APK with the offical libraries to avoid any unforseen bugs. 
 
 Places of note:
-* [Docompiler-Libs](https://github.com/mtoebes/ftc_app_decompiled/tree/master/Decompiled-Libs)
-* [doc/javadoc](https://github.com/mtoebes/ftc_app_decompiled/tree/master/doc/javadoc) documentation for this project. You can view it online [here](http://mtoebes.github.io/ftc_app_decompiled/doc/javadoc/)
-* [FtcRobotController/src/.../qualcomm](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/src/main/java/com/qualcomm) java packages
+* [Docompiler-Libs](https://github.com/mtoebes/ftc_app_decompiled/tree/master/Decompiled-Libs) : Raw output from JADX decompiler
+* [doc/javadoc](https://github.com/mtoebes/ftc_app_decompiled/tree/master/doc/javadoc) : Documentation for this project. You can view it online [here](http://mtoebes.github.io/ftc_app_decompiled/doc/javadoc/)
+* [FtcRobotController/src/.../qualcomm](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/src/main/java/com/qualcomm) : Java packages
 
 Libraries:
 * Analytics - Sends analytics to qualcomm server
