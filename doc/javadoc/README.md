@@ -1,1 +1,1 @@
-View javadoc online at: http://mtoebes.github.io/ftc_app_decompiled/javadoc/
+View javadoc online at: http://mtoebes.github.io/ftc_app_decompiled/doc/javadoc/
