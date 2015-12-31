@@ -2,7 +2,7 @@
 
 raw output from [JADX decompiler](http://www.javadecompilers.com)
 
-The library binaries are found under[FtcRobotController/libs](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/libs)
+The library binaries are found under [FtcRobotController/libs](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/libs)
 
 Steps to Reproduce:
 1. Rename extension from .aar to .jar
