@@ -1,10 +1,8 @@
 # ftc_app_decompiled 
 
-This project is 
-This is an attempt to decompile the qualcomm libraries used by ftc_app's [opmodes](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/src/main/java/com/qualcomm/ftcrobotcontroller/opmodes)
-See [ftctechnh/ftc_app](https://github.com/ftctechnh/ftc_app) for the offical FTC app.
+This project's goal to expose the implementation of ftc_app's dependancy libraries in the hope of aiding opmode development
 
-This project is intended to expose the implementation of ftc_app's dependancy libraries.
+See [ftctechnh/ftc_app](https://github.com/ftctechnh/ftc_app) for the offical FTC app.
 
 Currently, you are able to browse decompiled classes within android studio but it can be difficult to follow due to auto-generated variable/method names, lack of documentation, compile errors, and unintutive logic. In particular, the limited javadoc documentation is very frustrating. These are all issues I would like to see eased by this project. 
 
@@ -27,7 +25,5 @@ I <b>strongly</b> recommend that you still build your APK with the offical libra
 
 ## Current Project Status:
 RobotCore has been added to FtcRobotController. The code has been refactored to be readable and has original javadoc comments. Most logic changes are to simplify code flow and enhance readability. Have not been able to fully test the compiled app.
-
-See [ftctechnh/ftc_app](https://github.com/ftctechnh/ftc_app) for the offical FTC app.
 
 ftc_app Release 15.11.04.001
