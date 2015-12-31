@@ -31,7 +31,7 @@
 
 /**
  * RobotCore event loop library FTC Robot Controller. Used to control an FTC Robot.
- * <p>
+ * <p/>
  * If you would like to create your own custom event loop, see {@link com.qualcomm.robotcore.eventloop.EventLoop}
  */
 package com.qualcomm.robotcore.eventloop;

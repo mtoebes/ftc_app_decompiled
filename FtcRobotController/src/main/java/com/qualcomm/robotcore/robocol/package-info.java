@@ -31,7 +31,7 @@
 
 /**
  * RobotCore robocol library.
- *
+ * <p/>
  * Contains libraries for working with gamepads, DC motor controllers, servo controllers, and more.
  */
 package com.qualcomm.robotcore.robocol;
