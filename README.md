@@ -26,6 +26,6 @@ High-level description of the functionality of the libraries
 * WirelessP2p - handler for wireless communication
 
 ## Current Project Status
-RobotCore has been added to FtcRobotController. The code has been refactored to be readable and has original javadoc comments. Most logic changes are to simplify code flow and enhance readability. Have not been able to fully test the compiled app.
+[RobotCore](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/src/main/java/com/qualcomm/robotcore) has been added to FtcRobotController. The code has been refactored to be readable and has original javadoc comments. Most logic changes are to simplify code flow and enhance readability. Have not been able to fully test the compiled app.
 
 ftc_app Release 15.11.04.001
