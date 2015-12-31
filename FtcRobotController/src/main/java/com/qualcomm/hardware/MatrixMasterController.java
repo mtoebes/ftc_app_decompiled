@@ -32,43 +32,43 @@ public class MatrixMasterController implements I2cPortReadyCallback {
             f110a = new int[C0008a.values().length];
             try {
                 f110a[C0008a.PROPERTY_BATTERY.ordinal()] = 1;
-            } catch (NoSuchFieldError e) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_POSITION.ordinal()] = 2;
-            } catch (NoSuchFieldError e2) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_TARGET.ordinal()] = 3;
-            } catch (NoSuchFieldError e3) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_MODE.ordinal()] = 4;
-            } catch (NoSuchFieldError e4) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_SERVO.ordinal()] = 5;
-            } catch (NoSuchFieldError e5) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_TIMEOUT.ordinal()] = 6;
-            } catch (NoSuchFieldError e6) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_START.ordinal()] = 7;
-            } catch (NoSuchFieldError e7) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_SPEED.ordinal()] = 8;
-            } catch (NoSuchFieldError e8) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_MOTOR_BATCH.ordinal()] = 9;
-            } catch (NoSuchFieldError e9) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f110a[C0008a.PROPERTY_SERVO_ENABLE.ordinal()] = 10;
-            } catch (NoSuchFieldError e10) {
+            } catch (NoSuchFieldError ignored) {
             }
         }
     }
@@ -86,7 +86,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
         this.f117g = new ElapsedTime(0);
         this.legacyModule = legacyModule;
         this.physicalPort = physicalPort;
-        this.transactionQueue = new ConcurrentLinkedQueue();
+        this.transactionQueue = new ConcurrentLinkedQueue<MatrixI2cTransaction>();
         legacyModule.registerForI2cPortReadyCallback(this, physicalPort);
     }
 
@@ -175,26 +175,26 @@ public class MatrixMasterController implements I2cPortReadyCallback {
     public void portIsReady(int port) {
         int i = 4;
         if (!this.transactionQueue.isEmpty()) {
-            MatrixI2cTransaction matrixI2cTransaction = (MatrixI2cTransaction) this.transactionQueue.peek();
+            MatrixI2cTransaction matrixI2cTransaction = this.transactionQueue.peek();
             if (matrixI2cTransaction.state == C0009b.PENDING_I2C_READ) {
-                this.legacyModule.readI2cCacheFromModule(this.physicalPort);
+                this.legacyModule.readI2cCacheFromController(this.physicalPort);
                 matrixI2cTransaction.state = C0009b.PENDING_READ_DONE;
                 return;
             }
             byte[] bArr;
             int i2 = 0; //TODO error on setWriteMode that i2 was not initialized. set to value in switch default
             if (matrixI2cTransaction.state == C0009b.PENDING_I2C_WRITE) {
-                matrixI2cTransaction = (MatrixI2cTransaction) this.transactionQueue.poll();
+                matrixI2cTransaction = this.transactionQueue.poll();
                 if (!this.transactionQueue.isEmpty()) {
-                    matrixI2cTransaction = (MatrixI2cTransaction) this.transactionQueue.peek();
+                    matrixI2cTransaction = this.transactionQueue.peek();
                 } else {
                     return;
                 }
             } else if (matrixI2cTransaction.state == C0009b.PENDING_READ_DONE) {
                 handleReadDone(matrixI2cTransaction);
-                matrixI2cTransaction = (MatrixI2cTransaction) this.transactionQueue.poll();
+                matrixI2cTransaction = this.transactionQueue.poll();
                 if (!this.transactionQueue.isEmpty()) {
-                    matrixI2cTransaction = (MatrixI2cTransaction) this.transactionQueue.peek();
+                    matrixI2cTransaction = this.transactionQueue.peek();
                 } else {
                     return;
                 }
@@ -209,7 +209,6 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                 case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
                     byte b2 = f112b[matrixI2cTransaction.motor];
                     bArr = new byte[]{(byte) 0};
-                    b = b2;
                     break;
                 case ModernRoboticsUsbLegacyModule.ADDRESS_BUFFER_STATUS /*3*/:
                     i2 = f113c[matrixI2cTransaction.motor];
@@ -217,12 +216,10 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                     break;
                 case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S0 /*4*/:
                     bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    b = f115e[matrixI2cTransaction.motor];
                     i = 1;
                     break;
                 case ModernRoboticsUsbDeviceInterfaceModule.MAX_I2C_PORT_NUMBER /*5*/:
                     bArr = new byte[]{matrixI2cTransaction.speed, (byte) matrixI2cTransaction.target};
-                    b = f111a[matrixI2cTransaction.servo];
                     i = 2;
                     break;
                 case ModernRoboticsUsbServoController.MAX_SERVOS /*6*/:
@@ -237,7 +234,6 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                     break;
                 case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S2 /*8*/:
                     bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    b = f114d[matrixI2cTransaction.motor];
                     i = 1;
                     break;
                 case ModernRoboticsUsbServoController.MONITOR_LENGTH /*9*/:
@@ -248,7 +244,6 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                     allocate.put(matrixI2cTransaction.speed);
                     allocate.put(matrixI2cTransaction.mode);
                     bArr = allocate.array();
-                    b = b3;
                     i = 10;
                     break;
                 case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S3 /*10*/:
@@ -272,7 +267,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                     matrixI2cTransaction.state = C0009b.PENDING_I2C_READ;
                 }
                 this.legacyModule.setI2cPortActionFlag(this.physicalPort);
-                this.legacyModule.writeI2cCacheToModule(this.physicalPort);
+                this.legacyModule.writeI2cCacheToController(this.physicalPort);
             } catch (IllegalArgumentException e) {
                 RobotLog.e(e.getMessage());
             }

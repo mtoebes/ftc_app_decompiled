@@ -213,7 +213,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             if (set) {
                 b = (byte) (b | DIGITAL_LINE[line]);
             } else {
-                b = (byte) (b & (DIGITAL_LINE[line] ^ -1));
+                b = (byte) (b & (~DIGITAL_LINE[line]));
             }
             this.f187a[physicalPort].getWriteBuffer()[0] = b;
             writeI2cCacheToController(physicalPort);
@@ -280,7 +280,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         m68a(physicalPort);
         try {
             this.f187a[physicalPort].getReadLock().lock();
-            boolean z = this.f187a[physicalPort].getReadBuffer()[31] == -1 ? true : DEBUG_LOGGING;
+            boolean z = (this.f187a[physicalPort].getReadBuffer()[31] == -1) || DEBUG_LOGGING;
             this.f187a[physicalPort].getReadLock().unlock();
             return z;
         } catch (Throwable th) {
@@ -351,23 +351,23 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     private void m68a(int i) {
-        if (i < 0 || i > 5) {
+        if ((i < 0) || (i > 5)) {
             Object[] objArr = new Object[ADDRESS_BUFFER_STATUS];
-            objArr[0] = Integer.valueOf(i);
-            objArr[1] = Byte.valueOf(OFFSET_I2C_PORT_MODE);
-            objArr[2] = Byte.valueOf(MAX_PORT_NUMBER);
+            objArr[0] = i;
+            objArr[1] = OFFSET_I2C_PORT_MODE;
+            objArr[2] = MAX_PORT_NUMBER;
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", objArr));
         }
     }
 
     private void m70b(int i) {
-        if (i < 0 || i > 27) {
-            throw new IllegalArgumentException(String.format("buffer length of %d is invalid; max value is %d", new Object[]{Integer.valueOf(i), Byte.valueOf(SIZE_I2C_BUFFER)}));
+        if ((i < 0) || (i > 27)) {
+            throw new IllegalArgumentException(String.format("buffer length of %d is invalid; max value is %d", new Object[]{i, SIZE_I2C_BUFFER}));
         }
     }
 
     private void m71c(int i) {
-        if (i != 0 && i != 1) {
+        if ((i != 0) && (i != 1)) {
             throw new IllegalArgumentException("line is invalid, valid lines are 0 and 1");
         }
     }
@@ -377,7 +377,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             byte read = read(ADDRESS_BUFFER_STATUS);
             int i = 0;
             while (i < ADDRESS_ANALOG_PORT_S1) {
-                if (this.f188b[i] != null && m69a(i, read)) {
+                if ((this.f188b[i] != null) && m69a(i, read)) {
                     this.f188b[i].portIsReady(i);
                 }
                 i++;
@@ -386,7 +386,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     private boolean m69a(int i, byte b) {
-        return (BUFFER_FLAG_MAP[i] & b) == 0 ? true : DEBUG_LOGGING;
+        return ((BUFFER_FLAG_MAP[i] & b) == 0) || DEBUG_LOGGING;
     }
 
     public Lock getI2cReadCacheLock(int physicalPort) {

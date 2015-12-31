@@ -67,8 +67,7 @@ public class AdafruitI2cColorSensor extends ColorSensor implements I2cPortReadyC
     private int m0a(int i, int i2) {
         try {
             this.f2c.lock();
-            int i3 = (this.f1b[i] << OFFSET_GREEN_LOW_BYTE) | (this.f1b[i2] & ModernRoboticsUsbServoController.SERVO_POSITION_MAX);
-            return i3;
+            return (this.f1b[i] << OFFSET_GREEN_LOW_BYTE) | (this.f1b[i2] & ModernRoboticsUsbServoController.SERVO_POSITION_MAX);
         } finally {
             this.f2c.unlock();
         }

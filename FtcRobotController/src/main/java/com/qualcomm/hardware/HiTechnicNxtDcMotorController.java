@@ -63,36 +63,36 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
             f44b = new int[RunMode.values().length];
             try {
                 f44b[RunMode.RUN_USING_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError e) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f44b[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError e2) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f44b[RunMode.RUN_TO_POSITION.ordinal()] = HiTechnicNxtDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError e3) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f44b[RunMode.RESET_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.OFFSET_MOTOR1_TARGET_ENCODER_VALUE;
-            } catch (NoSuchFieldError e4) {
+            } catch (NoSuchFieldError ignored) {
             }
             f43a = new int[DeviceMode.values().length];
             try {
                 f43a[DeviceMode.READ_ONLY.ordinal()] = HiTechnicNxtDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError e5) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f43a[DeviceMode.WRITE_ONLY.ordinal()] = HiTechnicNxtDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError e6) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f43a[DeviceMode.SWITCHING_TO_READ_MODE.ordinal()] = HiTechnicNxtDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError e7) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f43a[DeviceMode.SWITCHING_TO_WRITE_MODE.ordinal()] = HiTechnicNxtDcMotorController.OFFSET_MOTOR1_TARGET_ENCODER_VALUE;
-            } catch (NoSuchFieldError e8) {
+            } catch (NoSuchFieldError ignored) {
             }
         }
     }
@@ -309,10 +309,10 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
 
     private void m40a() {
         if (this.f52h != DeviceMode.SWITCHING_TO_WRITE_MODE) {
-            if (this.f52h == DeviceMode.READ_ONLY || this.f52h == DeviceMode.SWITCHING_TO_READ_MODE) {
+            if ((this.f52h == DeviceMode.READ_ONLY) || (this.f52h == DeviceMode.SWITCHING_TO_READ_MODE)) {
                 String str = "Cannot write while in this mode: " + this.f52h;
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                if (stackTrace != null && stackTrace.length > CHANNEL_MODE_MASK_SELECTION) {
+                if ((stackTrace != null) && (stackTrace.length > CHANNEL_MODE_MASK_SELECTION)) {
                     str = str + "\n from method: " + stackTrace[CHANNEL_MODE_MASK_SELECTION].getMethodName();
                 }
                 throw new IllegalArgumentException(str);
@@ -322,10 +322,10 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
 
     private void m42b() {
         if (this.f52h != DeviceMode.SWITCHING_TO_READ_MODE) {
-            if (this.f52h == DeviceMode.WRITE_ONLY || this.f52h == DeviceMode.SWITCHING_TO_WRITE_MODE) {
+            if ((this.f52h == DeviceMode.WRITE_ONLY) || (this.f52h == DeviceMode.SWITCHING_TO_WRITE_MODE)) {
                 String str = "Cannot read while in this mode: " + this.f52h;
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                if (stackTrace != null && stackTrace.length > CHANNEL_MODE_MASK_SELECTION) {
+                if ((stackTrace != null) && (stackTrace.length > CHANNEL_MODE_MASK_SELECTION)) {
                     str = str + "\n from method: " + stackTrace[CHANNEL_MODE_MASK_SELECTION].getMethodName();
                 }
                 throw new IllegalArgumentException(str);
@@ -334,10 +334,10 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     }
 
     private void m41a(int i) {
-        if (i < MIN_MOTOR || i > MAX_MOTOR) {
+        if ((i < MIN_MOTOR) || (i > MAX_MOTOR)) {
             Object[] objArr = new Object[MAX_MOTOR];
-            objArr[0] = Integer.valueOf(i);
-            objArr[MIN_MOTOR] = Integer.valueOf(MAX_MOTOR);
+            objArr[0] = i;
+            objArr[MIN_MOTOR] = MAX_MOTOR;
             throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", objArr));
         }
     }
@@ -389,7 +389,7 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
             this.f45a.setI2cPortActionFlag(this.f50f);
             this.f45a.writeI2cPortFlagOnlyToController(this.f50f);
         } else {
-            if (this.f53i || this.f51g.time() > 2.0d) {
+            if (this.f53i || (this.f51g.time() > 2.0d)) {
                 this.f45a.setI2cPortActionFlag(this.f50f);
                 this.f45a.writeI2cCacheToController(this.f50f);
                 this.f51g.reset();

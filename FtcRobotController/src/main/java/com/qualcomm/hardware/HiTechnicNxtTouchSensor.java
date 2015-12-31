@@ -15,11 +15,11 @@ public class HiTechnicNxtTouchSensor extends TouchSensor {
     }
 
     public String status() {
-        return String.format("NXT Touch Sensor, connected via device %s, port %d", new Object[]{this.f73a.getSerialNumber().toString(), Integer.valueOf(this.f74b)});
+        return String.format("NXT Touch Sensor, connected via device %s, port %d", this.f73a.getSerialNumber().toString(), this.f74b);
     }
 
     public double getValue() {
-        return ((double) TypeConversion.byteArrayToShort(this.f73a.readAnalog(this.f74b), ByteOrder.LITTLE_ENDIAN)) > 675.0d ? 0.0d : 1.0d;
+        return (((double) TypeConversion.byteArrayToShort(this.f73a.readAnalog(this.f74b), ByteOrder.LITTLE_ENDIAN)) > 675.0d) ? 0.0d : 1.0d;
     }
 
     public boolean isPressed() {
