@@ -29,7 +29,7 @@ public class HiTechnicNxtTouchSensorMultiplexer extends TouchSensorMultiplexer {
     public String status() {
         Object[] objArr = new Object[MASK_TOUCH_SENSOR_2];
         objArr[0] = this.f76b.getSerialNumber().toString();
-        objArr[MASK_TOUCH_SENSOR_1] = this.f77c;
+        objArr[MASK_TOUCH_SENSOR_1] = Integer.valueOf(this.f77c);
         return String.format("NXT Touch Sensor Multiplexer, connected via device %s, port %d", objArr);
     }
 
@@ -63,10 +63,10 @@ public class HiTechnicNxtTouchSensorMultiplexer extends TouchSensorMultiplexer {
     }
 
     private void m47a(int i) {
-        if ((i <= 0) || (i > this.f75a)) {
+        if (i <= 0 || i > this.f75a) {
             Object[] objArr = new Object[MASK_TOUCH_SENSOR_2];
-            objArr[0] = i;
-            objArr[MASK_TOUCH_SENSOR_1] = this.f75a;
+            objArr[0] = Integer.valueOf(i);
+            objArr[MASK_TOUCH_SENSOR_1] = Integer.valueOf(this.f75a);
             throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", objArr));
         }
     }

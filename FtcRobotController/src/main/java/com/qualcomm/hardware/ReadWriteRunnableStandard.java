@@ -110,9 +110,9 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
     public ReadWriteRunnableStandard(SerialNumber serialNumber, RobotUsbDevice device, int monitorLength, int startAddress, boolean debug) {
         this.localDeviceReadCache = new byte[256];
         this.localDeviceWriteCache = new byte[256];
-        this.segments = new HashMap<Integer,ReadWriteRunnableSegment>();
-        this.segmentReadQueue = new ConcurrentLinkedQueue<Integer>();
-        this.segmentWriteQueue = new ConcurrentLinkedQueue<Integer>();
+        this.segments = new HashMap();
+        this.segmentReadQueue = new ConcurrentLinkedQueue();
+        this.segmentWriteQueue = new ConcurrentLinkedQueue();
         this.running = false;
         this.shutdownComplete = false;
         this.f190a = false;
@@ -172,16 +172,16 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
 
     public ReadWriteRunnableSegment createSegment(int key, int address, int size) {
         ReadWriteRunnableSegment readWriteRunnableSegment = new ReadWriteRunnableSegment(address, size);
-        this.segments.put(key, readWriteRunnableSegment);
+        this.segments.put(Integer.valueOf(key), readWriteRunnableSegment);
         return readWriteRunnableSegment;
     }
 
     public void destroySegment(int key) {
-        this.segments.remove(key);
+        this.segments.remove(Integer.valueOf(key));
     }
 
     public ReadWriteRunnableSegment getSegment(int key) {
-        return this.segments.get(key);
+        return (ReadWriteRunnableSegment) this.segments.get(Integer.valueOf(key));
     }
 
     public void queueSegmentRead(int key) {
@@ -464,9 +464,9 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
     protected void dumpBuffers(String name, byte[] byteArray) {
         RobotLog.v("Dumping " + name + " buffers for " + this.serialNumber);
         StringBuilder stringBuilder = new StringBuilder(1024);
-        for (int i = 0; i < (this.startAddress + this.monitorLength); i++) {
-            stringBuilder.append(String.format(" %02x", TypeConversion.unsignedByteToInt(byteArray[i])));
-            if (((i + 1) % 16) == 0) {
+        for (int i = 0; i < this.startAddress + this.monitorLength; i++) {
+            stringBuilder.append(String.format(" %02x", new Object[]{Integer.valueOf(TypeConversion.unsignedByteToInt(byteArray[i]))}));
+            if ((i + 1) % 16 == 0) {
                 stringBuilder.append("\n");
             }
         }
@@ -475,7 +475,7 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
 
     protected void queueIfNotAlreadyQueued(int key, ConcurrentLinkedQueue<Integer> queue) {
         if (!queue.contains(Integer.valueOf(key))) {
-            queue.add(key);
+            queue.add(Integer.valueOf(key));
         }
     }
 }

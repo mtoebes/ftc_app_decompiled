@@ -79,7 +79,7 @@ public class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPor
             this.f58c.lock();
             boolean z2 = this.f57b[4] != 0; //TODO was comparing to null, investigate what byte value to compare to
             this.f58c.unlock();
-            if (!z2 || (getStrength() <= this.f63h)) {
+            if (!z2 || getStrength() <= this.f63h) {
                 z = false;
             }
             return z;
@@ -94,7 +94,7 @@ public class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPor
         if (!this.f64i) {
             try {
                 this.f58c.lock();
-                if ((this.f57b[4] >= 1) && (this.f57b[4] <= 9)) {
+                if (this.f57b[4] >= 1 && this.f57b[4] <= 9) {
                     d = DIRECTION_TO_ANGLE[this.f57b[4]];
                 }
                 this.f58c.unlock();
@@ -148,7 +148,7 @@ public class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPor
 
     private void m44a() {
         this.f64i = true;
-        byte b = (this.f62g == Mode.MODE_600HZ) ? MODE_DC : MODE_AC;
+        byte b = this.f62g == Mode.MODE_600HZ ? MODE_DC : MODE_AC;
         this.f56a.enableI2cWriteMode(this.f61f, I2C_ADDRESS, MEM_MODE_ADDRESS, 1);
         try {
             this.f60e.lock();

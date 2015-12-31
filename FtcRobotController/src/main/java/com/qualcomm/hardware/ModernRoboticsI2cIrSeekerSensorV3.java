@@ -68,20 +68,22 @@ public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements
     }
 
     public double getAngle() {
-        int i = (this.f168c == Mode.MODE_1200HZ) ? OFFSET_1200HZ_HEADING_DATA : OFFSET_600HZ_HEADING_DATA;
+        int i = this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_HEADING_DATA : OFFSET_600HZ_HEADING_DATA;
         try {
             this.f170e.lock();
-            return (double) this.f169d[i];
+            double d = (double) this.f169d[i];
+            return d;
         } finally {
             this.f170e.unlock();
         }
     }
 
     public double getStrength() {
-        int i = (this.f168c == Mode.MODE_1200HZ) ? OFFSET_1200HZ_SIGNAL_STRENGTH : OFFSET_600HZ_SIGNAL_STRENGTH;
+        int i = this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_SIGNAL_STRENGTH : OFFSET_600HZ_SIGNAL_STRENGTH;
         try {
             this.f170e.lock();
-            return TypeConversion.unsignedByteToDouble(this.f169d[i]) / MAX_SENSOR_STRENGTH;
+            double unsignedByteToDouble = TypeConversion.unsignedByteToDouble(this.f169d[i]) / MAX_SENSOR_STRENGTH;
+            return unsignedByteToDouble;
         } finally {
             this.f170e.unlock();
         }
@@ -92,10 +94,10 @@ public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements
         try {
             this.f170e.lock();
             byte[] r2 = new byte[2];
-            System.arraycopy(this.f169d, (this.f168c == Mode.MODE_1200HZ) ? OFFSET_1200HZ_LEFT_SIDE_RAW_DATA : OFFSET_600HZ_LEFT_SIDE_RAW_DATA, r2, 0, r2.length);
+            System.arraycopy(this.f169d, this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_LEFT_SIDE_RAW_DATA : OFFSET_600HZ_LEFT_SIDE_RAW_DATA, r2, 0, r2.length);
             irSeekerIndividualSensorArr[0] = new IrSeekerIndividualSensor(HiTechnicNxtCompassSensor.INVALID_DIRECTION, ((double) TypeConversion.byteArrayToShort(r2, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
             r2 = new byte[2];
-            System.arraycopy(this.f169d, (this.f168c == Mode.MODE_1200HZ) ? OFFSET_1200HZ_RIGHT_SIDE_RAW_DATA : OFFSET_600HZ_RIGHT_SIDE_RAW_DATA, r2, 0, r2.length);
+            System.arraycopy(this.f169d, this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_RIGHT_SIDE_RAW_DATA : OFFSET_600HZ_RIGHT_SIDE_RAW_DATA, r2, 0, r2.length);
             irSeekerIndividualSensorArr[1] = new IrSeekerIndividualSensor(1.0d, ((double) TypeConversion.byteArrayToShort(r2, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
             return irSeekerIndividualSensorArr;
         } finally {

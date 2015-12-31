@@ -52,7 +52,7 @@ public class HardwareDeviceManager extends DeviceManager {
             f8a = new int[C0001a.values().length];
             try {
                 f8a[C0001a.ENABLE_DEVICE_EMULATION.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e) {
             }
         }
     }
@@ -78,7 +78,7 @@ public class HardwareDeviceManager extends DeviceManager {
     }
 
     public Map<SerialNumber, DeviceType> scanForUsbDevices() throws RobotCoreException {
-        Map<SerialNumber, DeviceType> hashMap = new HashMap<SerialNumber, DeviceType>();
+        Map hashMap = new HashMap();
         try {
             int scanForDevices = this.f13b.scanForDevices();
             for (int i = 0; i < scanForDevices; i++) {

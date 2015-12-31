@@ -93,6 +93,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private static final int[] f179c;
     private static final int[] f180d;
     private final I2cPortReadyCallback[] f181e;
+    private final ElapsedTime[] f182f;
     private ReadWriteRunnableSegment[] f183g;
     private ReadWriteRunnableSegment[] f184h;
     private ReadWriteRunnableSegment[] f185i;
@@ -117,7 +118,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         int i;
         int i2 = OFFSET_PULSE_OUTPUT_TIME;
         this.f181e = new I2cPortReadyCallback[NUMBER_OF_PORTS];
-        ElapsedTime[] f182f = new ElapsedTime[NUMBER_OF_PORTS];
+        this.f182f = new ElapsedTime[NUMBER_OF_PORTS];
         this.f183g = new ReadWriteRunnableSegment[f177a.length];
         this.f184h = new ReadWriteRunnableSegment[f178b.length];
         this.f185i = new ReadWriteRunnableSegment[f179c.length];
@@ -160,7 +161,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         } else {
             a &= readFromWriteCache;
         }
-        write(MONITOR_LENGTH, a);
+        write((int) MONITOR_LENGTH, a);
     }
 
     public boolean getDigitalChannelState(int channel) {
@@ -170,7 +171,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         } else {
             digitalOutputStateByte = getDigitalInputStateByte();
         }
-        return ((digitalOutputStateByte & ADDRESS_DIGITAL_BIT_MASK[channel]) > 0) || DEBUG_LOGGING;
+        return (digitalOutputStateByte & ADDRESS_DIGITAL_BIT_MASK[channel]) > 0 ? true : DEBUG_LOGGING;
     }
 
     public void setDigitalChannelState(int channel, boolean state) {
@@ -180,7 +181,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
             if (state) {
                 i = readFromWriteCache | ADDRESS_DIGITAL_BIT_MASK[channel];
             } else {
-                i = readFromWriteCache & (~ADDRESS_DIGITAL_BIT_MASK[channel]);
+                i = readFromWriteCache & (ADDRESS_DIGITAL_BIT_MASK[channel] ^ -1);
             }
             setDigitalOutputByte((byte) i);
         }
@@ -195,7 +196,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     public void setDigitalIOControlByte(byte input) {
-        write(MONITOR_LENGTH, input);
+        write((int) MONITOR_LENGTH, input);
     }
 
     public byte getDigitalOutputStateByte() {
@@ -203,14 +204,14 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     public void setDigitalOutputByte(byte input) {
-        write(ADDRESS_DIGITAL_OUTPUT_STATE, input);
+        write((int) ADDRESS_DIGITAL_OUTPUT_STATE, input);
     }
 
     private int m59a(int i, Mode mode) {
         if (mode == Mode.OUTPUT) {
             return ADDRESS_DIGITAL_BIT_MASK[i];
         }
-        return ~ADDRESS_DIGITAL_BIT_MASK[i];
+        return ADDRESS_DIGITAL_BIT_MASK[i] ^ -1;
     }
 
     private Mode m60a(int i, int i2) {
@@ -222,7 +223,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public boolean getLEDState(int channel) {
         m61a(channel);
-        return ((read(ADDRESS_LED_SET) & LED_BIT_MASK_MAP[channel]) > 0) || DEBUG_LOGGING;
+        return (read(ADDRESS_LED_SET) & LED_BIT_MASK_MAP[channel]) > 0 ? true : DEBUG_LOGGING;
     }
 
     public void setLED(int channel, boolean set) {
@@ -232,15 +233,15 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         if (set) {
             i = readFromWriteCache | LED_BIT_MASK_MAP[channel];
         } else {
-            i = readFromWriteCache & (~LED_BIT_MASK_MAP[channel]);
+            i = readFromWriteCache & (LED_BIT_MASK_MAP[channel] ^ -1);
         }
-        write(ADDRESS_LED_SET, i);
+        write((int) ADDRESS_LED_SET, i);
     }
 
     public void setAnalogOutputVoltage(int port, int voltage) {
         m63b(port);
         Lock writeLock = this.f183g[port].getWriteLock();
-        byte[] writeBuffer = this.f183g[port].getWriteBuffer();
+        Object writeBuffer = this.f183g[port].getWriteBuffer();
         byte[] shortToByteArray = TypeConversion.shortToByteArray((short) voltage, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
@@ -254,7 +255,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public void setAnalogOutputFrequency(int port, int freq) {
         m63b(port);
         Lock writeLock = this.f183g[port].getWriteLock();
-        byte[] writeBuffer = this.f183g[port].getWriteBuffer();
+        Object writeBuffer = this.f183g[port].getWriteBuffer();
         byte[] shortToByteArray = TypeConversion.shortToByteArray((short) freq, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
@@ -281,7 +282,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public void setPulseWidthOutputTime(int port, int time) {
         m64c(port);
         Lock writeLock = this.f184h[port].getWriteLock();
-        byte[] writeBuffer = this.f184h[port].getWriteBuffer();
+        Object writeBuffer = this.f184h[port].getWriteBuffer();
         byte[] shortToByteArray = TypeConversion.shortToByteArray((short) time, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
@@ -295,7 +296,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public void setPulseWidthPeriod(int port, int period) {
         m66e(port);
         Lock writeLock = this.f184h[port].getWriteLock();
-        byte[] writeBuffer = this.f184h[port].getWriteBuffer();
+        Object writeBuffer = this.f184h[port].getWriteBuffer();
         byte[] shortToByteArray = TypeConversion.shortToByteArray((short) period, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
@@ -397,7 +398,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         m66e(port);
         try {
             this.f185i[port].getReadLock().lock();
-            boolean z = (this.f185i[port].getReadBuffer()[OFFSET_I2C_PORT_FLAG] == -1) || DEBUG_LOGGING;
+            boolean z = this.f185i[port].getReadBuffer()[OFFSET_I2C_PORT_FLAG] == -1 ? true : DEBUG_LOGGING;
             this.f185i[port].getReadLock().unlock();
             return z;
         } catch (Throwable th) {
@@ -507,45 +508,45 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private void m61a(int i) {
-        if ((i != 0) && (i != OFFSET_I2C_PORT_I2C_ADDRESS)) {
+        if (i != 0 && i != OFFSET_I2C_PORT_I2C_ADDRESS) {
             Object[] objArr = new Object[OFFSET_I2C_PORT_I2C_ADDRESS];
-            objArr[OFFSET_PULSE_OUTPUT_TIME] = i;
+            objArr[OFFSET_PULSE_OUTPUT_TIME] = Integer.valueOf(i);
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are 0 and 1.", objArr));
         }
     }
 
     private void m63b(int i) {
-        if ((i != 0) && (i != OFFSET_I2C_PORT_I2C_ADDRESS)) {
+        if (i != 0 && i != OFFSET_I2C_PORT_I2C_ADDRESS) {
             Object[] objArr = new Object[OFFSET_I2C_PORT_I2C_ADDRESS];
-            objArr[OFFSET_PULSE_OUTPUT_TIME] = i;
+            objArr[OFFSET_PULSE_OUTPUT_TIME] = Integer.valueOf(i);
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are 0 and 1.", objArr));
         }
     }
 
     private void m64c(int i) {
-        if ((i != 0) && (i != OFFSET_I2C_PORT_I2C_ADDRESS)) {
+        if (i != 0 && i != OFFSET_I2C_PORT_I2C_ADDRESS) {
             Object[] objArr = new Object[OFFSET_I2C_PORT_I2C_ADDRESS];
-            objArr[OFFSET_PULSE_OUTPUT_TIME] = i;
+            objArr[OFFSET_PULSE_OUTPUT_TIME] = Integer.valueOf(i);
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are 0 and 1.", objArr));
         }
     }
 
     private void m65d(int i) {
-        if ((i < 0) || (i > MAX_ANALOG_PORT_NUMBER)) {
+        if (i < 0 || i > MAX_ANALOG_PORT_NUMBER) {
             Object[] objArr = new Object[START_ADDRESS];
-            objArr[OFFSET_PULSE_OUTPUT_TIME] = i;
-            objArr[OFFSET_I2C_PORT_I2C_ADDRESS] = OFFSET_PULSE_OUTPUT_TIME;
-            objArr[WORD_SIZE] = MAX_ANALOG_PORT_NUMBER;
+            objArr[OFFSET_PULSE_OUTPUT_TIME] = Integer.valueOf(i);
+            objArr[OFFSET_I2C_PORT_I2C_ADDRESS] = Integer.valueOf(OFFSET_PULSE_OUTPUT_TIME);
+            objArr[WORD_SIZE] = Integer.valueOf(MAX_ANALOG_PORT_NUMBER);
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", objArr));
         }
     }
 
     private void m66e(int i) {
-        if ((i < 0) || (i > MAX_I2C_PORT_NUMBER)) {
+        if (i < 0 || i > MAX_I2C_PORT_NUMBER) {
             Object[] objArr = new Object[START_ADDRESS];
-            objArr[OFFSET_PULSE_OUTPUT_TIME] = i;
-            objArr[OFFSET_I2C_PORT_I2C_ADDRESS] = OFFSET_PULSE_OUTPUT_TIME;
-            objArr[WORD_SIZE] = MAX_I2C_PORT_NUMBER;
+            objArr[OFFSET_PULSE_OUTPUT_TIME] = Integer.valueOf(i);
+            objArr[OFFSET_I2C_PORT_I2C_ADDRESS] = Integer.valueOf(OFFSET_PULSE_OUTPUT_TIME);
+            objArr[WORD_SIZE] = Integer.valueOf(MAX_I2C_PORT_NUMBER);
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", objArr));
         }
     }
@@ -553,14 +554,14 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private void m67f(int i) {
         if (i > SIZE_I2C_BUFFER) {
             Object[] objArr = new Object[WORD_SIZE];
-            objArr[OFFSET_PULSE_OUTPUT_TIME] = i;
-            objArr[OFFSET_I2C_PORT_I2C_ADDRESS] = SIZE_I2C_BUFFER;
+            objArr[OFFSET_PULSE_OUTPUT_TIME] = Integer.valueOf(i);
+            objArr[OFFSET_I2C_PORT_I2C_ADDRESS] = Integer.valueOf(SIZE_I2C_BUFFER);
             throw new IllegalArgumentException(String.format("buffer is too large (%d byte), max size is %d bytes", objArr));
         }
     }
 
     private boolean m62a(int i, byte b) {
-        return ((BUFFER_FLAG_MAP[i] & b) == 0) || DEBUG_LOGGING;
+        return (BUFFER_FLAG_MAP[i] & b) == 0 ? true : DEBUG_LOGGING;
     }
 
     public void readComplete() throws InterruptedException {
@@ -568,7 +569,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
             byte read = read(START_ADDRESS);
             int i = OFFSET_PULSE_OUTPUT_TIME;
             while (i < NUMBER_OF_PORTS) {
-                if ((this.f181e[i] != null) && m62a(i, read)) {
+                if (this.f181e[i] != null && m62a(i, read)) {
                     this.f181e[i].portIsReady(i);
                 }
                 i += OFFSET_I2C_PORT_I2C_ADDRESS;

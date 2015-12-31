@@ -28,19 +28,19 @@ public class MatrixDcMotorController implements DcMotorController {
             f82a = new int[RunMode.values().length];
             try {
                 f82a[RunMode.RUN_USING_ENCODERS.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e) {
             }
             try {
                 f82a[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = 2;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e2) {
             }
             try {
                 f82a[RunMode.RUN_TO_POSITION.ordinal()] = 3;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e3) {
             }
             try {
                 f82a[RunMode.RESET_ENCODERS.ordinal()] = 4;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e4) {
             }
         }
     }
@@ -112,7 +112,10 @@ public class MatrixDcMotorController implements DcMotorController {
         MatrixI2cTransaction matrixI2cTransaction = new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE);
         this.master.queueTransaction(matrixI2cTransaction);
         this.master.waitOnRead();
-        return (this.f90a[matrixI2cTransaction.motor].f85c & ModernRoboticsUsbDeviceInterfaceModule.D7_MASK) != 0;
+        if ((this.f90a[matrixI2cTransaction.motor].f85c & ModernRoboticsUsbDeviceInterfaceModule.D7_MASK) != 0) {
+            return true;
+        }
+        return false;
     }
 
     public void setMotorControllerDeviceMode(DeviceMode mode) {
@@ -125,10 +128,14 @@ public class MatrixDcMotorController implements DcMotorController {
 
     public void setMotorChannelMode(int motor, RunMode mode) {
         m49a(motor);
-        if (this.f90a[motor].f86d || (this.f90a[motor].f88f != mode)) {
+        if (this.f90a[motor].f86d || this.f90a[motor].f88f != mode) {
             this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE, runModeToFlagMatrix(mode)));
             this.f90a[motor].f88f = mode;
-            this.f90a[motor].f86d = (mode == RunMode.RESET_ENCODERS);
+            if (mode == RunMode.RESET_ENCODERS) {
+                this.f90a[motor].f86d = true;
+            } else {
+                this.f90a[motor].f86d = false;
+            }
         }
     }
 
@@ -244,8 +251,8 @@ public class MatrixDcMotorController implements DcMotorController {
     }
 
     private void m49a(int i) {
-        if ((i < 1) || (i > 4)) {
-            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", new Object[]{i, 4}));
+        if (i < 1 || i > 4) {
+            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", new Object[]{Integer.valueOf(i), Integer.valueOf(4)}));
         }
     }
 }

@@ -43,6 +43,6 @@ public class ReadWriteRunnableSegment {
     }
 
     public String toString() {
-        return String.format("Segment - address:%d read:%d write:%d", this.f194c, this.f195d.length, this.f196e.length);
+        return String.format("Segment - address:%d read:%d write:%d", new Object[]{Integer.valueOf(this.f194c), Integer.valueOf(this.f195d.length), Integer.valueOf(this.f196e.length)});
     }
 }

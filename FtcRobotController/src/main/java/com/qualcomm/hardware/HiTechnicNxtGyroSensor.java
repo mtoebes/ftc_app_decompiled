@@ -52,7 +52,7 @@ public class HiTechnicNxtGyroSensor extends GyroSensor {
     }
 
     public String status() {
-        return String.format("NXT Gyro Sensor, connected via device %s, port %d", this.f54a.getSerialNumber().toString(), this.f55b);
+        return String.format("NXT Gyro Sensor, connected via device %s, port %d", new Object[]{this.f54a.getSerialNumber().toString(), Integer.valueOf(this.f55b)});
     }
 
     public String getDeviceName() {

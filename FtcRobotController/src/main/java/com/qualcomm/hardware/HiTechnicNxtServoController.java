@@ -118,16 +118,16 @@ public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoC
     }
 
     private void m45a(int i) {
-        if ((i < 1) || (i > OFFSET_SERVO_MAP.length)) {
+        if (i < 1 || i > OFFSET_SERVO_MAP.length) {
             Object[] objArr = new Object[I2C_ADDRESS];
-            objArr[0] = i;
-            objArr[1] = OFFSET_SERVO3_POSITION;
+            objArr[0] = Integer.valueOf(i);
+            objArr[1] = Integer.valueOf(OFFSET_SERVO3_POSITION);
             throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", objArr));
         }
     }
 
     public void portIsReady(int port) {
-        if (this.f72f || (this.f71e.time() > 5.0d)) {
+        if (this.f72f || this.f71e.time() > 5.0d) {
             this.f67a.setI2cPortActionFlag(this.f70d);
             this.f67a.writeI2cCacheToController(this.f70d);
             this.f71e.reset();

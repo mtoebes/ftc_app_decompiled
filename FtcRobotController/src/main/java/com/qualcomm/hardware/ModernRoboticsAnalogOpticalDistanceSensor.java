@@ -23,7 +23,7 @@ public class ModernRoboticsAnalogOpticalDistanceSensor extends OpticalDistanceSe
     }
 
     public String status() {
-        return String.format("Optical Distance Sensor, connected via device %s, port %d", this.f119a.getSerialNumber().toString(), this.f120b);
+        return String.format("Optical Distance Sensor, connected via device %s, port %d", new Object[]{this.f119a.getSerialNumber().toString(), Integer.valueOf(this.f120b)});
     }
 
     public String getDeviceName() {

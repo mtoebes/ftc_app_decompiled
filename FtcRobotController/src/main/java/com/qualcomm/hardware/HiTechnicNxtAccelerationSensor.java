@@ -37,7 +37,7 @@ public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implement
     }
 
     public String status() {
-        return String.format("NXT Acceleration Sensor, connected via device %s, port %d", this.f18a.getSerialNumber().toString(), this.f21d);
+        return String.format("NXT Acceleration Sensor, connected via device %s, port %d", new Object[]{this.f18a.getSerialNumber().toString(), Integer.valueOf(this.f21d)});
     }
 
     private double m36a(double d, double d2) {

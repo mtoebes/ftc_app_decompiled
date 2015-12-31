@@ -47,7 +47,7 @@ public class HiTechnicNxtUltrasonicSensor extends UltrasonicSensor implements I2
     public String status() {
         Object[] objArr = new Object[I2C_ADDRESS];
         objArr[0] = this.f80c.getSerialNumber().toString();
-        objArr[1] = this.f81d;
+        objArr[1] = Integer.valueOf(this.f81d);
         return String.format("NXT Ultrasonic Sensor, connected via device %s, port %d", objArr);
     }
 
@@ -67,8 +67,8 @@ public class HiTechnicNxtUltrasonicSensor extends UltrasonicSensor implements I2
     }
 
     private void m48a(int i) {
-        if ((i < MIN_PORT) || (i > MAX_PORT)) {
-            throw new IllegalArgumentException(String.format("Port %d is invalid for " + getDeviceName() + "; valid ports are %d or %d", new Object[]{i, MIN_PORT, MAX_PORT}));
+        if (i < MIN_PORT || i > MAX_PORT) {
+            throw new IllegalArgumentException(String.format("Port %d is invalid for " + getDeviceName() + "; valid ports are %d or %d", new Object[]{Integer.valueOf(i), Integer.valueOf(MIN_PORT), Integer.valueOf(MAX_PORT)}));
         }
     }
 }

@@ -21,43 +21,43 @@ public class MatrixI2cTransaction {
             f92a = new int[C0008a.values().length];
             try {
                 f92a[C0008a.PROPERTY_MODE.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e) {
             }
             try {
                 f92a[C0008a.PROPERTY_START.ordinal()] = 2;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e2) {
             }
             try {
                 f92a[C0008a.PROPERTY_TIMEOUT.ordinal()] = 3;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e3) {
             }
             try {
                 f92a[C0008a.PROPERTY_TARGET.ordinal()] = 4;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e4) {
             }
             try {
                 f92a[C0008a.PROPERTY_SPEED.ordinal()] = 5;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e5) {
             }
             try {
                 f92a[C0008a.PROPERTY_BATTERY.ordinal()] = 6;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e6) {
             }
             try {
                 f92a[C0008a.PROPERTY_POSITION.ordinal()] = 7;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e7) {
             }
             try {
                 f92a[C0008a.PROPERTY_MOTOR_BATCH.ordinal()] = 8;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e8) {
             }
             try {
                 f92a[C0008a.PROPERTY_SERVO.ordinal()] = 9;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e9) {
             }
             try {
                 f92a[C0008a.PROPERTY_SERVO_ENABLE.ordinal()] = 10;
-            } catch (NoSuchFieldError ignored) {
+            } catch (NoSuchFieldError e10) {
             }
         }
     }
@@ -131,13 +131,25 @@ public class MatrixI2cTransaction {
             case ModernRoboticsUsbDeviceInterfaceModule.MAX_I2C_PORT_NUMBER /*5*/:
             case ModernRoboticsUsbServoController.MAX_SERVOS /*6*/:
             case ModernRoboticsUsbDeviceInterfaceModule.MAX_ANALOG_PORT_NUMBER /*7*/:
-                return (this.write == transaction.write) && (this.motor == transaction.motor) && (this.value == transaction.value);
+                if (this.write == transaction.write && this.motor == transaction.motor && this.value == transaction.value) {
+                    return true;
+                }
+                return false;
             case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S2 /*8*/:
-                return (this.write == transaction.write) && (this.motor == transaction.motor) && (this.speed == transaction.speed) && (this.target == transaction.target) && (this.mode == transaction.mode);
+                if (this.write == transaction.write && this.motor == transaction.motor && this.speed == transaction.speed && this.target == transaction.target && this.mode == transaction.mode) {
+                    return true;
+                }
+                return false;
             case ModernRoboticsUsbServoController.MONITOR_LENGTH /*9*/:
-                return (this.write == transaction.write) && (this.servo == transaction.servo) && (this.speed == transaction.speed) && (this.target == transaction.target);
+                if (this.write == transaction.write && this.servo == transaction.servo && this.speed == transaction.speed && this.target == transaction.target) {
+                    return true;
+                }
+                return false;
             case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S3 /*10*/:
-                return (this.write == transaction.write) && (this.value == transaction.value);
+                if (this.write == transaction.write && this.value == transaction.value) {
+                    return true;
+                }
+                return false;
             default:
                 RobotLog.e("Can not compare against unknown transaction property " + transaction.toString());
                 return false;
