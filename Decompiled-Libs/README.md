@@ -4,7 +4,7 @@ these are the raw outputs from [JADX decompiler](http://www.javadecompilers.com)
 
 These may contain unaddresed compile issues.
 
-The source library binaries are found under [FtcRobotController/libs](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/libs)
+The source library binaries are found under [FtcRobotController/libs/](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/libs)
 
 Steps to Reproduce:
 1. Copy aars to a dirctory of your choice
