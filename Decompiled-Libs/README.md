@@ -7,6 +7,7 @@ These may contain unaddresed compile issues.
 The source library binaries are found under [FtcRobotController/libs/](https://github.com/mtoebes/ftc_app_decompiled/tree/master/FtcRobotController/libs)
 
 Steps to Reproduce:
+
 1. Copy aars to a dirctory of your choice
 
 2. Rename the extension from .aar to .jar
