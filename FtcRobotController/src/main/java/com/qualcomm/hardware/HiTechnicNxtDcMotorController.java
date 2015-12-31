@@ -229,7 +229,6 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         } catch (Throwable th) {
             this.f47c.unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public void setMotorPowerFloat(int motor) {
@@ -258,13 +257,12 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         } catch (Throwable th) {
             this.f47c.unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public void setMotorTargetPosition(int motor, int position) {
         m41a(motor);
         m40a();
-        byte[] intToByteArray = TypeConversion.intToByteArray(position);
+        Object intToByteArray = TypeConversion.intToByteArray(position);
         try {
             this.f49e.lock();
             System.arraycopy(intToByteArray, 0, this.f48d, OFFSET_MAP_MOTOR_TARGET_ENCODER_VALUE[motor], intToByteArray.length);

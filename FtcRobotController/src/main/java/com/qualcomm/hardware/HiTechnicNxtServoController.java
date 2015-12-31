@@ -69,7 +69,7 @@ public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoC
     public void pwmEnable() {
         try {
             this.f69c.lock();
-            if (this.f68b[OFFSET_PWM] != 0) { //TODO was comparing to null, investigate what byte value to compare to
+            if (this.f68b[OFFSET_PWM] != null) {
                 this.f68b[OFFSET_PWM] = PWM_ENABLE;
                 this.f72f = true;
             }

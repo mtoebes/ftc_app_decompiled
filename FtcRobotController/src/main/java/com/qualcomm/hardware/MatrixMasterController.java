@@ -182,7 +182,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                 return;
             }
             byte[] bArr;
-            int i2 = 0; //TODO error on setWriteMode that i2 was not initialized. set to value in switch default
+            int i2;
             if (matrixI2cTransaction.state == C0009b.PENDING_I2C_WRITE) {
                 matrixI2cTransaction = (MatrixI2cTransaction) this.transactionQueue.poll();
                 if (!this.transactionQueue.isEmpty()) {

@@ -72,7 +72,7 @@ public class MatrixDcMotorController implements DcMotorController {
         this.f91b = 0;
         master.registerMotorController(this);
         for (int i = 0; i < 4; i = (byte) (i + 1)) {
-            master.queueTransaction(new MatrixI2cTransaction((byte) i, (byte) 0, 0, (byte) 0));
+            master.queueTransaction(new MatrixI2cTransaction(i, (byte) 0, 0, (byte) 0));
             this.f90a[i].f88f = RunMode.RUN_WITHOUT_ENCODERS;
             this.f90a[i].f86d = true;
         }

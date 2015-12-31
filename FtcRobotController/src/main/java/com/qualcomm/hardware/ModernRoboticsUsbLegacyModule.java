@@ -70,8 +70,8 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     protected ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
-        super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, ADDRESS_BUFFER_STATUS, DEBUG_LOGGING));
         int i = 0;
+        super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, ADDRESS_BUFFER_STATUS, DEBUG_LOGGING));
         this.f187a = new ReadWriteRunnableSegment[ADDRESS_ANALOG_PORT_S4];
         this.f188b = new I2cPortReadyCallback[ADDRESS_ANALOG_PORT_S1];
         this.readWriteRunnable.setCallback(this);
@@ -196,7 +196,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         m70b(length);
         try {
             this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            Object writeBuffer = this.f187a[physicalPort].getWriteBuffer();
             System.arraycopy(data, 0, writeBuffer, ADDRESS_ANALOG_PORT_S0, length);
             writeBuffer[ADDRESS_BUFFER_STATUS] = (byte) length;
         } finally {
@@ -229,28 +229,30 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
 
     public byte[] getCopyOfReadBuffer(int physicalPort) {
         m68a(physicalPort);
+        byte[] bArr;
         try {
             this.f187a[physicalPort].getReadLock().lock();
-            byte[] readBuffer = this.f187a[physicalPort].getReadBuffer();
-            byte[] bArr = new byte[readBuffer[ADDRESS_BUFFER_STATUS]];
+            Object readBuffer = this.f187a[physicalPort].getReadBuffer();
+            bArr = new byte[readBuffer[ADDRESS_BUFFER_STATUS]];
             System.arraycopy(readBuffer, ADDRESS_ANALOG_PORT_S0, bArr, 0, bArr.length);
             return bArr;
         } finally {
-            Lock bArr = this.f187a[physicalPort].getReadLock();
+            bArr = this.f187a[physicalPort].getReadLock();
             bArr.unlock();
         }
     }
 
     public byte[] getCopyOfWriteBuffer(int physicalPort) {
         m68a(physicalPort);
+        byte[] bArr;
         try {
             this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
-            byte[] bArr = new byte[writeBuffer[ADDRESS_BUFFER_STATUS]];
+            Object writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            bArr = new byte[writeBuffer[ADDRESS_BUFFER_STATUS]];
             System.arraycopy(writeBuffer, ADDRESS_ANALOG_PORT_S0, bArr, 0, bArr.length);
             return bArr;
         } finally {
-            Lock bArr = this.f187a[physicalPort].getWriteLock();
+            bArr = this.f187a[physicalPort].getWriteLock();
             bArr.unlock();
         }
     }
@@ -286,7 +288,6 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         } catch (Throwable th) {
             this.f187a[physicalPort].getReadLock().unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public void readI2cCacheFromController(int physicalPort) {
@@ -327,7 +328,6 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         } catch (Throwable th) {
             this.f187a[physicalPort].getReadLock().unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public boolean isI2cPortInWriteMode(int physicalPort) {
@@ -343,7 +343,6 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         } catch (Throwable th) {
             this.f187a[physicalPort].getReadLock().unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public boolean isI2cPortReady(int physicalPort) {

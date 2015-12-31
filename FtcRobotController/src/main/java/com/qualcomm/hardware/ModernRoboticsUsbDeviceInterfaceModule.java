@@ -114,9 +114,9 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     protected ModernRoboticsUsbDeviceInterfaceModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
-        super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
         int i;
         int i2 = OFFSET_PULSE_OUTPUT_TIME;
+        super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
         this.f181e = new I2cPortReadyCallback[NUMBER_OF_PORTS];
         this.f182f = new ElapsedTime[NUMBER_OF_PORTS];
         this.f183g = new ReadWriteRunnableSegment[f177a.length];
@@ -242,7 +242,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         m63b(port);
         Lock writeLock = this.f183g[port].getWriteLock();
         Object writeBuffer = this.f183g[port].getWriteBuffer();
-        byte[] shortToByteArray = TypeConversion.shortToByteArray((short) voltage, ByteOrder.LITTLE_ENDIAN);
+        Object shortToByteArray = TypeConversion.shortToByteArray((short) voltage, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
             System.arraycopy(shortToByteArray, OFFSET_PULSE_OUTPUT_TIME, writeBuffer, OFFSET_PULSE_OUTPUT_TIME, shortToByteArray.length);
@@ -256,7 +256,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         m63b(port);
         Lock writeLock = this.f183g[port].getWriteLock();
         Object writeBuffer = this.f183g[port].getWriteBuffer();
-        byte[] shortToByteArray = TypeConversion.shortToByteArray((short) freq, ByteOrder.LITTLE_ENDIAN);
+        Object shortToByteArray = TypeConversion.shortToByteArray((short) freq, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
             System.arraycopy(shortToByteArray, OFFSET_PULSE_OUTPUT_TIME, writeBuffer, WORD_SIZE, shortToByteArray.length);
@@ -283,7 +283,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         m64c(port);
         Lock writeLock = this.f184h[port].getWriteLock();
         Object writeBuffer = this.f184h[port].getWriteBuffer();
-        byte[] shortToByteArray = TypeConversion.shortToByteArray((short) time, ByteOrder.LITTLE_ENDIAN);
+        Object shortToByteArray = TypeConversion.shortToByteArray((short) time, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
             System.arraycopy(shortToByteArray, OFFSET_PULSE_OUTPUT_TIME, writeBuffer, OFFSET_PULSE_OUTPUT_TIME, shortToByteArray.length);
@@ -297,7 +297,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         m66e(port);
         Lock writeLock = this.f184h[port].getWriteLock();
         Object writeBuffer = this.f184h[port].getWriteBuffer();
-        byte[] shortToByteArray = TypeConversion.shortToByteArray((short) period, ByteOrder.LITTLE_ENDIAN);
+        Object shortToByteArray = TypeConversion.shortToByteArray((short) period, ByteOrder.LITTLE_ENDIAN);
         try {
             writeLock.lock();
             System.arraycopy(shortToByteArray, OFFSET_PULSE_OUTPUT_TIME, writeBuffer, WORD_SIZE, shortToByteArray.length);
@@ -347,28 +347,30 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public byte[] getCopyOfReadBuffer(int physicalPort) {
         m66e(physicalPort);
+        byte[] bArr;
         try {
             this.f185i[physicalPort].getReadLock().lock();
-            byte[] readBuffer = this.f185i[physicalPort].getReadBuffer();
-            byte[] bArr = new byte[readBuffer[START_ADDRESS]];
+            Object readBuffer = this.f185i[physicalPort].getReadBuffer();
+            bArr = new byte[readBuffer[START_ADDRESS]];
             System.arraycopy(readBuffer, PULSE_OUTPUT_BUFFER_SIZE, bArr, OFFSET_PULSE_OUTPUT_TIME, bArr.length);
             return bArr;
         } finally {
-            Lock bArr = this.f185i[physicalPort].getReadLock();
+            bArr = this.f185i[physicalPort].getReadLock();
             bArr.unlock();
         }
     }
 
     public byte[] getCopyOfWriteBuffer(int physicalPort) {
         m66e(physicalPort);
+        byte[] bArr;
         try {
             this.f185i[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f185i[physicalPort].getWriteBuffer();
-            byte[] bArr = new byte[writeBuffer[START_ADDRESS]];
+            Object writeBuffer = this.f185i[physicalPort].getWriteBuffer();
+            bArr = new byte[writeBuffer[START_ADDRESS]];
             System.arraycopy(writeBuffer, PULSE_OUTPUT_BUFFER_SIZE, bArr, OFFSET_PULSE_OUTPUT_TIME, bArr.length);
             return bArr;
         } finally {
-            Lock bArr = this.f185i[physicalPort].getWriteLock();
+            bArr = this.f185i[physicalPort].getWriteLock();
             bArr.unlock();
         }
     }
@@ -404,7 +406,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         } catch (Throwable th) {
             this.f185i[port].getReadLock().unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public void readI2cCacheFromController(int port) {
@@ -445,7 +446,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         } catch (Throwable th) {
             this.f185i[port].getReadLock().unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public boolean isI2cPortInWriteMode(int port) {
@@ -453,7 +453,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         m66e(port);
         try {
             this.f185i[port].getReadLock().lock();
-            if (this.f185i[port].getReadBuffer()[OFFSET_PULSE_OUTPUT_TIME] == 0) { //TODO was comparing to null, need to investigate what int value to use
+            if (this.f185i[port].getReadBuffer()[OFFSET_PULSE_OUTPUT_TIME] == null) {
                 z = true;
             }
             this.f185i[port].getReadLock().unlock();
@@ -461,7 +461,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         } catch (Throwable th) {
             this.f185i[port].getReadLock().unlock();
         }
-        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public boolean isI2cPortReady(int port) {
