@@ -140,7 +140,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         deviceInterfaceModule.writeI2cCacheToController(physicalPort);
         deviceInterfaceModule.registerForI2cPortReadyCallback(this, physicalPort);
         this.transactionQueue = new ConcurrentLinkedQueue();
-        this.f165j = new C0013a();
+        this.f165j = new C0013a(this);
         this.f164i = MeasurementMode.GYRO_NORMAL;
     }
 
@@ -312,7 +312,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         } catch (IllegalArgumentException e) {
             RobotLog.e(e.getMessage());
         }
-        if (this.f165j.f147d == null) {
+        if (this.f165j.f147d == 0) { //TODO was comparing to null, investigate what byte value to compare to
             this.f164i = MeasurementMode.GYRO_NORMAL;
         }
     }

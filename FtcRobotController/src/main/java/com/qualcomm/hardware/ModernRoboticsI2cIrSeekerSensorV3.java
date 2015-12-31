@@ -93,7 +93,7 @@ public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements
         IrSeekerIndividualSensor[] irSeekerIndividualSensorArr = new IrSeekerIndividualSensor[2];
         try {
             this.f170e.lock();
-            r2 = new byte[2];
+            byte[] r2 = new byte[2];
             System.arraycopy(this.f169d, this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_LEFT_SIDE_RAW_DATA : OFFSET_600HZ_LEFT_SIDE_RAW_DATA, r2, 0, r2.length);
             irSeekerIndividualSensorArr[0] = new IrSeekerIndividualSensor(HiTechnicNxtCompassSensor.INVALID_DIRECTION, ((double) TypeConversion.byteArrayToShort(r2, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
             r2 = new byte[2];
@@ -101,8 +101,7 @@ public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements
             irSeekerIndividualSensorArr[1] = new IrSeekerIndividualSensor(1.0d, ((double) TypeConversion.byteArrayToShort(r2, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
             return irSeekerIndividualSensorArr;
         } finally {
-            irSeekerIndividualSensorArr = this.f170e;
-            irSeekerIndividualSensorArr.unlock();
+             this.f170e.unlock();
         }
     }
 

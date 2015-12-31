@@ -77,7 +77,7 @@ public class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPor
         }
         try {
             this.f58c.lock();
-            boolean z2 = this.f57b[4] != null;
+            boolean z2 = this.f57b[4] != 0; //TODO was comparing to null, investigate what byte value to compare to
             this.f58c.unlock();
             if (!z2 || getStrength() <= this.f63h) {
                 z = false;
@@ -86,6 +86,7 @@ public class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPor
         } catch (Throwable th) {
             this.f58c.unlock();
         }
+        return false; //TODO return statement was missing, need to investigate proper return value
     }
 
     public double getAngle() {
