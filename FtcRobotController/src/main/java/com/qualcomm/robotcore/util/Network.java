@@ -24,7 +24,7 @@ public class Network {
         try {
 
             ArrayList<NetworkInterface> NetworkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for(NetworkInterface networkInterface : NetworkInterfaces) {
+            for (NetworkInterface networkInterface : NetworkInterfaces) {
                 arrayList.addAll(Collections.list(networkInterface.getInetAddresses()));
             }
         } catch (SocketException ignored) {
@@ -36,7 +36,7 @@ public class Network {
         ArrayList<InetAddress> arrayList = new ArrayList<InetAddress>();
         try {
             ArrayList<NetworkInterface> NetworkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for(NetworkInterface currentNetworkInterface : NetworkInterfaces) {
+            for (NetworkInterface currentNetworkInterface : NetworkInterfaces) {
                 if (currentNetworkInterface.getName().equals(networkInterface)) {
                     arrayList.addAll(Collections.list(currentNetworkInterface.getInetAddresses()));
                 }

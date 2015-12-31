@@ -21,7 +21,7 @@ public class ExtractAssets {
             }
         }
         ArrayList<String> arrayList = new ArrayList<String>();
-        for(String file : files) {
+        for (String file : files) {
             ExtractAndCopy(context, file, useInternalStorage, arrayList);
             Log.d(TAG, "got " + arrayList.size() + " elements");
         }
@@ -39,7 +39,7 @@ public class ExtractAssets {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if(ipFiles == null) {
+        if (ipFiles == null) {
             return fileList;
         }
 
@@ -58,7 +58,7 @@ public class ExtractAssets {
                     filesDir = context.getExternalFilesDir(null);
                 }
 
-                if(filesDir == null) {
+                if (filesDir == null) {
                     return fileList;
                 }
 

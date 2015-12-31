@@ -5,6 +5,9 @@ import android.util.Xml;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
+
+import org.xmlpull.v1.XmlSerializer;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,7 +15,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
-import org.xmlpull.v1.XmlSerializer;
 
 public class WriteXMLFileHandler {
     private XmlSerializer serializer = Xml.newSerializer();
@@ -34,7 +36,7 @@ public class WriteXMLFileHandler {
             this.serializer.ignorableWhitespace("\n");
             this.serializer.startTag("", "Robot");
             this.serializer.ignorableWhitespace("\n");
-            for(ControllerConfiguration controllerConfiguration : deviceControllerConfigurations) {
+            for (ControllerConfiguration controllerConfiguration : deviceControllerConfigurations) {
                 ConfigurationType configurationType = controllerConfiguration.getType();
                 if ((configurationType == ConfigurationType.MOTOR_CONTROLLER) ||
                         (configurationType == ConfigurationType.SERVO_CONTROLLER)) {
@@ -76,19 +78,19 @@ public class WriteXMLFileHandler {
         this.indent++;
         DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = (DeviceInterfaceModuleConfiguration) controllerConfiguration;
 
-        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getPwmDevices()) {
+        for (DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getPwmDevices()) {
             writeDeviceConfigurationXml(deviceConfiguration);
         }
-        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getI2cDevices()) {
+        for (DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getI2cDevices()) {
             writeDeviceConfigurationXml(deviceConfiguration);
         }
-        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getAnalogInputDevices()) {
+        for (DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getAnalogInputDevices()) {
             writeDeviceConfigurationXml(deviceConfiguration);
         }
-        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getDigitalDevices()) {
+        for (DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getDigitalDevices()) {
             writeDeviceConfigurationXml(deviceConfiguration);
         }
-        for(DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getAnalogOutputDevices()) {
+        for (DeviceConfiguration deviceConfiguration : deviceInterfaceModuleConfiguration.getAnalogOutputDevices()) {
             writeDeviceConfigurationXml(deviceConfiguration);
         }
 
@@ -135,16 +137,16 @@ public class WriteXMLFileHandler {
         }
         this.serializer.ignorableWhitespace("\n");
         this.indent++;
-        for(DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
+        for (DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
             writeDeviceConfigurationXml(deviceConfiguration);
         }
 
         if (controllerConfiguration.getType() == ConfigurationType.MATRIX_CONTROLLER) {
-            for(DeviceConfiguration deviceConfiguration : ((MatrixControllerConfiguration) controllerConfiguration).getMotors()) {
+            for (DeviceConfiguration deviceConfiguration : ((MatrixControllerConfiguration) controllerConfiguration).getMotors()) {
                 writeDeviceConfigurationXml(deviceConfiguration);
             }
 
-            for(DeviceConfiguration deviceConfiguration : ((MatrixControllerConfiguration) controllerConfiguration).getServos()) {
+            for (DeviceConfiguration deviceConfiguration : ((MatrixControllerConfiguration) controllerConfiguration).getServos()) {
                 writeDeviceConfigurationXml(deviceConfiguration);
             }
         }
@@ -174,7 +176,7 @@ public class WriteXMLFileHandler {
         filename = filename.replaceFirst("[.][^.]+$", "");
         File file = new File(folderName);
         if (!file.exists()) {
-            if(!file.mkdir()) {
+            if (!file.mkdir()) {
                 throw new RobotCoreException("Unable to create directory");
             }
         }
@@ -188,7 +190,7 @@ public class WriteXMLFileHandler {
         String result = "";
         String[] words = str.split("_");
 
-        for(String word : words) {
+        for (String word : words) {
             word = word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
             result += word;
         }

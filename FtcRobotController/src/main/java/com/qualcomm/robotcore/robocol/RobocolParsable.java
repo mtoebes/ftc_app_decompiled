@@ -18,7 +18,7 @@ public interface RobocolParsable {
         PEER_DISCOVERY(RobocolParsable.HEADER_LENGTH),
         COMMAND(4),
         TELEMETRY(5);
-        
+
         private static final MsgType[] MESSAGE_TYPES;
         private final int f337b;
 

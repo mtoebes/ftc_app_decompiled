@@ -2,6 +2,7 @@ package com.qualcomm.robotcore.hardware.configuration;
 
 import com.qualcomm.robotcore.hardware.DeviceManager.DeviceType;
 import com.qualcomm.robotcore.util.SerialNumber;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,9 @@
 package com.qualcomm.robotcore.util;
 
 import android.util.Log;
+
 import com.qualcomm.robotcore.hardware.Servo;
+
 import java.lang.reflect.Array;
 
 public class MatrixD {
@@ -134,7 +136,7 @@ public class MatrixD {
     }
 
     public MatrixD add(double val) {
-        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE,numRows(), numCols());
+        double[][] dataBuffer = (double[][]) Array.newInstance(Double.TYPE, numRows(), numCols());
         int numRows = numRows();
         int numCols = numCols();
         for (int row = 0; row < numRows; row++) {

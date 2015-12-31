@@ -1,58 +1,147 @@
 package com.qualcomm.robotcore.hardware;
 
+/**
+ * IR Seeker Sensor
+ * <p/>
+ * Determine the location of an IR source
+ */
 public abstract class IrSeekerSensor implements HardwareDevice {
     public static final int MAX_NEW_I2C_ADDRESS = 126;
     public static final int MIN_NEW_I2C_ADDRESS = 16;
 
+    /**
+     * IR Sensor attached to an IR Seeker
+     * <p/>
+     * Get the angle of this sensor, along with signal strength
+     */
     public static class IrSeekerIndividualSensor {
         private double angle;
         private double strength;
 
+        /**
+         * Constructor
+         */
         public IrSeekerIndividualSensor() {
             this(0.0d, 0.0d);
         }
 
+        /**
+         * Constructor
+         *
+         * @param angle    sensor angle
+         * @param strength IR strength
+         */
         public IrSeekerIndividualSensor(double angle, double strength) {
             this.angle = angle;
             this.strength = strength;
         }
 
+        /**
+         * Get the angle at which this sensor is mounted
+         *
+         * @return sensor angle
+         */
         public double getSensorAngle() {
             return this.angle;
         }
 
+        /**
+         * Get the strength of the IR signal detected by this sensor
+         *
+         * @return IR strength, scaled from 0 to 1
+         */
         public double getSensorStrength() {
             return this.strength;
         }
 
+        @Override
         public String toString() {
             return String.format("IR Sensor: %3.1f degrees at %3.1f%% power", this.angle, this.strength * 100.0);
         }
     }
 
+    /**
+     * Enumeration of device modes
+     */
     public enum Mode {
         MODE_600HZ,
         MODE_1200HZ
     }
 
+    /**
+     * Estimated angle in which the signal is coming from
+     * <p/>
+     * If the signal is estimated to be directly ahead, 0 will be returned. If the signal is to the left a negative angle will be returned. If the signal is to the right a positive angle will be returned. If no signal is detected, a 0 will be returned.
+     * <p/>
+     * NOTE: not all sensors give an accurate angle.
+     *
+     * @return angle to IR signal
+     */
     public abstract double getAngle();
 
+    /**
+     * Get the current I2C Address of this object. Not necessarily the same as the I2C address of the actual device. Return the current I2C address.
+     *
+     * @return current I2C address
+     */
     public abstract int getI2cAddress();
 
+    /**
+     * Get a list of all IR sensors attached to this seeker. The list will include the angle at which the sensor is mounted, and the signal strength.
+     *
+     * @return array of IrSensors
+     */
     public abstract IrSeekerIndividualSensor[] getIndividualSensors();
 
+    /**
+     * Get the device mode
+     *
+     * @return device mode
+     */
     public abstract Mode getMode();
 
+    /**
+     * Get the minimum threshold for a signal to be considered detected
+     *
+     * @return minimum threshold
+     */
     public abstract double getSignalDetectedThreshold();
 
+    /**
+     * IR Signal strength
+     * <p/>
+     * Detected IR signal strength, on a scale of 0.0 to 1.0, where 0 is no signal detected and 1 is max IR signal detected.
+     *
+     * @return signal strength, scaled from 0 to 1
+     */
     public abstract double getStrength();
 
+    /**
+     * Set the I2C address to a new value.
+     *
+     * @param newAddress new I2C address
+     */
     public abstract void setI2cAddress(int newAddress);
 
+    /**
+     * Set the device mode
+     *
+     * @param mode sample rate
+     */
     public abstract void setMode(Mode mode);
 
+    /**
+     * Set the minimum threshold for a signal to be considered detected
+     *
+     * @param threshold minimum threshold
+     */
     public abstract void setSignalDetectedThreshold(double threshold);
 
+    /**
+     * Returns true if an IR signal is detected
+     *
+     * @return true if signal is detected; otherwise false
+     */
     public abstract boolean signalDetected();
 
     public String toString() {

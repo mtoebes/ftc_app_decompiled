@@ -2,6 +2,9 @@ package com.qualcomm.robotcore.hardware;
 
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 
+/**
+ * Monitor an I2C Device and read in the most current values
+ */
 public class I2cDeviceReader {
     private final I2cDevice device;
 
@@ -19,6 +22,14 @@ public class I2cDeviceReader {
         }
     }
 
+    /**
+     * Constructor
+     *
+     * @param i2cDevice  device to monitor
+     * @param i2cAddress I2C address to read from
+     * @param memAddress memory address to read from
+     * @param length     length (in bytes) to read
+     */
     public I2cDeviceReader(I2cDevice i2cDevice, int i2cAddress, int memAddress, int length) {
         this.device = i2cDevice;
         i2cDevice.enableI2cReadMode(i2cAddress, memAddress, length);
@@ -27,6 +38,11 @@ public class I2cDeviceReader {
         i2cDevice.registerForI2cPortReadyCallback(new I2cDeviceReaderCallback(this));
     }
 
+    /**
+     * Get a copy of the most recent data read in from the I2C device
+     *
+     * @return byte array
+     */
     public byte[] getReadBuffer() {
         return this.device.getCopyOfReadBuffer();
     }

@@ -1,13 +1,18 @@
 package com.qualcomm.robotcore.hardware;
 
 import android.content.Context;
+
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * Hardware Mappings By default this creates a bunch of empty mappings between a string and an instance of a hardware driver.
+ */
 public class HardwareMap {
     public DeviceMapping<AccelerationSensor> accelerationSensor;
     public DeviceMapping<AnalogInput> analogInput;

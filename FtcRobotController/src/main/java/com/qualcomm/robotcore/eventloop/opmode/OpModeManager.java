@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -16,6 +17,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * Manages Op Modes Able to switch between op modes
+ */
 public class OpModeManager {
     public static final OpMode DEFAULT_OP_MODE = new DefaultOpMode();
     public static final String DEFAULT_OP_MODE_NAME = "Stop Robot";

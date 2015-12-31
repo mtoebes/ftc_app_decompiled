@@ -91,7 +91,7 @@ public class RunShellCommand {
         }
         String[] split = run.split("\n");
 
-        for(String line : split) {
+        for (String line : split) {
             if (line.contains(processName) && line.contains(charSequence)) {
                 return Integer.parseInt(line.split("\\s+")[1]);
             }

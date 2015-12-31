@@ -3,6 +3,7 @@ package com.qualcomm.robotcore.robocol;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
+
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 
@@ -71,7 +72,7 @@ public class Command implements RobocolParsable, Comparable<Command>, Comparator
 
     public byte[] toByteArray() throws RobotCoreException {
         if (this.attempts < MAX_COMMAND_LENGTH) {
-            this.attempts ++;
+            this.attempts++;
         }
         short length = (short) (this.nameBuffer.length + this.extraBuffer.length + BASE_PAYLOAD_SIZE);
         ByteBuffer allocate = ByteBuffer.allocate(length + HEADER_LENGTH);

@@ -44,7 +44,7 @@ public class BatteryChecker {
     public float getBatteryLevel() {
         float batteryLevel = -1;
         Intent registerReceiver = this.context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        if(registerReceiver != null) {
+        if (registerReceiver != null) {
             int level = registerReceiver.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
             int scale = registerReceiver.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
             if ((level >= 0) && (scale > 0)) {

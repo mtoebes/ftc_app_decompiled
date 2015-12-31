@@ -1,9 +1,11 @@
 package com.qualcomm.robotcore.sensor;
 
 import android.util.Log;
+
 import com.qualcomm.robotcore.util.MatrixD;
 import com.qualcomm.robotcore.util.Pose;
 import com.qualcomm.robotcore.util.PoseUtils;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,7 @@ public class SensorImageLocalizer extends SensorBase<Pose> implements SensorList
     private static final MatrixD TRANSFORM_AXES = Pose.makeRotationX(Math.toRadians(90.0d)).times(Pose.makeRotationY(Math.toRadians(90.0d)));
 
     private final Map<String, TargetInfo> targetInfoMap = new HashMap<String, TargetInfo>();
-    private Pose robotWrtCameraPose = new Pose(0,0,0); // with respect to the camera
+    private Pose robotWrtCameraPose = new Pose(0, 0, 0); // with respect to the camera
     private final HashMap<String, TrackedTargetData> dataMap = new HashMap<String, TrackedTargetData>();
     private TrackedTargetData lastData;
 

@@ -1,6 +1,7 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
 import com.qualcomm.robotcore.util.SerialNumber;
+
 import java.util.ArrayList;
 import java.util.List;
 

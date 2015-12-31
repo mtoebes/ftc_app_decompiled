@@ -19,6 +19,7 @@ import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Looper;
 
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -185,7 +186,7 @@ public class WifiDirectAssistant {
                 }
 
                 String passphrase = group.getPassphrase();
-                if(passphrase == null) {
+                if (passphrase == null) {
                     passphrase = "";
                 }
                 this.wifiDirectAssistant.passphrase = passphrase;
@@ -224,7 +225,7 @@ public class WifiDirectAssistant {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
-                this.wifiDirectAssistant.isWifiP2pEnabled = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE , -1) == 2;
+                this.wifiDirectAssistant.isWifiP2pEnabled = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1) == 2;
                 RobotLog.d("Wifi Direct state - enabled: " + this.wifiDirectAssistant.isWifiP2pEnabled);
             } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
                 RobotLog.d("Wifi Direct peers changed");

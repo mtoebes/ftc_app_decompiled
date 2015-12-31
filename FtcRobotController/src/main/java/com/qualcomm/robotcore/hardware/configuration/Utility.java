@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.DeviceManager.DeviceType;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,7 +26,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
-import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.*;
+
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.ANALOG_INPUT_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.ANALOG_OUTPUT_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.DIGITAL_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.I2C_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.LEGACY_MODULE_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.MOTOR_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.PWD_PORTS;
+import static com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants.SERVO_PORTS;
 
 public class Utility {
     public static final String AUTOCONFIGURE_K9LEGACYBOT = "K9LegacyBot";
@@ -116,13 +125,13 @@ public class Utility {
                 case MODERN_ROBOTICS_USB_DC_MOTOR_CONTROLLER:
                     deviceControllers.put(entry.getKey(), buildMotorController(entry.getKey()));
                     break;
-                case MODERN_ROBOTICS_USB_SERVO_CONTROLLER :
+                case MODERN_ROBOTICS_USB_SERVO_CONTROLLER:
                     deviceControllers.put(entry.getKey(), buildServoController(entry.getKey()));
                     break;
-                case MODERN_ROBOTICS_USB_LEGACY_MODULE :
+                case MODERN_ROBOTICS_USB_LEGACY_MODULE:
                     deviceControllers.put(entry.getKey(), buildLegacyModule(entry.getKey()));
                     break;
-                case MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE :
+                case MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE:
                     deviceControllers.put(entry.getKey(), buildDeviceInterfaceModule(entry.getKey()));
                     break;
                 default:

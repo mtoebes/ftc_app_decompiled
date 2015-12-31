@@ -3,6 +3,7 @@ package com.qualcomm.robotcore.robocol;
 import com.qualcomm.robotcore.util.Network;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;

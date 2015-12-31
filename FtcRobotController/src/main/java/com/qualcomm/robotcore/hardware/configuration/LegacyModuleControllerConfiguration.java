@@ -1,7 +1,7 @@
 package com.qualcomm.robotcore.hardware.configuration;
 
-import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 import com.qualcomm.robotcore.util.SerialNumber;
+
 import java.util.List;
 
 public class LegacyModuleControllerConfiguration extends ControllerConfiguration {

@@ -3,6 +3,7 @@ package com.qualcomm.robotcore.robocol;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.nio.ByteBuffer;
 
 public class Heartbeat implements RobocolParsable {
@@ -28,7 +29,7 @@ public class Heartbeat implements RobocolParsable {
 
     public Heartbeat(Token token) {
         switch (token) {
-            case EMPTY :
+            case EMPTY:
                 this.sequenceNumber = (short) 0;
             default:
         }

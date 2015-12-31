@@ -24,6 +24,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+/**
+ * Event Loop Manager
+ * <p/>
+ * Takes RobocolDatagram messages, converts them into the appropriate data type, and then passes it to the current EventLoop.
+ */
 public class EventLoopManager {
     public static final String RC_BATTERY_LEVEL_KEY = "RobotController Battery Level";
     public static final String ROBOT_BATTERY_LEVEL_KEY = "Robot Battery Level";
@@ -45,6 +50,9 @@ public class EventLoopManager {
     private InetAddress inetAddress;
     public RobotState state = RobotState.NOT_STARTED;
 
+    /**
+     * Callback to monitor when event loop changes state
+     */
     public interface EventLoopMonitor {
         void onStateChange(RobotState robotState);
     }
@@ -264,15 +272,31 @@ public class EventLoopManager {
         RobotLog.i(message);
     }
 
+    /**
+     * Constructor
+     *
+     * @param socket socket for IO with remote device
+     */
     public EventLoopManager(RobocolDatagramSocket socket) {
         this.socket = socket;
         setState(RobotState.NOT_STARTED);
     }
 
+    /**
+     * Set a monitor for this event loop
+     *
+     * @param monitor event loop monitor
+     */
     public void setMonitor(EventLoopMonitor monitor) {
         this.monitor = monitor;
     }
 
+    /**
+     * Start the event processor
+     *
+     * @param eventLoop set initial event loop
+     * @throws RobotCoreException if event loop fails to init
+     */
     public void start(EventLoop eventLoop) throws RobotCoreException {
         this.isRunning = false;
         setEventLoop(eventLoop);
@@ -281,6 +305,9 @@ public class EventLoopManager {
         new Thread(new ProcessEventRunnable(this)).start();
     }
 
+    /**
+     * Shut down the event processor
+     */
     public void shutdown() {
         this.socket.close();
         this.sendCommandThread.interrupt();
@@ -288,14 +315,30 @@ public class EventLoopManager {
         stopRobot();
     }
 
+    /**
+     * Register a sync'd device
+     *
+     * @param device sync'd device
+     */
     public void registerSyncdDevice(SyncdDevice device) {
         this.syncdDevices.add(device);
     }
 
+    /**
+     * Unregister a sync'd device
+     *
+     * @param device sync'd device
+     */
     public void unregisterSyncdDevice(SyncdDevice device) {
         this.syncdDevices.remove(device);
     }
 
+    /**
+     * Replace the current event loop with a new event loop
+     *
+     * @param eventLoop new event loop
+     * @throws RobotCoreException if event loop fails to init
+     */
     public void setEventLoop(EventLoop eventLoop) throws RobotCoreException {
         if (eventLoop == null) {
             eventLoop = EVENT_LOOP;
@@ -306,19 +349,44 @@ public class EventLoopManager {
         startRobot();
     }
 
+    /**
+     * Get the current event loop
+     *
+     * @return current event loop
+     */
     public EventLoop getEventLoop() {
         return this.eventLoop;
     }
 
+    /**
+     * Get the current gamepad state
+     * <p/>
+     * Port 0 is assumed
+     *
+     * @return gamepad
+     */
     public Gamepad getGamepad() {
         return getGamepad(0);
     }
 
+    /**
+     * Get the gamepad connected to a particular user
+     *
+     * @param port port - user 0 and 1 are valid
+     * @return gamepad
+     */
     public Gamepad getGamepad(int port) {
         Range.throwIfRangeIsInvalid((double) port, 0, Servo.MAX_POSITION);
         return this.gamepads[port];
     }
 
+    /**
+     * Get the gamepads
+     * <p/>
+     * Array index will match the user number
+     *
+     * @return gamepad
+     */
     public Gamepad[] getGamepads() {
         return this.gamepads;
     }
@@ -329,10 +397,22 @@ public class EventLoopManager {
         }
     }
 
+    /**
+     * Get the current heartbeat state
+     *
+     * @return heartbeat
+     */
     public Heartbeat getHeartbeat() {
         return this.heartbeat;
     }
 
+    /**
+     * Send telemetry data
+     * <p/>
+     * Send the telemetry data, and then clear the sent data
+     *
+     * @param telemetry telemetry data
+     */
     public void sendTelemetryData(Telemetry telemetry) {
         try {
             this.socket.send(new RobocolDatagram(telemetry.toByteArray()));

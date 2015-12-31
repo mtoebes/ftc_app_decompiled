@@ -5,16 +5,34 @@ import android.os.Build.VERSION;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.nio.ByteBuffer;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Monitor a hardware gamepad.
+ * <p/>
+ * The buttons, analog sticks, and triggers are represented a public member variables that can be read from or written to directly.
+ * <p/>
+ * Analog sticks are represented as floats that range from -1.0 to +1.0. They will be 0.0 while at rest. The horizontal axis is labeled x, and the vertical axis is labeled y.
+ * <p/>
+ * Triggers are represented as floats that range from 0.0 to 1.0. They will be at 0.0 while at rest.
+ * <p/>
+ * Buttons are boolean values. They will be true if the button is pressed, otherwise they will be false.
+ * <p/>
+ * The dpad is represented as 4 buttons, dpad_up, dpad_down, dpad_left, and dpad_right
+ */
 public class Gamepad implements RobocolParsable {
+    /**
+     * A gamepad with an ID equal to ID_UNASSOCIATED has not been associated with any device.
+     */
     public static final int ID_UNASSOCIATED = -1;
 
     private static final int MAX_JOYSTICK_VALUE = 1;
@@ -23,35 +41,121 @@ public class Gamepad implements RobocolParsable {
 
     private static Set<Integer> gamepadDevices = new HashSet<Integer>();
     private static Set<whitelistDevice> whitelistDevices;
-    public boolean a;
-    public boolean b;
-    public boolean back;
     private final GamepadCallback gamepadCallback;
-    protected float dpadThreshold = 0.2f;
+    /**
+     * button a
+     */
+    public boolean a;
+    /**
+     * button b
+     */
+    public boolean b;
+    /**
+     * button back
+     */
+    public boolean back;
+    /**
+     * dpad down
+     */
     public boolean dpad_down;
+    /**
+     * dpad left
+     */
     public boolean dpad_left;
+    /**
+     * dpad right
+     */
     public boolean dpad_right;
+    /**
+     * dpad up
+     */
     public boolean dpad_up;
+    /**
+     * button guide - often the large button in the middle of the controller. The OS may capture this button before it is sent to the app; in which case you'll never receive it.
+     */
     public boolean guide;
+    /**
+     * ID assigned to this gamepad by the OS. This value can change each time the device is plugged in
+     */
     public int id = ID_UNASSOCIATED;
-    protected float joystickDeadzone = 0.2f;
+    /**
+     * button left bumper
+     */
     public boolean left_bumper;
+    /**
+     * left stick button
+     */
     public boolean left_stick_button;
+    /**
+     * left analog stick horizontal axis
+     */
     public float left_stick_x;
+    /**
+     * left analog stick vertical axis
+     */
     public float left_stick_y;
+    /**
+     * left trigger
+     */
     public float left_trigger;
+    /**
+     * button right bumper
+     */
     public boolean right_bumper;
+    /**
+     * right stick button
+     */
     public boolean right_stick_button;
+    /**
+     * right analog stick horizontal axis
+     */
     public float right_stick_x;
+    /**
+     * right analog stick vertical axis
+     */
     public float right_stick_y;
+    /**
+     * right trigger
+     */
     public float right_trigger;
+    /**
+     * button start
+     */
     public boolean start;
+    /**
+     * Relative timestamp of the last time an event was detected
+     */
     public long timestamp;
+    /**
+     * Which user is this gamepad used by
+     */
     public byte user = -1;
+    /**
+     * button x
+     */
     public boolean x;
+    /**
+     * button y
+     */
     public boolean y;
+    /**
+     * DPAD button will be considered pressed when the movement crosses this threshold
+     */
+    protected float dpadThreshold = 0.2f;
+    /**
+     * If the motion value is less than the threshold, the controller will be considered at rest
+     */
+    protected float joystickDeadzone = 0.2f;
 
+    /**
+     * Optional callback interface for monitoring changes due to MotionEvents and KeyEvents. This interface can be used to notify you if the gamepad changes due to either a KeyEvent or a MotionEvent. It does not notify you if the gamepad changes for other reasons.
+     */
     public interface GamepadCallback {
+        /**
+         * This method will be called whenever the gamepad state has changed due to either a KeyEvent or a MotionEvent.
+         *
+         * @param gamepad device which state has changed
+         */
         void gamepadChanged(Gamepad gamepad);
     }
 
@@ -69,10 +173,19 @@ public class Gamepad implements RobocolParsable {
         this.gamepadCallback = callback;
     }
 
+    /**
+     * Copy the state of a gamepad into this gamepad
+     *
+     * @param gamepad state to be copied from
+     * @throws RobotCoreException if the copy fails - gamepad will be in an unknown state if this exception is thrown
+     */
     public void copy(Gamepad gamepad) throws RobotCoreException {
         fromByteArray(gamepad.toByteArray());
     }
 
+    /**
+     * Reset this gamepad into its inital state
+     */
     public void reset() {
         try {
             copy(new Gamepad());
@@ -82,13 +195,23 @@ public class Gamepad implements RobocolParsable {
         }
     }
 
+    /**
+     * Set the joystick deadzone. Must be between 0 and 1.
+     *
+     * @param deadzone amount of joystick deadzone
+     */
     public void setJoystickDeadzone(float deadzone) {
-        if ((deadzone < 0) || (deadzone >  MAX_JOYSTICK_VALUE)) {
+        if ((deadzone < 0) || (deadzone > MAX_JOYSTICK_VALUE)) {
             throw new IllegalArgumentException("deadzone cannot be greater than max joystick value");
         }
         this.joystickDeadzone = deadzone;
     }
 
+    /**
+     * Update the gamepad based on a MotionEvent
+     *
+     * @param event motion event
+     */
     public void update(MotionEvent event) {
         this.id = event.getDeviceId();
         this.timestamp = event.getEventTime();
@@ -105,6 +228,11 @@ public class Gamepad implements RobocolParsable {
         callCallback();
     }
 
+    /**
+     * Update the gamepad based on a KeyEvent
+     *
+     * @param event key event
+     */
     public void update(KeyEvent event) {
         this.id = event.getDeviceId();
         this.timestamp = event.getEventTime();
@@ -203,10 +331,10 @@ public class Gamepad implements RobocolParsable {
             this.left_trigger = wrap.getFloat();
             this.right_trigger = wrap.getFloat();
             int i = wrap.getInt();
-            this.left_stick_button = (i & (1 <<14)) != 0;
-            this.right_stick_button = (i & (1 <<13)) != 0;
-            this.dpad_up = (i & (1 <<12)) != 0;
-            this.dpad_down = (i & (1 <<11)) != 0;
+            this.left_stick_button = (i & (1 << 14)) != 0;
+            this.right_stick_button = (i & (1 << 13)) != 0;
+            this.dpad_up = (i & (1 << 12)) != 0;
+            this.dpad_down = (i & (1 << 11)) != 0;
             this.dpad_left = (i & (1 << 10)) != 0;
             this.dpad_right = (i & (1 << 9)) != 0;
             this.a = (i & (1 << 8)) != 0;
@@ -225,6 +353,11 @@ public class Gamepad implements RobocolParsable {
         callCallback();
     }
 
+    /**
+     * Are all analog sticks and triggers in their rest position?
+     *
+     * @return true if all analog sticks and triggers are at rest; otherwise false
+     */
     public boolean atRest() {
         return !((this.left_stick_x != 0) ||
                 (this.left_stick_y != 0) ||
@@ -234,66 +367,77 @@ public class Gamepad implements RobocolParsable {
                 (this.right_trigger != 0));
     }
 
+    /**
+     * Get the type of gamepad as a String. This method defaults to "Standard".
+     *
+     * @return gamepad type
+     */
     public String type() {
         return "Standard";
     }
 
+    /**
+     * Display a summary of this gamepad, including the state of all buttons, analog sticks, and triggers
+     *
+     * @return a summary
+     */
+    @Override
     public String toString() {
         String str = "";
         if (dpad_up) {
-             str += "dpad_up ";
+            str += "dpad_up ";
         }
         if (dpad_down) {
-             str += "dpad_down ";
+            str += "dpad_down ";
         }
         if (dpad_left) {
-             str += "dpad_left ";
+            str += "dpad_left ";
         }
         if (dpad_right) {
-             str += "dpad_right ";
+            str += "dpad_right ";
         }
         if (a) {
-             str += "a ";
+            str += "a ";
         }
         if (b) {
-             str += "b ";
+            str += "b ";
         }
         if (x) {
-             str += "x ";
+            str += "x ";
         }
         if (y) {
-             str += "y ";
+            str += "y ";
         }
         if (guide) {
-             str += "guide ";
+            str += "guide ";
         }
         if (start) {
-             str += "start ";
+            str += "start ";
         }
         if (back) {
-             str += "back ";
+            str += "back ";
         }
         if (left_bumper) {
-             str += "left_bumper ";
+            str += "left_bumper ";
         }
         if (right_bumper) {
-             str += "right_bumper ";
+            str += "right_bumper ";
         }
         if (left_stick_button) {
-             str += "left stick button ";
+            str += "left stick button ";
         }
         if (right_stick_button) {
-             str += "right stick button ";
+            str += "right stick button ";
         }
         return String.format("ID: %2d user: %2d lx: % 1.2f ly: % 1.2f rx: % 1.2f ry: % 1.2f lt: %1.2f rt: %1.2f %s",
-                id,  user,  left_stick_x,  left_stick_y,  right_stick_x,  right_stick_y,  left_trigger,  right_trigger, str);
+                id, user, left_stick_x, left_stick_y, right_stick_x, right_stick_y, left_trigger, right_trigger, str);
     }
 
     protected float cleanMotionValues(float number) {
         if ((number < this.joystickDeadzone) && (number > (-this.joystickDeadzone))) {
             return 0;
-        } else if (number >  MAX_JOYSTICK_VALUE) {
-            return  MAX_JOYSTICK_VALUE;
+        } else if (number > MAX_JOYSTICK_VALUE) {
+            return MAX_JOYSTICK_VALUE;
         } else if (number < -MAX_JOYSTICK_VALUE) {
             return -MAX_JOYSTICK_VALUE;
         }
@@ -317,6 +461,16 @@ public class Gamepad implements RobocolParsable {
         }
     }
 
+    /**
+     * Add a whitelist filter for a specific device vendor/product ID.
+     * <p/>
+     * This adds a whitelist to the gamepad detection method. If a device has been added to the whitelist, then only devices that match the given vendor ID and product ID will be considered gamepads. This method can be called multiple times to add multiple devices to the whitelist.
+     * <p/>
+     * If no whitelist entries have been added, then the default OS detection methods will be used.
+     *
+     * @param vendorId  the vendor ID
+     * @param productId the product ID
+     */
     public static void enableWhitelistFilter(int vendorId, int productId) {
         if (whitelistDevices == null) {
             whitelistDevices = new HashSet<whitelistDevice>();
@@ -324,10 +478,19 @@ public class Gamepad implements RobocolParsable {
         whitelistDevices.add(new whitelistDevice(vendorId, productId));
     }
 
+    /**
+     * Clear the device whitelist filter.
+     */
     public static void clearWhitelistFilter() {
         whitelistDevices = null;
     }
 
+    /**
+     * Does this device ID belong to a gamepad device?
+     *
+     * @param deviceId device ID
+     * @return true, if gamepad device; false otherwise
+     */
     @TargetApi(19)
     public static synchronized boolean isGamepadDevice(int deviceId) {
         synchronized (Gamepad.class) {

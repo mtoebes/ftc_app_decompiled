@@ -2,6 +2,7 @@ package com.qualcomm.robotcore.robocol;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.TypeConversion;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;

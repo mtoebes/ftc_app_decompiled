@@ -2,6 +2,7 @@ package com.qualcomm.robotcore.robocol;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.nio.ByteBuffer;
 
 public class PeerDiscovery implements RobocolParsable {
@@ -15,7 +16,7 @@ public class PeerDiscovery implements RobocolParsable {
         NOT_SET(0),
         PEER(1),
         GROUP_OWNER(2);
-        
+
         private static final PeerType[] peerTypes = values();
         private final int type;
 
@@ -68,7 +69,7 @@ public class PeerDiscovery implements RobocolParsable {
         }
         ByteBuffer wrap = ByteBuffer.wrap(byteArray, HEADER_LENGTH, PAYLOAD_SIZE);
 
-        if((PeerType.fromByte(wrap.get())) == PeerType.PEER) {
+        if ((PeerType.fromByte(wrap.get())) == PeerType.PEER) {
             this.peerType = PeerType.fromByte(wrap.get());
         }
     }

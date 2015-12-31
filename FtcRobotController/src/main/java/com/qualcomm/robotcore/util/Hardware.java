@@ -2,6 +2,7 @@ package com.qualcomm.robotcore.util;
 
 import android.os.Build;
 import android.view.InputDevice;
+
 import java.util.HashSet;
 import java.util.Set;
 

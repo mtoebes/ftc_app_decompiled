@@ -170,7 +170,7 @@ public class MapView extends View {
     }
 
     private void drawMarkers() {
-        for(int i = 0; i < this.markers.size(); i++) {
+        for (int i = 0; i < this.markers.size(); i++) {
             int key = this.markers.keyAt(i);
             Marker marker = this.markers.get(key);
 

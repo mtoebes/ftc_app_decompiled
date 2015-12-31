@@ -9,7 +9,7 @@ public enum RobotState {
     STOPPED(3),
     EMERGENCY_STOP(4),
     DROPPED_CONNECTION(5);
-    
+
     private static final RobotState[] ROBOT_STATES = values();
     private int state;
 

@@ -1,6 +1,7 @@
 package com.qualcomm.robotcore.hardware.usb.ftdi;
 
 import android.content.Context;
+
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.D2xxManager.D2xxException;
 import com.ftdi.j2xx.FT_Device;

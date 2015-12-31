@@ -2,6 +2,7 @@ package com.qualcomm.robotcore.hardware.logitech;
 
 import android.os.Build.VERSION;
 import android.view.MotionEvent;
+
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 public class LogitechGamepadF310 extends Gamepad {

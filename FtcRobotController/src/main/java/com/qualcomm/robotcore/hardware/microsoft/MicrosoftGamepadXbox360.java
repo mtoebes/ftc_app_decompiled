@@ -1,7 +1,6 @@
 package com.qualcomm.robotcore.hardware.microsoft;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Gamepad.GamepadCallback;
 
 public class MicrosoftGamepadXbox360 extends Gamepad {
     public MicrosoftGamepadXbox360() {

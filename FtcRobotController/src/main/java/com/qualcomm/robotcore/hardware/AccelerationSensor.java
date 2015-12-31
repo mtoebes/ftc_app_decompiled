@@ -1,7 +1,13 @@
 package com.qualcomm.robotcore.hardware;
 
+/**
+ * Acceleration Sensor
+ */
 public abstract class AccelerationSensor implements HardwareDevice {
 
+    /**
+     * Acceleration in the x, y, and z axis
+     */
     public static class Acceleration {
         public double x;
         public double y;
@@ -22,8 +28,18 @@ public abstract class AccelerationSensor implements HardwareDevice {
         }
     }
 
+    /**
+     * Acceleration, measured in g's
+     *
+     * @return acceleration in g's
+     */
     public abstract Acceleration getAcceleration();
 
+    /**
+     * Status of this sensor, in string form
+     *
+     * @return status
+     */
     public abstract String status();
 
     public String toString() {

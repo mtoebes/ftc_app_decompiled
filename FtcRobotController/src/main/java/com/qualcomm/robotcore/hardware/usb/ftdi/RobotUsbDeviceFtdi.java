@@ -32,16 +32,16 @@ public class RobotUsbDeviceFtdi implements RobotUsbDevice {
     public void purge(Channel channel) throws RobotCoreException {
         byte b = 0;
         switch (channel) {
-            case NONE :
+            case NONE:
                 b = 0;
                 break;
-            case RX :
+            case RX:
                 b = 1;
                 break;
-            case TX :
+            case TX:
                 b = 2;
                 break;
-            case BOTH :
+            case BOTH:
                 b = 3;
                 break;
         }
