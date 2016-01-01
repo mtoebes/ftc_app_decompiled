@@ -1,14 +1,14 @@
 # ftc_app_decompiled 
 
-This project's goal to expose the implementation of ftc_app's dependancy libraries in the hope of aiding opmode development
+This project's goal to expose the implementation of ftc_app's dependency  libraries in the hope of aiding opmode development
 
-See [ftctechnh/ftc_app](https://github.com/ftctechnh/ftc_app) for the offical FTC app.
+See [ftctechnh/ftc_app](https://github.com/ftctechnh/ftc_app) for the official  FTC app.
 
-Currently, you are able to browse decompiled classes within android studio but it can be difficult to follow due to auto-generated variable/method names, lack of documentation, compile errors, and unintutive logic. In particular, the limited javadoc documentation is very frustrating. These are all issues I would like to see eased by this project. 
+Currently, you are able to browse decompiled classes within android studio but it can be difficult to follow due to auto-generated variable/method names, lack of documentation, compile errors, and unintuitive logic. In particular, the limited javadoc documentation is very frustrating. These are all issues I would like to see eased by this project. 
 
-Any refactoring of logicis intended to aid readability, not enhance functionality. 
+Any refactoring of logic is intended to aid readability, not enhance functionality. 
 
-I <b>strongly</b> recommend that you still build your APK with the offical libraries to avoid any unforseen bugs. 
+I <b>strongly</b> recommend that you still build your APK with the official  libraries to avoid any introduced bugs. 
 
 ## Files of Note
 * [Docompiler-Libs](https://github.com/mtoebes/ftc_app_decompiled/tree/master/Decompiled-Libs) : Raw output from JADX decompiler
@@ -20,7 +20,7 @@ High-level description of the functionality of the libraries
 
 * Analytics - Sends analytics to qualcomm server
 * FtcCommon - App's user interface
-* Hardware -  inplentation for communicating with phyical device
+* Hardware -  implementation  for communicating with physical device
 * MordernRobotics - handler for USB communication
 * RobotCore - utils/models/logic for interacting with devices
 * WirelessP2p - handler for wireless communication
