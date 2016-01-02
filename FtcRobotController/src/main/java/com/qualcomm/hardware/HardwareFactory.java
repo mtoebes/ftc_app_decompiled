@@ -23,156 +23,51 @@ import java.io.InputStream;
 import java.util.List;
 
 public class HardwareFactory {
-    private Context f16a;
-    private InputStream f17b;
-
-    /* renamed from: com.qualcomm.hardware.HardwareFactory.1 */
-    static /* synthetic */ class C00021 {
-        static final /* synthetic */ int[] f15a;
-
-        static {
-            f15a = new int[ConfigurationType.values().length];
-            try {
-                f15a[ConfigurationType.MOTOR_CONTROLLER.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.SERVO_CONTROLLER.ordinal()] = 2;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.LEGACY_MODULE_CONTROLLER.ordinal()] = 3;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.DEVICE_INTERFACE_MODULE.ordinal()] = 4;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.OPTICAL_DISTANCE_SENSOR.ordinal()] = 5;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.ANALOG_INPUT.ordinal()] = 6;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.TOUCH_SENSOR.ordinal()] = 7;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.DIGITAL_DEVICE.ordinal()] = 8;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.PULSE_WIDTH_DEVICE.ordinal()] = 9;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.IR_SEEKER_V3.ordinal()] = 10;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.I2C_DEVICE.ordinal()] = 11;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.ANALOG_OUTPUT.ordinal()] = 12;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.ADAFRUIT_COLOR_SENSOR.ordinal()] = 13;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.LED.ordinal()] = 14;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.COLOR_SENSOR.ordinal()] = 15;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.GYRO.ordinal()] = 16;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.NOTHING.ordinal()] = 17;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.COMPASS.ordinal()] = 18;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.IR_SEEKER.ordinal()] = 19;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.LIGHT_SENSOR.ordinal()] = 20;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.ACCELEROMETER.ordinal()] = 21;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.ordinal()] = 22;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.ULTRASONIC_SENSOR.ordinal()] = 23;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f15a[ConfigurationType.MATRIX_CONTROLLER.ordinal()] = 24;
-            } catch (NoSuchFieldError ignored) {
-            }
-        }
-    }
+    private Context context;
+    private InputStream inputStream;
 
     public HardwareFactory(Context context) {
-        this.f17b = null;
-        this.f16a = context;
+        this.inputStream = null;
+        this.context = context;
     }
 
     public HardwareMap createHardwareMap(EventLoopManager manager) throws RobotCoreException, InterruptedException {
-        if (this.f17b == null) {
+        if (this.inputStream == null) {
             throw new RobotCoreException("XML input stream is null, HardwareFactory cannot create a hardware map");
         }
         HardwareMap hardwareMap = new HardwareMap();
         RobotLog.v("Starting Modern Robotics device manager");
-        HardwareDeviceManager hardwareDeviceManager = new HardwareDeviceManager(this.f16a, manager);
-        for (ControllerConfiguration controllerConfiguration : new ReadXMLFileHandler(this.f16a).parse(this.f17b)) {
+        HardwareDeviceManager hardwareDeviceManager = new HardwareDeviceManager(this.context, manager);
+        for (ControllerConfiguration controllerConfiguration : new ReadXMLFileHandler(this.context).parse(this.inputStream)) {
             ConfigurationType type = controllerConfiguration.getType();
-            switch (C00021.f15a[type.ordinal()]) {
-                case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_I2C_PORT_I2C_ADDRESS /*1*/:
-                    m10a(hardwareMap, hardwareDeviceManager, controllerConfiguration);
+            switch (type) {
+                case MOTOR_CONTROLLER :
+                    createDcMotorController(hardwareMap, hardwareDeviceManager, controllerConfiguration);
                     break;
-                case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
-                    m14b(hardwareMap, hardwareDeviceManager, controllerConfiguration);
+                case SERVO_CONTROLLER :
+                    createServoController(hardwareMap, hardwareDeviceManager, controllerConfiguration);
                     break;
-                case ModernRoboticsUsbLegacyModule.ADDRESS_BUFFER_STATUS /*3*/:
-                    m20d(hardwareMap, hardwareDeviceManager, controllerConfiguration);
+                case LEGACY_MODULE_CONTROLLER :
+                    createLegacyModuleController(hardwareMap, hardwareDeviceManager, controllerConfiguration);
                     break;
-                case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S0 /*4*/:
-                    m17c(hardwareMap, hardwareDeviceManager, controllerConfiguration);
+                case DEVICE_INTERFACE_MODULE :
+                    createDeviceInterfaceModule(hardwareMap, hardwareDeviceManager, controllerConfiguration);
                     break;
                 default:
                     RobotLog.w("Unexpected controller type while parsing XML: " + type.toString());
                     break;
             }
         }
-        hardwareMap.appContext = this.f16a;
+        hardwareMap.appContext = this.context;
         return hardwareMap;
     }
 
     public void setXmlInputStream(InputStream xmlInputStream) {
-        this.f17b = xmlInputStream;
+        this.inputStream = xmlInputStream;
     }
 
     public InputStream getXmlInputStream() {
-        return this.f17b;
+        return this.inputStream;
     }
 
     public static void enableDeviceEmulation() {
@@ -183,7 +78,7 @@ public class HardwareFactory {
         HardwareDeviceManager.disableDeviceEmulation();
     }
 
-    private void m10a(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
+    private void createDcMotorController(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
         ModernRoboticsUsbDcMotorController modernRoboticsUsbDcMotorController = (ModernRoboticsUsbDcMotorController) deviceManager.createUsbDcMotorController(controllerConfiguration.getSerialNumber());
         hardwareMap.dcMotorController.put(controllerConfiguration.getName(), modernRoboticsUsbDcMotorController);
         for (DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
@@ -194,7 +89,7 @@ public class HardwareFactory {
         hardwareMap.voltageSensor.put(controllerConfiguration.getName(), modernRoboticsUsbDcMotorController);
     }
 
-    private void m14b(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
+    private void createServoController(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
         ServoController createUsbServoController = deviceManager.createUsbServoController(controllerConfiguration.getSerialNumber());
         hardwareMap.servoController.put(controllerConfiguration.getName(), createUsbServoController);
         for (DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
@@ -204,58 +99,58 @@ public class HardwareFactory {
         }
     }
 
-    private void m17c(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
+    private void createDeviceInterfaceModule(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
         DeviceInterfaceModule createDeviceInterfaceModule = deviceManager.createDeviceInterfaceModule(controllerConfiguration.getSerialNumber());
         hardwareMap.deviceInterfaceModule.put(controllerConfiguration.getName(), createDeviceInterfaceModule);
-        m11a(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getPwmDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        m11a(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getI2cDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        m11a(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getAnalogInputDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        m11a(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getDigitalDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        m11a(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getAnalogOutputDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
+        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getPwmDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
+        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getI2cDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
+        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getAnalogInputDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
+        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getDigitalDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
+        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getAnalogOutputDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
     }
 
-    private void m11a(List<DeviceConfiguration> list, HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule) {
+    private void createDeviceInterfaceModule(List<DeviceConfiguration> list, HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule) {
         for (DeviceConfiguration deviceConfiguration : list) {
             if (deviceConfiguration.isEnabled()) {
                 ConfigurationType type = deviceConfiguration.getType();
-                switch (C00021.f15a[type.ordinal()]) {
-                    case ModernRoboticsUsbDeviceInterfaceModule.MAX_I2C_PORT_NUMBER /*5*/:
-                        m27h(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                switch (type) {
+                    case OPTICAL_DISTANCE_SENSOR :
+                        createOpticalDistanceSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbServoController.MAX_SERVOS /*6*/:
-                        m18d(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case ANALOG_INPUT :
+                        createAnalogInput(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.MAX_ANALOG_PORT_NUMBER /*7*/:
-                        m15c(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case TOUCH_SENSOR :
+                        createTouchSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S2 /*8*/:
-                        m12b(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case DIGITAL_DEVICE :
+                        createDigitalDevice(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbServoController.MONITOR_LENGTH /*9*/:
-                        m21e(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case PULSE_WIDTH_DEVICE :
+                        createPulseWidthDevice(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S3 /*10*/:
-                        m7a(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case IR_SEEKER_V3 :
+                        createIrSeekerV3(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case HiTechnicNxtDcMotorController.OFFSET_MOTOR2_MODE /*11*/:
-                        m23f(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case I2C_DEVICE :
+                        createI2CDevice(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S4 /*12*/:
-                        m25g(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case ANALOG_OUTPUT :
+                        createAnalogOutput(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbLegacyModule.MONITOR_LENGTH /*13*/:
-                        m29i(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case ADAFRUIT_COLOR_SENSOR :
+                        createAdafruitColorSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S5 /*14*/:
-                        m8a(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case LED :
+                        createLED(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case 15:
-                        m31j(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case COLOR_SENSOR:
+                        createColorSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbLegacyModule.ADDRESS_I2C_PORT_SO /*16*/:
-                        m33k(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                    case GYRO :
+                        createGyro(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
-                    case 17:
+                    case NOTHING :
                         break;
                     default:
                         RobotLog.w("Unexpected device type connected to Device Interface Module while parsing XML: " + type.toString());
@@ -265,50 +160,50 @@ public class HardwareFactory {
         }
     }
 
-    private void m20d(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
+    private void createLegacyModuleController(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
         LegacyModule createUsbLegacyModule = deviceManager.createUsbLegacyModule(controllerConfiguration.getSerialNumber());
         hardwareMap.legacyModule.put(controllerConfiguration.getName(), createUsbLegacyModule);
         for (DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
             if (deviceConfiguration.isEnabled()) {
                 ConfigurationType type = deviceConfiguration.getType();
-                switch (C00021.f15a[type.ordinal()]) {
-                    case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_I2C_PORT_I2C_ADDRESS /*1*/:
-                        m32j(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                switch (type) {
+                    case MOTOR_CONTROLLER :
+                        createNxtDcMotorController(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
-                        m34k(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case SERVO_CONTROLLER :
+                        createNxtServoController(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.MAX_ANALOG_PORT_NUMBER /*7*/:
-                        m9a(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case TOUCH_SENSOR :
+                        createTouchSensor(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case 15:
-                        m19d(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case COLOR_SENSOR :
+                        createColorSensor(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbLegacyModule.ADDRESS_I2C_PORT_SO /*16*/:
-                        m22e(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case GYRO :
+                        createGyro(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case 17:
+                    case NOTHING:
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.ADDRESS_ANALOG_PORT_A7 /*18*/:
-                        m24f(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case COMPASS :
+                        createCompass(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case 19:
-                        m26g(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case IR_SEEKER:
+                        createIrSeeker(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.ADDRESS_DIGITAL_INPUT_STATE /*20*/:
-                        m28h(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case LIGHT_SENSOR :
+                        createLightSensor(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.MONITOR_LENGTH /*21*/:
-                        m30i(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case ACCELEROMETER :
+                        createAccelerometer(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.ADDRESS_DIGITAL_OUTPUT_STATE /*22*/:
-                        m13b(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case TOUCH_SENSOR_MULTIPLEXER :
+                        createTouchSensorMultiplexer(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.ADDRESS_LED_SET /*23*/:
-                        m16c(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case ULTRASONIC_SENSOR :
+                        createUltrasonicSensor(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
-                    case ModernRoboticsUsbDeviceInterfaceModule.ADDRESS_VOLTAGE_OUTPUT_PORT_0 /*24*/:
-                        m35l(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
+                    case MATRIX_CONTROLLER :
+                        createMatrixController(hardwareMap, deviceManager, createUsbLegacyModule, deviceConfiguration);
                         break;
                     default:
                         RobotLog.w("Unexpected device type connected to Legacy Module while parsing XML: " + type.toString());
@@ -318,75 +213,75 @@ public class HardwareFactory {
         }
     }
 
-    private void m7a(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createIrSeekerV3(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.irSeekerSensor.put(deviceConfiguration.getName(), deviceManager.createI2cIrSeekerSensorV3(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m12b(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createDigitalDevice(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.digitalChannel.put(deviceConfiguration.getName(), deviceManager.createDigitalChannelDevice(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m15c(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createTouchSensor(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.touchSensor.put(deviceConfiguration.getName(), deviceManager.createDigitalTouchSensor(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m18d(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createAnalogInput(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.analogInput.put(deviceConfiguration.getName(), deviceManager.createAnalogInputDevice(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m21e(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createPulseWidthDevice(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.pwmOutput.put(deviceConfiguration.getName(), deviceManager.createPwmOutputDevice(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m23f(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createI2CDevice(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.i2cDevice.put(deviceConfiguration.getName(), deviceManager.createI2cDevice(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m25g(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createAnalogOutput(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.analogOutput.put(deviceConfiguration.getName(), deviceManager.createAnalogOutputDevice(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m27h(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createOpticalDistanceSensor(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.opticalDistanceSensor.put(deviceConfiguration.getName(), deviceManager.createAnalogOpticalDistanceSensor(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m9a(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createTouchSensor(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.touchSensor.put(deviceConfiguration.getName(), deviceManager.createNxtTouchSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m13b(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createTouchSensorMultiplexer(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.touchSensorMultiplexer.put(deviceConfiguration.getName(), deviceManager.createNxtTouchSensorMultiplexer(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m16c(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createUltrasonicSensor(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.ultrasonicSensor.put(deviceConfiguration.getName(), deviceManager.createNxtUltrasonicSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m19d(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createColorSensor(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.colorSensor.put(deviceConfiguration.getName(), deviceManager.createNxtColorSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m22e(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createGyro(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.gyroSensor.put(deviceConfiguration.getName(), deviceManager.createNxtGyroSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m24f(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createCompass(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.compassSensor.put(deviceConfiguration.getName(), deviceManager.createNxtCompassSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m26g(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createIrSeeker(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.irSeekerSensor.put(deviceConfiguration.getName(), deviceManager.createNxtIrSeekerSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m28h(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createLightSensor(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.lightSensor.put(deviceConfiguration.getName(), deviceManager.createNxtLightSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m30i(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createAccelerometer(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.accelerationSensor.put(deviceConfiguration.getName(), deviceManager.createNxtAccelerationSensor(legacyModule, deviceConfiguration.getPort()));
     }
 
-    private void m32j(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createNxtDcMotorController(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         DcMotorController createNxtDcMotorController = deviceManager.createNxtDcMotorController(legacyModule, deviceConfiguration.getPort());
         hardwareMap.dcMotorController.put(deviceConfiguration.getName(), createNxtDcMotorController);
         for (DeviceConfiguration deviceConfiguration2 : ((MotorControllerConfiguration) deviceConfiguration).getMotors()) {
@@ -394,7 +289,7 @@ public class HardwareFactory {
         }
     }
 
-    private void m34k(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createNxtServoController(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         ServoController createNxtServoController = deviceManager.createNxtServoController(legacyModule, deviceConfiguration.getPort());
         hardwareMap.servoController.put(deviceConfiguration.getName(), createNxtServoController);
         for (DeviceConfiguration deviceConfiguration2 : ((ServoControllerConfiguration) deviceConfiguration).getServos()) {
@@ -402,7 +297,7 @@ public class HardwareFactory {
         }
     }
 
-    private void m35l(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
+    private void createMatrixController(HardwareMap hardwareMap, DeviceManager deviceManager, LegacyModule legacyModule, DeviceConfiguration deviceConfiguration) {
         MatrixMasterController matrixMasterController = new MatrixMasterController((ModernRoboticsUsbLegacyModule) legacyModule, deviceConfiguration.getPort());
         MatrixDcMotorController matrixDcMotorController = new MatrixDcMotorController(matrixMasterController);
         hardwareMap.dcMotorController.put(deviceConfiguration.getName() + "Motor", matrixDcMotorController);
@@ -418,19 +313,19 @@ public class HardwareFactory {
         }
     }
 
-    private void m29i(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createAdafruitColorSensor(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.colorSensor.put(deviceConfiguration.getName(), deviceManager.createAdafruitI2cColorSensor(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m8a(HardwareMap hardwareMap, DeviceManager deviceManager, DigitalChannelController digitalChannelController, DeviceConfiguration deviceConfiguration) {
+    private void createLED(HardwareMap hardwareMap, DeviceManager deviceManager, DigitalChannelController digitalChannelController, DeviceConfiguration deviceConfiguration) {
         hardwareMap.led.put(deviceConfiguration.getName(), deviceManager.createLED(digitalChannelController, deviceConfiguration.getPort()));
     }
 
-    private void m31j(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createColorSensor(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.colorSensor.put(deviceConfiguration.getName(), deviceManager.createModernRoboticsI2cColorSensor(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 
-    private void m33k(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
+    private void createGyro(HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule, DeviceConfiguration deviceConfiguration) {
         hardwareMap.gyroSensor.put(deviceConfiguration.getName(), deviceManager.createModernRoboticsI2cGyroSensor(deviceInterfaceModule, deviceConfiguration.getPort()));
     }
 }
