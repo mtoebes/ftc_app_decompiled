@@ -1,7 +1,6 @@
 package com.qualcomm.hardware;
 
 import com.qualcomm.robotcore.hardware.AccelerationSensor;
-import com.qualcomm.robotcore.hardware.AccelerationSensor.Acceleration;
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import java.util.concurrent.locks.Lock;
 
@@ -9,45 +8,51 @@ public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implement
     public static final int ACCEL_LENGTH = 6;
     public static final int ADDRESS_ACCEL_START = 66;
     public static final byte I2C_ADDRESS = (byte) 2;
-    private final ModernRoboticsUsbLegacyModule f18a;
-    private final byte[] f19b;
-    private final Lock f20c;
-    private final int f21d;
+
+    private static final byte ACCEL_X = 4;
+    private static final byte ACCEL_Y = 5;
+    private static final byte ACCEL_Z = 6;
+    private static final byte ACCEL_OFFSET = 3;
+
+    private final ModernRoboticsUsbLegacyModule legacyModule;
+    private final byte[] readCache;
+    private final Lock readCacheLock;
+    private final int physicalPort;
 
     public HiTechnicNxtAccelerationSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
-        legacyModule.enableI2cReadMode(physicalPort, 2, ADDRESS_ACCEL_START, ACCEL_LENGTH);
-        this.f18a = legacyModule;
-        this.f19b = legacyModule.getI2cReadCache(physicalPort);
-        this.f20c = legacyModule.getI2cReadCacheLock(physicalPort);
-        this.f21d = physicalPort;
+        legacyModule.enableI2cReadMode(physicalPort, I2C_ADDRESS, ADDRESS_ACCEL_START, ACCEL_LENGTH);
+        this.legacyModule = legacyModule;
+        this.readCache = legacyModule.getI2cReadCache(physicalPort);
+        this.readCacheLock = legacyModule.getI2cReadCacheLock(physicalPort);
+        this.physicalPort = physicalPort;
         legacyModule.registerForI2cPortReadyCallback(this, physicalPort);
     }
 
     public Acceleration getAcceleration() {
         Acceleration acceleration = new Acceleration();
         try {
-            this.f20c.lock();
-            acceleration.x = m36a((double) this.f19b[4], (double) this.f19b[7]);
-            acceleration.y = m36a((double) this.f19b[5], (double) this.f19b[8]);
-            acceleration.z = m36a((double) this.f19b[ACCEL_LENGTH], (double) this.f19b[9]);
+            this.readCacheLock.lock();
+            acceleration.x = readCoord(this.readCache[ACCEL_X], this.readCache[ACCEL_X + ACCEL_OFFSET]);
+            acceleration.y = readCoord(this.readCache[ACCEL_Y], this.readCache[ACCEL_Y + ACCEL_OFFSET]);
+            acceleration.z = readCoord(this.readCache[ACCEL_Z], this.readCache[ACCEL_Z + ACCEL_OFFSET]);
             return acceleration;
         } finally {
-            this.f20c.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
     public String status() {
-        return String.format("NXT Acceleration Sensor, connected via device %s, port %d", this.f18a.getSerialNumber().toString(), this.f21d);
+        return String.format("NXT Acceleration Sensor, connected via device %s, port %d", this.legacyModule.getSerialNumber().toString(), this.physicalPort);
     }
 
-    private double m36a(double d, double d2) {
-        return ((4.0d * d) + d2) / 200.0d;
+    private double readCoord(byte b1, byte b2) {
+        return ((4.0d * ((double) b1)) + ((double) b2)) / 200.0d;
     }
 
     public void portIsReady(int port) {
-        this.f18a.setI2cPortActionFlag(this.f21d);
-        this.f18a.writeI2cPortFlagOnlyToController(this.f21d);
-        this.f18a.readI2cCacheFromController(this.f21d);
+        this.legacyModule.setI2cPortActionFlag(this.physicalPort);
+        this.legacyModule.writeI2cPortFlagOnlyToController(this.physicalPort);
+        this.legacyModule.readI2cCacheFromController(this.physicalPort);
     }
 
     public String getDeviceName() {
@@ -55,7 +60,7 @@ public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implement
     }
 
     public String getConnectionInfo() {
-        return this.f18a.getConnectionInfo() + "; port " + this.f21d;
+        return this.legacyModule.getConnectionInfo() + "; port " + this.physicalPort;
     }
 
     public int getVersion() {
