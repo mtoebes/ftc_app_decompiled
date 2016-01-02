@@ -2,7 +2,6 @@ package com.qualcomm.hardware;
 
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import com.qualcomm.robotcore.hardware.LegacyModule;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
 import com.qualcomm.robotcore.util.SerialNumber;
@@ -58,8 +57,8 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public static final byte SIZE_I2C_BUFFER = (byte) 27;
     public static final byte SIZE_OF_PORT_BUFFER = (byte) 32;
     public static final byte START_ADDRESS = (byte) 3;
-    private final ReadWriteRunnableSegment[] f187a;
-    private final I2cPortReadyCallback[] f188b;
+    private final ReadWriteRunnableSegment[] segments;
+    private final I2cPortReadyCallback[] callbacks;
 
     static {
         ADDRESS_ANALOG_PORT_MAP = new int[]{ADDRESS_ANALOG_PORT_S0, ADDRESS_ANALOG_PORT_S1, ADDRESS_ANALOG_PORT_S2, ADDRESS_ANALOG_PORT_S3, ADDRESS_ANALOG_PORT_S4, ADDRESS_ANALOG_PORT_S5};
@@ -71,16 +70,14 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
 
     protected ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, ADDRESS_BUFFER_STATUS, DEBUG_LOGGING));
-        int i = 0;
-        this.f187a = new ReadWriteRunnableSegment[ADDRESS_ANALOG_PORT_S4];
-        this.f188b = new I2cPortReadyCallback[ADDRESS_ANALOG_PORT_S1];
+        this.segments = new ReadWriteRunnableSegment[ADDRESS_ANALOG_PORT_S4];
+        this.callbacks = new I2cPortReadyCallback[ADDRESS_ANALOG_PORT_S1];
         this.readWriteRunnable.setCallback(this);
-        while (i < ADDRESS_ANALOG_PORT_S1) {
-            this.f187a[i] = this.readWriteRunnable.createSegment(i, ADDRESS_I2C_PORT_MAP[i], 32);
-            this.f187a[i + ADDRESS_ANALOG_PORT_S1] = this.readWriteRunnable.createSegment(i + ADDRESS_ANALOG_PORT_S1, ADDRESS_I2C_PORT_MAP[i] + 31, 1);
-            enableAnalogReadMode(i);
-            this.readWriteRunnable.queueSegmentWrite(i);
-            i++;
+        for (int port = 0; port < ADDRESS_ANALOG_PORT_S1; port++) {
+            this.segments[port] = this.readWriteRunnable.createSegment(port, ADDRESS_I2C_PORT_MAP[port], 32);
+            this.segments[port + ADDRESS_ANALOG_PORT_S1] = this.readWriteRunnable.createSegment(port + ADDRESS_ANALOG_PORT_S1, ADDRESS_I2C_PORT_MAP[port] + 31, 1);
+            enableAnalogReadMode(port);
+            this.readWriteRunnable.queueSegmentWrite(port);
         }
     }
 
@@ -97,51 +94,54 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public void registerForI2cPortReadyCallback(I2cPortReadyCallback callback, int port) {
-        this.f188b[port] = callback;
+        this.callbacks[port] = callback;
     }
 
     public void deregisterForPortReadyCallback(int port) {
-        this.f188b[port] = null;
+        this.callbacks[port] = null;
     }
 
     public void enableI2cReadMode(int physicalPort, int i2cAddress, int memAddress, int length) {
-        m68a(physicalPort);
-        m70b(length);
+        validatePort(physicalPort);
+        validateLength(length);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            lock.lock();
+            byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = (byte) -127;
             writeBuffer[1] = (byte) i2cAddress;
             writeBuffer[2] = (byte) memAddress;
             writeBuffer[ADDRESS_BUFFER_STATUS] = (byte) length;
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public void enableI2cWriteMode(int physicalPort, int i2cAddress, int memAddress, int length) {
-        m68a(physicalPort);
-        m70b(length);
+        validatePort(physicalPort);
+        validateLength(length);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            lock.lock();
+            byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = OFFSET_I2C_PORT_I2C_ADDRESS;
             writeBuffer[1] = (byte) i2cAddress;
             writeBuffer[2] = (byte) memAddress;
             writeBuffer[ADDRESS_BUFFER_STATUS] = (byte) length;
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public void enableAnalogReadMode(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            this.f187a[physicalPort].getWriteBuffer()[0] = OFFSET_I2C_PORT_MODE;
+            lock.lock();
+            this.segments[physicalPort].getWriteBuffer()[0] = OFFSET_I2C_PORT_MODE;
             writeI2cCacheToController(physicalPort);
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
@@ -149,160 +149,167 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         if (Arrays.binarySearch(PORT_9V_CAPABLE, physicalPort) < 0) {
             throw new IllegalArgumentException("9v is only available on the following ports: " + Arrays.toString(PORT_9V_CAPABLE));
         }
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte b = this.f187a[physicalPort].getWriteBuffer()[0];
+            lock.lock();
+            byte port9vCapableData = this.segments[physicalPort].getWriteBuffer()[0];
             if (enable) {
-                b = (byte) (b | 2);
+                port9vCapableData = (byte) (port9vCapableData | 2);
             } else {
-                b = (byte) (b & -3);
+                port9vCapableData = (byte) (port9vCapableData & -3);
             }
-            this.f187a[physicalPort].getWriteBuffer()[0] = b;
+            this.segments[physicalPort].getWriteBuffer()[0] = port9vCapableData;
             writeI2cCacheToController(physicalPort);
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public void setReadMode(int physicalPort, int i2cAddr, int memAddr, int memLen) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            lock.lock();
+            byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = (byte) -127;
             writeBuffer[1] = (byte) i2cAddr;
             writeBuffer[2] = (byte) memAddr;
             writeBuffer[ADDRESS_BUFFER_STATUS] = (byte) memLen;
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public void setWriteMode(int physicalPort, int i2cAddress, int memAddress) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            lock.lock();
+            byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = OFFSET_I2C_PORT_I2C_ADDRESS;
             writeBuffer[1] = (byte) i2cAddress;
             writeBuffer[2] = (byte) memAddress;
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public void setData(int physicalPort, byte[] data, int length) {
-        m68a(physicalPort);
-        m70b(length);
+        validatePort(physicalPort);
+        validateLength(length);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            lock.lock();
+            byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             System.arraycopy(data, 0, writeBuffer, ADDRESS_ANALOG_PORT_S0, length);
             writeBuffer[ADDRESS_BUFFER_STATUS] = (byte) length;
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public void setDigitalLine(int physicalPort, int line, boolean set) {
-        m68a(physicalPort);
-        m71c(line);
+        validatePort(physicalPort);
+        validateLine(line);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte b = this.f187a[physicalPort].getWriteBuffer()[0];
+            lock.lock();
+            byte digitalLineData = this.segments[physicalPort].getWriteBuffer()[0];
             if (set) {
-                b = (byte) (b | DIGITAL_LINE[line]);
+                digitalLineData = (byte) (digitalLineData | DIGITAL_LINE[line]);
             } else {
-                b = (byte) (b & (~DIGITAL_LINE[line]));
+                digitalLineData = (byte) (digitalLineData & (~DIGITAL_LINE[line]));
             }
-            this.f187a[physicalPort].getWriteBuffer()[0] = b;
+            this.segments[physicalPort].getWriteBuffer()[0] = digitalLineData;
             writeI2cCacheToController(physicalPort);
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public byte[] readAnalog(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
         return read(ADDRESS_ANALOG_PORT_MAP[physicalPort], 2);
     }
 
     public byte[] getCopyOfReadBuffer(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
+        Lock lock = this.segments[physicalPort].getReadLock();
         try {
-            this.f187a[physicalPort].getReadLock().lock();
-            byte[] readBuffer = this.f187a[physicalPort].getReadBuffer();
-            byte[] bArr = new byte[readBuffer[ADDRESS_BUFFER_STATUS]];
-            System.arraycopy(readBuffer, ADDRESS_ANALOG_PORT_S0, bArr, 0, bArr.length);
-            return bArr;
+            lock.lock();
+            byte[] readBuffer = this.segments[physicalPort].getReadBuffer();
+            byte[] copyBuffer = new byte[readBuffer[ADDRESS_BUFFER_STATUS]];
+            System.arraycopy(readBuffer, ADDRESS_ANALOG_PORT_S0, copyBuffer, 0, copyBuffer.length);
+            return copyBuffer;
         } finally {
-            Lock bArr = this.f187a[physicalPort].getReadLock();
-            bArr.unlock();
+            lock.unlock();
         }
     }
 
     public byte[] getCopyOfWriteBuffer(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
-            byte[] bArr = new byte[writeBuffer[ADDRESS_BUFFER_STATUS]];
-            System.arraycopy(writeBuffer, ADDRESS_ANALOG_PORT_S0, bArr, 0, bArr.length);
-            return bArr;
+            lock.lock();
+            byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
+            byte[] copyBuffer = new byte[writeBuffer[ADDRESS_BUFFER_STATUS]];
+            System.arraycopy(writeBuffer, ADDRESS_ANALOG_PORT_S0, copyBuffer, 0, copyBuffer.length);
+            return copyBuffer;
         } finally {
-            Lock bArr = this.f187a[physicalPort].getWriteLock();
-            bArr.unlock();
+            lock.unlock();
         }
     }
 
     public void copyBufferIntoWriteBuffer(int physicalPort, byte[] buffer) {
-        m68a(physicalPort);
-        m70b(buffer.length);
+        validatePort(physicalPort);
+        validateLength(buffer.length);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            System.arraycopy(buffer, 0, this.f187a[physicalPort].getWriteBuffer(), ADDRESS_ANALOG_PORT_S0, buffer.length);
+            lock.lock();
+            System.arraycopy(buffer, 0, this.segments[physicalPort].getWriteBuffer(), ADDRESS_ANALOG_PORT_S0, buffer.length);
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public void setI2cPortActionFlag(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
+        Lock lock = this.segments[physicalPort].getWriteLock();
         try {
-            this.f187a[physicalPort].getWriteLock().lock();
-            this.f187a[physicalPort].getWriteBuffer()[31] = I2C_ACTION_FLAG;
+            lock.lock();
+            this.segments[physicalPort].getWriteBuffer()[31] = I2C_ACTION_FLAG;
         } finally {
-            this.f187a[physicalPort].getWriteLock().unlock();
+            lock.unlock();
         }
     }
 
     public boolean isI2cPortActionFlagSet(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
         try {
-            this.f187a[physicalPort].getReadLock().lock();
-            boolean z = this.f187a[physicalPort].getReadBuffer()[31] == -1 || DEBUG_LOGGING;
-            this.f187a[physicalPort].getReadLock().unlock();
-            return z;
+            this.segments[physicalPort].getReadLock().lock();
+            boolean isFlagSet = this.segments[physicalPort].getReadBuffer()[31] == -1 || DEBUG_LOGGING;
+            this.segments[physicalPort].getReadLock().unlock();
+            return isFlagSet;
         } catch (Throwable th) {
-            this.f187a[physicalPort].getReadLock().unlock();
+            this.segments[physicalPort].getReadLock().unlock();
         }
         return false; //TODO originally no return statement. why?
     }
 
     public void readI2cCacheFromController(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
         this.readWriteRunnable.queueSegmentRead(physicalPort);
     }
 
     public void writeI2cCacheToController(int physicalPort) {
-        m68a(physicalPort);
+        validatePort(physicalPort);
         this.readWriteRunnable.queueSegmentWrite(physicalPort);
     }
 
     public void writeI2cPortFlagOnlyToController(int physicalPort) {
-        m68a(physicalPort);
-        ReadWriteRunnableSegment readWriteRunnableSegment = this.f187a[physicalPort];
-        ReadWriteRunnableSegment readWriteRunnableSegment2 = this.f187a[physicalPort + ADDRESS_ANALOG_PORT_S1];
+        validatePort(physicalPort);
+        ReadWriteRunnableSegment readWriteRunnableSegment = this.segments[physicalPort];
+        ReadWriteRunnableSegment readWriteRunnableSegment2 = this.segments[physicalPort + ADDRESS_ANALOG_PORT_S1];
         try {
             readWriteRunnableSegment.getWriteLock().lock();
             readWriteRunnableSegment2.getWriteLock().lock();
@@ -315,98 +322,92 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public boolean isI2cPortInReadMode(int physicalPort) {
-        boolean z = DEBUG_LOGGING;
-        m68a(physicalPort);
+        boolean isReadMode = false;
+        validatePort(physicalPort);
         try {
-            this.f187a[physicalPort].getReadLock().lock();
-            if (this.f187a[physicalPort].getReadBuffer()[0] == -127) {
-                z = true;
+            this.segments[physicalPort].getReadLock().lock();
+            if (this.segments[physicalPort].getReadBuffer()[0] == -127) {
+                isReadMode = true;
             }
-            this.f187a[physicalPort].getReadLock().unlock();
-            return z;
+            this.segments[physicalPort].getReadLock().unlock();
+            return isReadMode;
         } catch (Throwable th) {
-            this.f187a[physicalPort].getReadLock().unlock();
+            this.segments[physicalPort].getReadLock().unlock();
         }
         return false; //TODO originally no return statement. why?
     }
 
     public boolean isI2cPortInWriteMode(int physicalPort) {
-        boolean z = true;
-        m68a(physicalPort);
+        boolean isWriteMode = true;
+        validatePort(physicalPort);
         try {
-            this.f187a[physicalPort].getReadLock().lock();
-            if (this.f187a[physicalPort].getReadBuffer()[0] != OFFSET_I2C_PORT_I2C_ADDRESS) {
-                z = DEBUG_LOGGING;
+            this.segments[physicalPort].getReadLock().lock();
+            if (this.segments[physicalPort].getReadBuffer()[0] != OFFSET_I2C_PORT_I2C_ADDRESS) {
+                isWriteMode = false;
             }
-            this.f187a[physicalPort].getReadLock().unlock();
-            return z;
+            this.segments[physicalPort].getReadLock().unlock();
+            return isWriteMode;
         } catch (Throwable th) {
-            this.f187a[physicalPort].getReadLock().unlock();
+            this.segments[physicalPort].getReadLock().unlock();
         }
         return false; //TODO originally no return statement. why?
     }
 
     public boolean isI2cPortReady(int physicalPort) {
-        return m69a(physicalPort, read(ADDRESS_BUFFER_STATUS));
+        return checkPortData(physicalPort, read(ADDRESS_BUFFER_STATUS));
     }
 
-    private void m68a(int i) {
-        if (i < 0 || i > 5) {
-            Object[] objArr = new Object[ADDRESS_BUFFER_STATUS];
-            objArr[0] = i;
-            objArr[1] = OFFSET_I2C_PORT_MODE;
-            objArr[2] = MAX_PORT_NUMBER;
-            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", objArr));
+    private void validatePort(int port) {
+        if (port < 0 || port > 5) {
+            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, MIN_PORT_NUMBER, MAX_PORT_NUMBER));
         }
     }
 
-    private void m70b(int i) {
-        if (i < 0 || i > 27) {
-            throw new IllegalArgumentException(String.format("buffer length of %d is invalid; max value is %d", new Object[]{i, SIZE_I2C_BUFFER}));
+    private void validateLength(int length) {
+        if (length < 0 || length > 27) {
+            throw new IllegalArgumentException(String.format("buffer length of %d is invalid; max value is %d", new Object[]{length, SIZE_I2C_BUFFER}));
         }
     }
 
-    private void m71c(int i) {
-        if (i != 0 && i != 1) {
+    private void validateLine(int line) {
+        if (line < 0 || line > 1) {
             throw new IllegalArgumentException("line is invalid, valid lines are 0 and 1");
         }
     }
 
     public void readComplete() throws InterruptedException {
-        if (this.f188b != null) {
-            byte read = read(ADDRESS_BUFFER_STATUS);
-            int i = 0;
-            while (i < ADDRESS_ANALOG_PORT_S1) {
-                if (this.f188b[i] != null && m69a(i, read)) {
-                    this.f188b[i].portIsReady(i);
+        if (this.callbacks != null) {
+            byte data = read(ADDRESS_BUFFER_STATUS);
+            for (int port = 0; port < ADDRESS_ANALOG_PORT_S1; port++) {
+                if (this.callbacks[port] != null && checkPortData(port, data)) {
+                    this.callbacks[port].portIsReady(port);
                 }
-                i++;
             }
         }
     }
 
-    private boolean m69a(int i, byte b) {
-        return (BUFFER_FLAG_MAP[i] & b) == 0 || DEBUG_LOGGING;
+    private boolean checkPortData(int port, byte data) {
+        return (BUFFER_FLAG_MAP[port] & data) == 0 || DEBUG_LOGGING;
     }
 
     public Lock getI2cReadCacheLock(int physicalPort) {
-        m68a(physicalPort);
-        return this.f187a[physicalPort].getReadLock();
+        validatePort(physicalPort);
+        return this.segments[physicalPort].getReadLock();
     }
 
     public Lock getI2cWriteCacheLock(int physicalPort) {
-        m68a(physicalPort);
-        return this.f187a[physicalPort].getWriteLock();
+        validatePort(physicalPort);
+        return this.segments[physicalPort].getWriteLock();
     }
 
     public byte[] getI2cReadCache(int physicalPort) {
-        m68a(physicalPort);
-        return this.f187a[physicalPort].getReadBuffer();
+        validatePort(physicalPort);
+        return this.segments[physicalPort].getReadBuffer();
     }
 
     public byte[] getI2cWriteCache(int physicalPort) {
-        m68a(physicalPort);
-        return this.f187a[physicalPort].getWriteBuffer();
+        validatePort(physicalPort);
+        return this.segments[physicalPort].getWriteBuffer();
     }
 
     @Deprecated
