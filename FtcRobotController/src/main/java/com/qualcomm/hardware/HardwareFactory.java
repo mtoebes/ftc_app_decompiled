@@ -20,6 +20,7 @@ import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.ServoControllerConfiguration;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HardwareFactory {
@@ -102,53 +103,54 @@ public class HardwareFactory {
     private void createDeviceInterfaceModule(HardwareMap hardwareMap, DeviceManager deviceManager, ControllerConfiguration controllerConfiguration) throws RobotCoreException, InterruptedException {
         DeviceInterfaceModule createDeviceInterfaceModule = deviceManager.createDeviceInterfaceModule(controllerConfiguration.getSerialNumber());
         hardwareMap.deviceInterfaceModule.put(controllerConfiguration.getName(), createDeviceInterfaceModule);
-        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getPwmDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getI2cDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getAnalogInputDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getDigitalDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-        createDeviceInterfaceModule(((DeviceInterfaceModuleConfiguration) controllerConfiguration).getAnalogOutputDevices(), hardwareMap, deviceManager, createDeviceInterfaceModule);
-    }
+        DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = (DeviceInterfaceModuleConfiguration) controllerConfiguration;
 
-    private void createDeviceInterfaceModule(List<DeviceConfiguration> list, HardwareMap hardwareMap, DeviceManager deviceManager, DeviceInterfaceModule deviceInterfaceModule) {
-        for (DeviceConfiguration deviceConfiguration : list) {
+        List<DeviceConfiguration> deviceConfigurations = new ArrayList<DeviceConfiguration>();
+        deviceConfigurations.addAll(deviceInterfaceModuleConfiguration.getPwmDevices());
+        deviceConfigurations.addAll(deviceInterfaceModuleConfiguration.getI2cDevices());
+        deviceConfigurations.addAll(deviceInterfaceModuleConfiguration.getAnalogInputDevices());
+        deviceConfigurations.addAll(deviceInterfaceModuleConfiguration.getDigitalDevices());
+        deviceConfigurations.addAll(deviceInterfaceModuleConfiguration.getAnalogOutputDevices());
+
+        for (DeviceConfiguration deviceConfiguration : deviceConfigurations) {
             if (deviceConfiguration.isEnabled()) {
                 ConfigurationType type = deviceConfiguration.getType();
                 switch (type) {
                     case OPTICAL_DISTANCE_SENSOR :
-                        createOpticalDistanceSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createOpticalDistanceSensor(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case ANALOG_INPUT :
-                        createAnalogInput(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createAnalogInput(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case TOUCH_SENSOR :
-                        createTouchSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createTouchSensor(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case DIGITAL_DEVICE :
-                        createDigitalDevice(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createDigitalDevice(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case PULSE_WIDTH_DEVICE :
-                        createPulseWidthDevice(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createPulseWidthDevice(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case IR_SEEKER_V3 :
-                        createIrSeekerV3(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createIrSeekerV3(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case I2C_DEVICE :
-                        createI2CDevice(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createI2CDevice(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case ANALOG_OUTPUT :
-                        createAnalogOutput(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createAnalogOutput(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case ADAFRUIT_COLOR_SENSOR :
-                        createAdafruitColorSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createAdafruitColorSensor(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case LED :
-                        createLED(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createLED(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case COLOR_SENSOR:
-                        createColorSensor(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createColorSensor(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case GYRO :
-                        createGyro(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
+                        createGyro(hardwareMap, deviceManager, createDeviceInterfaceModule, deviceConfiguration);
                         break;
                     case NOTHING :
                         break;
