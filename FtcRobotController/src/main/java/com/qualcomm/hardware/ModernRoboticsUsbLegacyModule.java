@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice implements LegacyModule {
-    public static final int[] ADDRESS_ANALOG_PORT_MAP;
     public static final int ADDRESS_ANALOG_PORT_S0 = 4;
     public static final int ADDRESS_ANALOG_PORT_S1 = 6;
     public static final int ADDRESS_ANALOG_PORT_S2 = 8;
@@ -17,14 +16,12 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public static final int ADDRESS_ANALOG_PORT_S4 = 12;
     public static final int ADDRESS_ANALOG_PORT_S5 = 14;
     public static final int ADDRESS_BUFFER_STATUS = 3;
-    public static final int[] ADDRESS_I2C_PORT_MAP;
     public static final int ADDRESS_I2C_PORT_S1 = 48;
     public static final int ADDRESS_I2C_PORT_S2 = 80;
     public static final int ADDRESS_I2C_PORT_S3 = 112;
     public static final int ADDRESS_I2C_PORT_S4 = 144;
     public static final int ADDRESS_I2C_PORT_S5 = 176;
     public static final int ADDRESS_I2C_PORT_SO = 16;
-    public static final int[] BUFFER_FLAG_MAP;
     public static final byte BUFFER_FLAG_S0 = (byte) 1;
     public static final byte BUFFER_FLAG_S1 = (byte) 2;
     public static final byte BUFFER_FLAG_S2 = (byte) 4;
@@ -32,7 +29,6 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public static final byte BUFFER_FLAG_S4 = (byte) 16;
     public static final byte BUFFER_FLAG_S5 = (byte) 32;
     public static final boolean DEBUG_LOGGING = false;
-    public static final int[] DIGITAL_LINE;
     public static final byte I2C_ACTION_FLAG = (byte) -1;
     public static final byte I2C_NO_ACTION_FLAG = (byte) 0;
     public static final byte MAX_PORT_NUMBER = (byte) 5;
@@ -52,7 +48,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public static final byte OFFSET_I2C_PORT_MEMORY_BUFFER = (byte) 4;
     public static final byte OFFSET_I2C_PORT_MEMORY_LENGTH = (byte) 3;
     public static final byte OFFSET_I2C_PORT_MODE = (byte) 0;
-    public static final int[] PORT_9V_CAPABLE;
+    public static final int[] PORT_9V_CAPABLE = new int[]{ADDRESS_ANALOG_PORT_S0, 5};
     public static final byte SIZE_ANALOG_BUFFER = (byte) 2;
     public static final byte SIZE_I2C_BUFFER = (byte) 27;
     public static final byte SIZE_OF_PORT_BUFFER = (byte) 32;
@@ -60,22 +56,14 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     private final ReadWriteRunnableSegment[] segments;
     private final I2cPortReadyCallback[] callbacks;
 
-    static {
-        ADDRESS_ANALOG_PORT_MAP = new int[]{ADDRESS_ANALOG_PORT_S0, ADDRESS_ANALOG_PORT_S1, ADDRESS_ANALOG_PORT_S2, ADDRESS_ANALOG_PORT_S3, ADDRESS_ANALOG_PORT_S4, ADDRESS_ANALOG_PORT_S5};
-        ADDRESS_I2C_PORT_MAP = new int[]{ADDRESS_I2C_PORT_SO, ADDRESS_I2C_PORT_S1, ADDRESS_I2C_PORT_S2, ADDRESS_I2C_PORT_S3, ADDRESS_I2C_PORT_S4, ADDRESS_I2C_PORT_S5};
-        BUFFER_FLAG_MAP = new int[]{1, 2, ADDRESS_ANALOG_PORT_S0, ADDRESS_ANALOG_PORT_S2, ADDRESS_I2C_PORT_SO, 32};
-        DIGITAL_LINE = new int[]{ADDRESS_ANALOG_PORT_S0, ADDRESS_ANALOG_PORT_S2};
-        PORT_9V_CAPABLE = new int[]{ADDRESS_ANALOG_PORT_S0, 5};
-    }
-
     protected ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, ADDRESS_BUFFER_STATUS, DEBUG_LOGGING));
         this.segments = new ReadWriteRunnableSegment[ADDRESS_ANALOG_PORT_S4];
         this.callbacks = new I2cPortReadyCallback[ADDRESS_ANALOG_PORT_S1];
         this.readWriteRunnable.setCallback(this);
         for (int port = 0; port < ADDRESS_ANALOG_PORT_S1; port++) {
-            this.segments[port] = this.readWriteRunnable.createSegment(port, ADDRESS_I2C_PORT_MAP[port], 32);
-            this.segments[port + ADDRESS_ANALOG_PORT_S1] = this.readWriteRunnable.createSegment(port + ADDRESS_ANALOG_PORT_S1, ADDRESS_I2C_PORT_MAP[port] + 31, 1);
+            this.segments[port] = this.readWriteRunnable.createSegment(port, getI2cPortAddress(port), 32);
+            this.segments[port + ADDRESS_ANALOG_PORT_S1] = this.readWriteRunnable.createSegment(port + ADDRESS_ANALOG_PORT_S1, getI2cPortAddress(port) + 31, 1);
             enableAnalogReadMode(port);
             this.readWriteRunnable.queueSegmentWrite(port);
         }
@@ -216,9 +204,9 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             lock.lock();
             byte digitalLineData = this.segments[physicalPort].getWriteBuffer()[0];
             if (set) {
-                digitalLineData = (byte) (digitalLineData | DIGITAL_LINE[line]);
+                digitalLineData = (byte) (digitalLineData | getDigitalLine(line));
             } else {
-                digitalLineData = (byte) (digitalLineData & (~DIGITAL_LINE[line]));
+                digitalLineData = (byte) (digitalLineData & (~getDigitalLine(line)));
             }
             this.segments[physicalPort].getWriteBuffer()[0] = digitalLineData;
             writeI2cCacheToController(physicalPort);
@@ -229,7 +217,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
 
     public byte[] readAnalog(int physicalPort) {
         validatePort(physicalPort);
-        return read(ADDRESS_ANALOG_PORT_MAP[physicalPort], 2);
+        return read(getAnalogPortAddress(physicalPort), 2);
     }
 
     public byte[] getCopyOfReadBuffer(int physicalPort) {
@@ -387,7 +375,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     private boolean checkPortData(int port, byte data) {
-        return (BUFFER_FLAG_MAP[port] & data) == 0 || DEBUG_LOGGING;
+        return ((1 << port) & data) == 0 || DEBUG_LOGGING;
     }
 
     public Lock getI2cReadCacheLock(int physicalPort) {
@@ -408,6 +396,18 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public byte[] getI2cWriteCache(int physicalPort) {
         validatePort(physicalPort);
         return this.segments[physicalPort].getWriteBuffer();
+    }
+
+    private int getAnalogPortAddress(int port) {
+        return (2 * port) + 4;
+    }
+
+    private int getI2cPortAddress(int port) {
+        return (32 * port) + 16;
+    }
+
+    private int getDigitalLine(int lineNum) {
+        return (4 * lineNum) + 4;
     }
 
     @Deprecated
