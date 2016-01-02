@@ -101,7 +101,7 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         OFFSET_MAP_MOTOR_POWER = new byte[]{(byte) -1, (byte) 9, (byte) 10};
         OFFSET_MAP_MOTOR_MODE = new byte[]{(byte) -1, (byte) 8, (byte) 11};
         OFFSET_MAP_MOTOR_TARGET_ENCODER_VALUE = new byte[]{(byte) -1, (byte) 4, (byte) 12};
-        OFFSET_MAP_MOTOR_CURRENT_ENCODER_VALUE = new byte[]{(byte) -1, ModernRoboticsUsbLegacyModule.BUFFER_FLAG_S4, (byte) 20};
+        OFFSET_MAP_MOTOR_CURRENT_ENCODER_VALUE = new byte[]{(byte) -1, 16, (byte) 20};
     }
 
     public HiTechnicNxtDcMotorController(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
