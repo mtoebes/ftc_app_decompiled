@@ -51,11 +51,11 @@ public class ModernRoboticsUsbServoController extends ModernRoboticsUsbDevice im
     }
 
     public void pwmEnable() {
-        write((int) ADDRESS_PWM, (byte) PWM_ENABLE);
+        write(ADDRESS_PWM, PWM_ENABLE);
     }
 
     public void pwmDisable() {
-        write((int) ADDRESS_PWM, (byte) PWM_DISABLE);
+        write(ADDRESS_PWM, PWM_DISABLE);
     }
 
     public PwmStatus getPwmStatus() {
@@ -79,7 +79,7 @@ public class ModernRoboticsUsbServoController extends ModernRoboticsUsbDevice im
 
     private void m72a(int i) {
         if (i < 1 || i > ADDRESS_CHANNEL_MAP.length) {
-            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", new Object[]{Integer.valueOf(i), Integer.valueOf(MAX_SERVOS)}));
+            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", new Object[]{i, MAX_SERVOS}));
         }
     }
 }

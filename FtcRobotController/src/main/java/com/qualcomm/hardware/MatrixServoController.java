@@ -72,7 +72,7 @@ public class MatrixServoController implements ServoController {
 
     private void m50a(int i) {
         if (i < 1 || i > 4) {
-            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", new Object[]{Integer.valueOf(i), Byte.valueOf((byte) 4)}));
+            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", new Object[]{i, (byte) 4}));
         }
     }
 

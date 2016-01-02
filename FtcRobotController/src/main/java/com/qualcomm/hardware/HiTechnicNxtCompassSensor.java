@@ -30,12 +30,10 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
     private final int f39f;
     private CompassMode f40g;
     private boolean f41h;
-    private boolean f42i;
 
     public HiTechnicNxtCompassSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
         this.f40g = CompassMode.MEASUREMENT_MODE;
         this.f41h = false;
-        this.f42i = false;
         legacyModule.enableI2cReadMode(physicalPort, HEADING_WORD_LENGTH, COMPASS_BUFFER, COMPASS_BUFFER_SIZE);
         this.f34a = legacyModule;
         this.f35b = legacyModule.getI2cReadCache(physicalPort);
@@ -62,7 +60,7 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
     public String status() {
         Object[] objArr = new Object[HEADING_WORD_LENGTH];
         objArr[0] = this.f34a.getSerialNumber().toString();
-        objArr[1] = Integer.valueOf(this.f39f);
+        objArr[1] = this.f39f;
         return String.format("NXT Compass Sensor, connected via device %s, port %d", objArr);
     }
 

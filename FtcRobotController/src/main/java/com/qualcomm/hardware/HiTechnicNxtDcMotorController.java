@@ -63,36 +63,36 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
             f44b = new int[RunMode.values().length];
             try {
                 f44b[RunMode.RUN_USING_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError e) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f44b[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError e2) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f44b[RunMode.RUN_TO_POSITION.ordinal()] = HiTechnicNxtDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError e3) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f44b[RunMode.RESET_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.OFFSET_MOTOR1_TARGET_ENCODER_VALUE;
-            } catch (NoSuchFieldError e4) {
+            } catch (NoSuchFieldError ignored) {
             }
             f43a = new int[DeviceMode.values().length];
             try {
                 f43a[DeviceMode.READ_ONLY.ordinal()] = HiTechnicNxtDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError e5) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f43a[DeviceMode.WRITE_ONLY.ordinal()] = HiTechnicNxtDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError e6) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f43a[DeviceMode.SWITCHING_TO_READ_MODE.ordinal()] = HiTechnicNxtDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError e7) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f43a[DeviceMode.SWITCHING_TO_WRITE_MODE.ordinal()] = HiTechnicNxtDcMotorController.OFFSET_MOTOR1_TARGET_ENCODER_VALUE;
-            } catch (NoSuchFieldError e8) {
+            } catch (NoSuchFieldError ignored) {
             }
         }
     }
@@ -229,6 +229,7 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         } catch (Throwable th) {
             this.f47c.unlock();
         }
+        return false; //TOOD originally had no return statement. why?
     }
 
     public void setMotorPowerFloat(int motor) {
@@ -257,12 +258,13 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         } catch (Throwable th) {
             this.f47c.unlock();
         }
+        return false; //TODO originally had no return statement. why?
     }
 
     public void setMotorTargetPosition(int motor, int position) {
         m41a(motor);
         m40a();
-        Object intToByteArray = TypeConversion.intToByteArray(position);
+        byte[] intToByteArray = TypeConversion.intToByteArray(position);
         try {
             this.f49e.lock();
             System.arraycopy(intToByteArray, 0, this.f48d, OFFSET_MAP_MOTOR_TARGET_ENCODER_VALUE[motor], intToByteArray.length);
@@ -334,8 +336,8 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     private void m41a(int i) {
         if (i < MIN_MOTOR || i > MAX_MOTOR) {
             Object[] objArr = new Object[MAX_MOTOR];
-            objArr[0] = Integer.valueOf(i);
-            objArr[MIN_MOTOR] = Integer.valueOf(MAX_MOTOR);
+            objArr[0] = i;
+            objArr[MIN_MOTOR] = MAX_MOTOR;
             throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", objArr));
         }
     }

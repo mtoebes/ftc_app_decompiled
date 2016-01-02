@@ -70,8 +70,8 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     protected ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
-        int i = 0;
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, ADDRESS_BUFFER_STATUS, DEBUG_LOGGING));
+        int i = 0;
         this.f187a = new ReadWriteRunnableSegment[ADDRESS_ANALOG_PORT_S4];
         this.f188b = new I2cPortReadyCallback[ADDRESS_ANALOG_PORT_S1];
         this.readWriteRunnable.setCallback(this);
@@ -196,7 +196,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         m70b(length);
         try {
             this.f187a[physicalPort].getWriteLock().lock();
-            Object writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
             System.arraycopy(data, 0, writeBuffer, ADDRESS_ANALOG_PORT_S0, length);
             writeBuffer[ADDRESS_BUFFER_STATUS] = (byte) length;
         } finally {
@@ -213,7 +213,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             if (set) {
                 b = (byte) (b | DIGITAL_LINE[line]);
             } else {
-                b = (byte) (b & (DIGITAL_LINE[line] ^ -1));
+                b = (byte) (b & (~DIGITAL_LINE[line]));
             }
             this.f187a[physicalPort].getWriteBuffer()[0] = b;
             writeI2cCacheToController(physicalPort);
@@ -229,30 +229,28 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
 
     public byte[] getCopyOfReadBuffer(int physicalPort) {
         m68a(physicalPort);
-        byte[] bArr;
         try {
             this.f187a[physicalPort].getReadLock().lock();
-            Object readBuffer = this.f187a[physicalPort].getReadBuffer();
-            bArr = new byte[readBuffer[ADDRESS_BUFFER_STATUS]];
+            byte[] readBuffer = this.f187a[physicalPort].getReadBuffer();
+            byte[] bArr = new byte[readBuffer[ADDRESS_BUFFER_STATUS]];
             System.arraycopy(readBuffer, ADDRESS_ANALOG_PORT_S0, bArr, 0, bArr.length);
             return bArr;
         } finally {
-            bArr = this.f187a[physicalPort].getReadLock();
+            Lock bArr = this.f187a[physicalPort].getReadLock();
             bArr.unlock();
         }
     }
 
     public byte[] getCopyOfWriteBuffer(int physicalPort) {
         m68a(physicalPort);
-        byte[] bArr;
         try {
             this.f187a[physicalPort].getWriteLock().lock();
-            Object writeBuffer = this.f187a[physicalPort].getWriteBuffer();
-            bArr = new byte[writeBuffer[ADDRESS_BUFFER_STATUS]];
+            byte[] writeBuffer = this.f187a[physicalPort].getWriteBuffer();
+            byte[] bArr = new byte[writeBuffer[ADDRESS_BUFFER_STATUS]];
             System.arraycopy(writeBuffer, ADDRESS_ANALOG_PORT_S0, bArr, 0, bArr.length);
             return bArr;
         } finally {
-            bArr = this.f187a[physicalPort].getWriteLock();
+            Lock bArr = this.f187a[physicalPort].getWriteLock();
             bArr.unlock();
         }
     }
@@ -282,12 +280,13 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         m68a(physicalPort);
         try {
             this.f187a[physicalPort].getReadLock().lock();
-            boolean z = this.f187a[physicalPort].getReadBuffer()[31] == -1 ? true : DEBUG_LOGGING;
+            boolean z = this.f187a[physicalPort].getReadBuffer()[31] == -1 || DEBUG_LOGGING;
             this.f187a[physicalPort].getReadLock().unlock();
             return z;
         } catch (Throwable th) {
             this.f187a[physicalPort].getReadLock().unlock();
         }
+        return false; //TODO originally no return statement. why?
     }
 
     public void readI2cCacheFromController(int physicalPort) {
@@ -328,6 +327,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         } catch (Throwable th) {
             this.f187a[physicalPort].getReadLock().unlock();
         }
+        return false; //TODO originally no return statement. why?
     }
 
     public boolean isI2cPortInWriteMode(int physicalPort) {
@@ -343,6 +343,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         } catch (Throwable th) {
             this.f187a[physicalPort].getReadLock().unlock();
         }
+        return false; //TODO originally no return statement. why?
     }
 
     public boolean isI2cPortReady(int physicalPort) {
@@ -352,16 +353,16 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     private void m68a(int i) {
         if (i < 0 || i > 5) {
             Object[] objArr = new Object[ADDRESS_BUFFER_STATUS];
-            objArr[0] = Integer.valueOf(i);
-            objArr[1] = Byte.valueOf(OFFSET_I2C_PORT_MODE);
-            objArr[2] = Byte.valueOf(MAX_PORT_NUMBER);
+            objArr[0] = i;
+            objArr[1] = OFFSET_I2C_PORT_MODE;
+            objArr[2] = MAX_PORT_NUMBER;
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", objArr));
         }
     }
 
     private void m70b(int i) {
         if (i < 0 || i > 27) {
-            throw new IllegalArgumentException(String.format("buffer length of %d is invalid; max value is %d", new Object[]{Integer.valueOf(i), Byte.valueOf(SIZE_I2C_BUFFER)}));
+            throw new IllegalArgumentException(String.format("buffer length of %d is invalid; max value is %d", new Object[]{i, SIZE_I2C_BUFFER}));
         }
     }
 
@@ -385,7 +386,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     private boolean m69a(int i, byte b) {
-        return (BUFFER_FLAG_MAP[i] & b) == 0 ? true : DEBUG_LOGGING;
+        return (BUFFER_FLAG_MAP[i] & b) == 0 || DEBUG_LOGGING;
     }
 
     public Lock getI2cReadCacheLock(int physicalPort) {

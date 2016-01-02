@@ -69,7 +69,7 @@ public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoC
     public void pwmEnable() {
         try {
             this.f69c.lock();
-            if (this.f68b[OFFSET_PWM] != null) {
+            if (this.f68b[OFFSET_PWM] != 0) { //TODO originally was comparing to null. why
                 this.f68b[OFFSET_PWM] = PWM_ENABLE;
                 this.f72f = true;
             }
@@ -120,8 +120,8 @@ public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoC
     private void m45a(int i) {
         if (i < 1 || i > OFFSET_SERVO_MAP.length) {
             Object[] objArr = new Object[I2C_ADDRESS];
-            objArr[0] = Integer.valueOf(i);
-            objArr[1] = Integer.valueOf(OFFSET_SERVO3_POSITION);
+            objArr[0] = i;
+            objArr[1] = OFFSET_SERVO3_POSITION;
             throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", objArr));
         }
     }

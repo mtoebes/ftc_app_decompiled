@@ -5,18 +5,18 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 
 interface ReadWriteRunnable extends SyncdDevice, Runnable {
 
-    public interface Callback {
+    interface Callback {
         void readComplete() throws InterruptedException;
 
         void writeComplete() throws InterruptedException;
     }
 
-    public enum BlockingState {
+    enum BlockingState {
         BLOCKING,
         WAITING
     }
 
-    public static class EmptyCallback implements Callback {
+    class EmptyCallback implements Callback {
         public void readComplete() throws InterruptedException {
         }
 

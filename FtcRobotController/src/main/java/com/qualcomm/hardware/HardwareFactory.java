@@ -34,99 +34,99 @@ public class HardwareFactory {
             f15a = new int[ConfigurationType.values().length];
             try {
                 f15a[ConfigurationType.MOTOR_CONTROLLER.ordinal()] = 1;
-            } catch (NoSuchFieldError e) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.SERVO_CONTROLLER.ordinal()] = 2;
-            } catch (NoSuchFieldError e2) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.LEGACY_MODULE_CONTROLLER.ordinal()] = 3;
-            } catch (NoSuchFieldError e3) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.DEVICE_INTERFACE_MODULE.ordinal()] = 4;
-            } catch (NoSuchFieldError e4) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.OPTICAL_DISTANCE_SENSOR.ordinal()] = 5;
-            } catch (NoSuchFieldError e5) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.ANALOG_INPUT.ordinal()] = 6;
-            } catch (NoSuchFieldError e6) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.TOUCH_SENSOR.ordinal()] = 7;
-            } catch (NoSuchFieldError e7) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.DIGITAL_DEVICE.ordinal()] = 8;
-            } catch (NoSuchFieldError e8) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.PULSE_WIDTH_DEVICE.ordinal()] = 9;
-            } catch (NoSuchFieldError e9) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.IR_SEEKER_V3.ordinal()] = 10;
-            } catch (NoSuchFieldError e10) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.I2C_DEVICE.ordinal()] = 11;
-            } catch (NoSuchFieldError e11) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.ANALOG_OUTPUT.ordinal()] = 12;
-            } catch (NoSuchFieldError e12) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.ADAFRUIT_COLOR_SENSOR.ordinal()] = 13;
-            } catch (NoSuchFieldError e13) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.LED.ordinal()] = 14;
-            } catch (NoSuchFieldError e14) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.COLOR_SENSOR.ordinal()] = 15;
-            } catch (NoSuchFieldError e15) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.GYRO.ordinal()] = 16;
-            } catch (NoSuchFieldError e16) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.NOTHING.ordinal()] = 17;
-            } catch (NoSuchFieldError e17) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.COMPASS.ordinal()] = 18;
-            } catch (NoSuchFieldError e18) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.IR_SEEKER.ordinal()] = 19;
-            } catch (NoSuchFieldError e19) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.LIGHT_SENSOR.ordinal()] = 20;
-            } catch (NoSuchFieldError e20) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.ACCELEROMETER.ordinal()] = 21;
-            } catch (NoSuchFieldError e21) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.TOUCH_SENSOR_MULTIPLEXER.ordinal()] = 22;
-            } catch (NoSuchFieldError e22) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.ULTRASONIC_SENSOR.ordinal()] = 23;
-            } catch (NoSuchFieldError e23) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f15a[ConfigurationType.MATRIX_CONTROLLER.ordinal()] = 24;
-            } catch (NoSuchFieldError e24) {
+            } catch (NoSuchFieldError ignored) {
             }
         }
     }
@@ -247,7 +247,7 @@ public class HardwareFactory {
                         m29i(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
                     case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S5 /*14*/:
-                        m8a(hardwareMap, deviceManager, (DigitalChannelController) deviceInterfaceModule, deviceConfiguration);
+                        m8a(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);
                         break;
                     case 15:
                         m31j(hardwareMap, deviceManager, deviceInterfaceModule, deviceConfiguration);

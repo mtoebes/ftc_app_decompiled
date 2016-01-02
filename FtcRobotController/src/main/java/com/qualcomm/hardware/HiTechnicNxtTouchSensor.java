@@ -15,7 +15,7 @@ public class HiTechnicNxtTouchSensor extends TouchSensor {
     }
 
     public String status() {
-        return String.format("NXT Touch Sensor, connected via device %s, port %d", new Object[]{this.f73a.getSerialNumber().toString(), Integer.valueOf(this.f74b)});
+        return String.format("NXT Touch Sensor, connected via device %s, port %d", this.f73a.getSerialNumber().toString(), this.f74b);
     }
 
     public double getValue() {

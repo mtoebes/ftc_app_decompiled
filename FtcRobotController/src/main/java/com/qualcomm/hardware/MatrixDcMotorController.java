@@ -28,19 +28,19 @@ public class MatrixDcMotorController implements DcMotorController {
             f82a = new int[RunMode.values().length];
             try {
                 f82a[RunMode.RUN_USING_ENCODERS.ordinal()] = 1;
-            } catch (NoSuchFieldError e) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f82a[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = 2;
-            } catch (NoSuchFieldError e2) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f82a[RunMode.RUN_TO_POSITION.ordinal()] = 3;
-            } catch (NoSuchFieldError e3) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f82a[RunMode.RESET_ENCODERS.ordinal()] = 4;
-            } catch (NoSuchFieldError e4) {
+            } catch (NoSuchFieldError ignored) {
             }
         }
     }
@@ -72,7 +72,7 @@ public class MatrixDcMotorController implements DcMotorController {
         this.f91b = 0;
         master.registerMotorController(this);
         for (int i = 0; i < 4; i = (byte) (i + 1)) {
-            master.queueTransaction(new MatrixI2cTransaction(i, (byte) 0, 0, (byte) 0));
+            master.queueTransaction(new MatrixI2cTransaction((byte) i, (byte) 0, 0, (byte) 0));
             this.f90a[i].f88f = RunMode.RUN_WITHOUT_ENCODERS;
             this.f90a[i].f86d = true;
         }
@@ -112,10 +112,7 @@ public class MatrixDcMotorController implements DcMotorController {
         MatrixI2cTransaction matrixI2cTransaction = new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE);
         this.master.queueTransaction(matrixI2cTransaction);
         this.master.waitOnRead();
-        if ((this.f90a[matrixI2cTransaction.motor].f85c & ModernRoboticsUsbDeviceInterfaceModule.D7_MASK) != 0) {
-            return true;
-        }
-        return false;
+        return (this.f90a[matrixI2cTransaction.motor].f85c & ModernRoboticsUsbDeviceInterfaceModule.D7_MASK) != 0;
     }
 
     public void setMotorControllerDeviceMode(DeviceMode mode) {
@@ -131,11 +128,7 @@ public class MatrixDcMotorController implements DcMotorController {
         if (this.f90a[motor].f86d || this.f90a[motor].f88f != mode) {
             this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE, runModeToFlagMatrix(mode)));
             this.f90a[motor].f88f = mode;
-            if (mode == RunMode.RESET_ENCODERS) {
-                this.f90a[motor].f86d = true;
-            } else {
-                this.f90a[motor].f86d = false;
-            }
+            this.f90a[motor].f86d = mode == RunMode.RESET_ENCODERS;
         }
     }
 
@@ -252,7 +245,7 @@ public class MatrixDcMotorController implements DcMotorController {
 
     private void m49a(int i) {
         if (i < 1 || i > 4) {
-            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", new Object[]{Integer.valueOf(i), Integer.valueOf(4)}));
+            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", new Object[]{i, 4}));
         }
     }
 }

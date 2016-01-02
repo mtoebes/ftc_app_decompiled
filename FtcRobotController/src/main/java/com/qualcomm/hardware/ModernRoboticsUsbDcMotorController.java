@@ -81,19 +81,19 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
             f172a = new int[RunMode.values().length];
             try {
                 f172a[RunMode.RUN_USING_ENCODERS.ordinal()] = ModernRoboticsUsbDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError e) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f172a[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = ModernRoboticsUsbDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError e2) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f172a[RunMode.RUN_TO_POSITION.ordinal()] = ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError e3) {
+            } catch (NoSuchFieldError ignored) {
             }
             try {
                 f172a[RunMode.RESET_ENCODERS.ordinal()] = ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_LOCK;
-            } catch (NoSuchFieldError e4) {
+            } catch (NoSuchFieldError ignored) {
             }
         }
     }
@@ -120,13 +120,10 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
         public boolean m55a() {
             int[] iArr = this.f174b;
             int i = 0;
-            for (int i2 = 0; i2 < iArr.length; i2 += ModernRoboticsUsbDcMotorController.MIN_MOTOR) {
-                i += iArr[i2];
+            for (int anIArr : iArr) {
+                i += anIArr;
             }
-            if (i > 6) {
-                return true;
-            }
-            return ModernRoboticsUsbDcMotorController.DEBUG_LOGGING;
+            return i > 6 || ModernRoboticsUsbDcMotorController.DEBUG_LOGGING;
         }
     }
 
@@ -140,8 +137,8 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     }
 
     protected ModernRoboticsUsbDcMotorController(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
-        int i = 0;
         super(serialNumber, manager, new ReadWriteRunnableBlocking(serialNumber, device, MONITOR_LENGTH, CHANNEL_MODE_MASK_ERROR, DEBUG_LOGGING));
+        int i = 0;
         this.f176a = new C0015a[CHANNEL_MODE_MASK_SELECTION];
         this.readWriteRunnable.setCallback(this);
         while (i < this.f176a.length) {
@@ -215,7 +212,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
 
     public boolean getMotorPowerFloat(int motor) {
         m57a(motor);
-        return read(ADDRESS_MOTOR_POWER_MAP[motor]) == -128 ? true : DEBUG_LOGGING;
+        return read(ADDRESS_MOTOR_POWER_MAP[motor]) == -128 || DEBUG_LOGGING;
     }
 
     public void setMotorTargetPosition(int motor, int position) {
@@ -323,8 +320,8 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     private void m57a(int i) {
         if (i < MIN_MOTOR || i > MAX_MOTOR) {
             Object[] objArr = new Object[MAX_MOTOR];
-            objArr[0] = Integer.valueOf(i);
-            objArr[MIN_MOTOR] = Integer.valueOf(MAX_MOTOR);
+            objArr[0] = i;
+            objArr[MIN_MOTOR] = MAX_MOTOR;
             throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", objArr));
         }
     }

@@ -28,7 +28,7 @@ public class HiTechnicNxtLightSensor extends LightSensor {
     }
 
     public String status() {
-        return String.format("NXT Light Sensor, connected via device %s, port %d", new Object[]{this.f65a.getSerialNumber().toString(), Integer.valueOf(this.f66b)});
+        return String.format("NXT Light Sensor, connected via device %s, port %d", this.f65a.getSerialNumber().toString(), this.f66b);
     }
 
     public String getDeviceName() {

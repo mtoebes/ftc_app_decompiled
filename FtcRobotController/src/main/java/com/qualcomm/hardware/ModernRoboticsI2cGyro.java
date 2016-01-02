@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.RobotLog;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 
@@ -39,8 +38,6 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
     private final DeviceInterfaceModule f157b;
     private final byte[] f158c;
     private final Lock f159d;
-    private final byte[] f160e;
-    private final Lock f161f;
     private final int f162g;
     private HeadingMode f163h;
     private MeasurementMode f164i;
@@ -78,10 +75,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
             switch (this.f137c) {
                 case ModernRoboticsI2cGyro.OFFSET_COMMAND /*3*/:
                 case ModernRoboticsI2cGyro.OFFSET_Z_AXIS_SCALE_COEF /*16*/:
-                    if (Arrays.equals(this.f136b, transaction.f136b)) {
-                        return true;
-                    }
-                    return false;
+                    return Arrays.equals(this.f136b, transaction.f136b);
                 default:
                     return false;
             }
@@ -132,23 +126,22 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         this.f162g = physicalPort;
         this.f158c = deviceInterfaceModule.getI2cReadCache(physicalPort);
         this.f159d = deviceInterfaceModule.getI2cReadCacheLock(physicalPort);
-        this.f160e = deviceInterfaceModule.getI2cWriteCache(physicalPort);
-        this.f161f = deviceInterfaceModule.getI2cWriteCacheLock(physicalPort);
+        byte[] f160e = deviceInterfaceModule.getI2cWriteCache(physicalPort);
+        Lock f161f = deviceInterfaceModule.getI2cWriteCacheLock(physicalPort);
         this.f163h = HeadingMode.HEADING_CARDINAL;
         deviceInterfaceModule.enableI2cReadMode(physicalPort, ADDRESS_I2C, OFFSET_FIRMWARE_REV, BUFFER_LENGTH);
         deviceInterfaceModule.setI2cPortActionFlag(physicalPort);
         deviceInterfaceModule.writeI2cCacheToController(physicalPort);
         deviceInterfaceModule.registerForI2cPortReadyCallback(this, physicalPort);
-        this.transactionQueue = new ConcurrentLinkedQueue();
-        this.f165j = new C0013a();
+        this.transactionQueue = new ConcurrentLinkedQueue<GyroI2cTransaction>();
+        this.f165j = new C0013a(this);
         this.f164i = MeasurementMode.GYRO_NORMAL;
     }
 
     public boolean queueTransaction(GyroI2cTransaction transaction, boolean force) {
         if (!force) {
-            Iterator it = this.transactionQueue.iterator();
-            while (it.hasNext()) {
-                if (((GyroI2cTransaction) it.next()).isEqual(transaction)) {
+            for (GyroI2cTransaction aTransactionQueue : this.transactionQueue) {
+                if ((aTransactionQueue).isEqual(transaction)) {
                     buginf("NO Queue transaction " + transaction.toString());
                     return false;
                 }
@@ -168,10 +161,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
     }
 
     public boolean isCalibrating() {
-        if (this.f164i == MeasurementMode.GYRO_NORMAL) {
-            return false;
-        }
-        return true;
+        return this.f164i != MeasurementMode.GYRO_NORMAL;
     }
 
     public HeadingMode getHeadingMode() {
@@ -232,7 +222,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
     public String status() {
         Object[] objArr = new Object[OFFSET_SENSOR_ID];
         objArr[OFFSET_FIRMWARE_REV] = this.f157b.getSerialNumber().toString();
-        objArr[OFFSET_MANUFACTURE_CODE] = Integer.valueOf(this.f162g);
+        objArr[OFFSET_MANUFACTURE_CODE] = this.f162g;
         return String.format("Modern Robotics Gyro, connected via device %s, port %d", objArr);
     }
 
@@ -273,24 +263,24 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
             m53b();
             return;
         }
-        GyroI2cTransaction gyroI2cTransaction = (GyroI2cTransaction) this.transactionQueue.peek();
+        GyroI2cTransaction gyroI2cTransaction = this.transactionQueue.peek();
         if (gyroI2cTransaction.f135a == I2cTransactionState.PENDING_I2C_READ) {
-            this.f157b.readI2cCacheFromModule(this.f162g);
+            this.f157b.readI2cCacheFromController(this.f162g);
             gyroI2cTransaction.f135a = I2cTransactionState.PENDING_READ_DONE;
             return;
         }
         if (gyroI2cTransaction.f135a == I2cTransactionState.PENDING_I2C_WRITE) {
-            gyroI2cTransaction = (GyroI2cTransaction) this.transactionQueue.poll();
+            gyroI2cTransaction = this.transactionQueue.poll();
             if (!this.transactionQueue.isEmpty()) {
-                gyroI2cTransaction = (GyroI2cTransaction) this.transactionQueue.peek();
+                gyroI2cTransaction = this.transactionQueue.peek();
             } else {
                 return;
             }
         } else if (gyroI2cTransaction.f135a == I2cTransactionState.PENDING_READ_DONE) {
             m52a();
-            gyroI2cTransaction = (GyroI2cTransaction) this.transactionQueue.poll();
+            gyroI2cTransaction = this.transactionQueue.poll();
             if (!this.transactionQueue.isEmpty()) {
-                gyroI2cTransaction = (GyroI2cTransaction) this.transactionQueue.peek();
+                gyroI2cTransaction = this.transactionQueue.peek();
             } else {
                 return;
             }
@@ -312,7 +302,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         } catch (IllegalArgumentException e) {
             RobotLog.e(e.getMessage());
         }
-        if (this.f165j.f147d == null) {
+        if (this.f165j.f147d == 0) { //TODO originally was comparing to null, why?
             this.f164i = MeasurementMode.GYRO_NORMAL;
         }
     }
