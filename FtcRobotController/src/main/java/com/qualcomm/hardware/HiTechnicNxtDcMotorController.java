@@ -54,49 +54,6 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     private volatile DeviceMode f52h;
     private volatile boolean f53i;
 
-    /* renamed from: com.qualcomm.hardware.HiTechnicNxtDcMotorController.1 */
-    static /* synthetic */ class C00041 {
-        static final /* synthetic */ int[] f43a;
-        static final /* synthetic */ int[] f44b;
-
-        static {
-            f44b = new int[RunMode.values().length];
-            try {
-                f44b[RunMode.RUN_USING_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f44b[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f44b[RunMode.RUN_TO_POSITION.ordinal()] = HiTechnicNxtDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f44b[RunMode.RESET_ENCODERS.ordinal()] = HiTechnicNxtDcMotorController.OFFSET_MOTOR1_TARGET_ENCODER_VALUE;
-            } catch (NoSuchFieldError ignored) {
-            }
-            f43a = new int[DeviceMode.values().length];
-            try {
-                f43a[DeviceMode.READ_ONLY.ordinal()] = HiTechnicNxtDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f43a[DeviceMode.WRITE_ONLY.ordinal()] = HiTechnicNxtDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f43a[DeviceMode.SWITCHING_TO_READ_MODE.ordinal()] = HiTechnicNxtDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f43a[DeviceMode.SWITCHING_TO_WRITE_MODE.ordinal()] = HiTechnicNxtDcMotorController.OFFSET_MOTOR1_TARGET_ENCODER_VALUE;
-            } catch (NoSuchFieldError ignored) {
-            }
-        }
-    }
-
     static {
         OFFSET_MAP_MOTOR_POWER = new byte[]{(byte) -1, (byte) 9, (byte) 10};
         OFFSET_MAP_MOTOR_MODE = new byte[]{(byte) -1, (byte) 8, (byte) 11};
@@ -140,12 +97,12 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
 
     public void setMotorControllerDeviceMode(DeviceMode mode) {
         if (this.f52h != mode) {
-            switch (C00041.f43a[mode.ordinal()]) {
-                case MIN_MOTOR /*1*/:
+            switch (mode) {
+                case READ_ONLY:
                     this.f52h = DeviceMode.SWITCHING_TO_READ_MODE;
                     this.f45a.enableI2cReadMode(this.f50f, MAX_MOTOR, MEM_START_ADDRESS, OFFSET_MOTOR2_CURRENT_ENCODER_VALUE);
                     break;
-                case MAX_MOTOR /*2*/:
+                case WRITE_ONLY :
                     this.f52h = DeviceMode.SWITCHING_TO_WRITE_MODE;
                     this.f45a.enableI2cWriteMode(this.f50f, MAX_MOTOR, MEM_START_ADDRESS, OFFSET_MOTOR2_CURRENT_ENCODER_VALUE);
                     break;
@@ -344,13 +301,13 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
 
     public static RunMode flagToRunModeNXT(byte flag) {
         switch (flag & CHANNEL_MODE_MASK_SELECTION) {
-            case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_PULSE_OUTPUT_TIME /*0*/:
+            case 0 :
                 return RunMode.RUN_WITHOUT_ENCODERS;
-            case MIN_MOTOR /*1*/:
+            case 1 :
                 return RunMode.RUN_USING_ENCODERS;
-            case MAX_MOTOR /*2*/:
+            case 2 :
                 return RunMode.RUN_TO_POSITION;
-            case CHANNEL_MODE_MASK_SELECTION /*3*/:
+            case 3 :
                 return RunMode.RESET_ENCODERS;
             default:
                 return RunMode.RUN_WITHOUT_ENCODERS;
@@ -358,27 +315,28 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     }
 
     public static byte runModeToFlagNXT(RunMode mode) {
-        switch (C00041.f44b[mode.ordinal()]) {
-            case MAX_MOTOR /*2*/:
-                return POWER_BREAK;
-            case CHANNEL_MODE_MASK_SELECTION /*3*/:
-                return CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION;
-            case OFFSET_MOTOR1_TARGET_ENCODER_VALUE /*4*/:
-                return CHANNEL_MODE_FLAG_SELECT_RESET;
-            default:
+        switch (mode) {
+            case RUN_USING_ENCODERS :
                 return CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED_NXT;
+            case RUN_WITHOUT_ENCODERS :
+                return POWER_BREAK;
+            case RUN_TO_POSITION :
+                return CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION;
+            case  RESET_ENCODERS :
+            default:
+                return CHANNEL_MODE_FLAG_SELECT_RESET;
         }
     }
 
     public void portIsReady(int port) {
-        switch (C00041.f43a[this.f52h.ordinal()]) {
-            case CHANNEL_MODE_MASK_SELECTION /*3*/:
+        switch (this.f52h) {
+            case SWITCHING_TO_READ_MODE :
                 if (this.f45a.isI2cPortInReadMode(port)) {
                     this.f52h = DeviceMode.READ_ONLY;
                     break;
                 }
                 break;
-            case OFFSET_MOTOR1_TARGET_ENCODER_VALUE /*4*/:
+            case SWITCHING_TO_WRITE_MODE :
                 if (this.f45a.isI2cPortInWriteMode(port)) {
                     this.f52h = DeviceMode.WRITE_ONLY;
                     break;

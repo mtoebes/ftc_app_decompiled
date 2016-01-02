@@ -13,55 +13,6 @@ public class MatrixI2cTransaction {
     public int value;
     public boolean write;
 
-    /* renamed from: com.qualcomm.hardware.MatrixI2cTransaction.1 */
-    static /* synthetic */ class C00071 {
-        static final /* synthetic */ int[] f92a;
-
-        static {
-            f92a = new int[C0008a.values().length];
-            try {
-                f92a[C0008a.PROPERTY_MODE.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_START.ordinal()] = 2;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_TIMEOUT.ordinal()] = 3;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_TARGET.ordinal()] = 4;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_SPEED.ordinal()] = 5;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_BATTERY.ordinal()] = 6;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_POSITION.ordinal()] = 7;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_MOTOR_BATCH.ordinal()] = 8;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_SERVO.ordinal()] = 9;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f92a[C0008a.PROPERTY_SERVO_ENABLE.ordinal()] = 10;
-            } catch (NoSuchFieldError ignored) {
-            }
-        }
-    }
-
     /* renamed from: com.qualcomm.hardware.MatrixI2cTransaction.a */
     enum C0008a {
         PROPERTY_MODE,
@@ -123,20 +74,20 @@ public class MatrixI2cTransaction {
         if (this.property != transaction.property) {
             return false;
         }
-        switch (C00071.f92a[this.property.ordinal()]) {
-            case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_I2C_PORT_I2C_ADDRESS /*1*/:
-            case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
-            case ModernRoboticsUsbLegacyModule.ADDRESS_BUFFER_STATUS /*3*/:
-            case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S0 /*4*/:
-            case ModernRoboticsUsbDeviceInterfaceModule.MAX_I2C_PORT_NUMBER /*5*/:
-            case ModernRoboticsUsbServoController.MAX_SERVOS /*6*/:
-            case ModernRoboticsUsbDeviceInterfaceModule.MAX_ANALOG_PORT_NUMBER /*7*/:
+        switch (this.property) {
+            case PROPERTY_MODE :
+            case PROPERTY_START :
+            case PROPERTY_TIMEOUT :
+            case PROPERTY_TARGET :
+            case PROPERTY_SPEED :
+            case PROPERTY_BATTERY :
+            case PROPERTY_POSITION :
                 return this.write == transaction.write && this.motor == transaction.motor && this.value == transaction.value;
-            case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S2 /*8*/:
+            case PROPERTY_MOTOR_BATCH :
                 return this.write == transaction.write && this.motor == transaction.motor && this.speed == transaction.speed && this.target == transaction.target && this.mode == transaction.mode;
-            case ModernRoboticsUsbServoController.MONITOR_LENGTH /*9*/:
+            case PROPERTY_SERVO :
                 return this.write == transaction.write && this.servo == transaction.servo && this.speed == transaction.speed && this.target == transaction.target;
-            case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S3 /*10*/:
+            case PROPERTY_SERVO_ENABLE :
                 return this.write == transaction.write && this.value == transaction.value;
             default:
                 RobotLog.e("Can not compare against unknown transaction property " + transaction.toString());

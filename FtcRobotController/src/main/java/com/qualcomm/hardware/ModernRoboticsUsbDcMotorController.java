@@ -73,31 +73,6 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     public static final byte START_ADDRESS = (byte) 64;
     private C0015a[] f176a;
 
-    /* renamed from: com.qualcomm.hardware.ModernRoboticsUsbDcMotorController.1 */
-    static /* synthetic */ class C00141 {
-        static final /* synthetic */ int[] f172a;
-
-        static {
-            f172a = new int[RunMode.values().length];
-            try {
-                f172a[RunMode.RUN_USING_ENCODERS.ordinal()] = ModernRoboticsUsbDcMotorController.MIN_MOTOR;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f172a[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = ModernRoboticsUsbDcMotorController.MAX_MOTOR;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f172a[RunMode.RUN_TO_POSITION.ordinal()] = ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_SELECTION;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f172a[RunMode.RESET_ENCODERS.ordinal()] = ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_LOCK;
-            } catch (NoSuchFieldError ignored) {
-            }
-        }
-    }
-
     /* renamed from: com.qualcomm.hardware.ModernRoboticsUsbDcMotorController.a */
     private static class C0015a {
         private int[] f173a;
@@ -279,27 +254,28 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     }
 
     public static byte runModeToFlag(RunMode mode) {
-        switch (C00141.f172a[mode.ordinal()]) {
-            case MAX_MOTOR /*2*/:
-                return POWER_BREAK;
-            case CHANNEL_MODE_MASK_SELECTION /*3*/:
-                return CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION;
-            case CHANNEL_MODE_MASK_LOCK /*4*/:
-                return CHANNEL_MODE_FLAG_SELECT_RESET;
-            default:
+        switch (mode) {
+            case RUN_USING_ENCODERS :
                 return CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED;
+            case RUN_WITHOUT_ENCODERS :
+                return POWER_BREAK;
+            case RUN_TO_POSITION:
+                return CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION;
+            case RESET_ENCODERS :
+            default :
+                return CHANNEL_MODE_FLAG_SELECT_RESET;
         }
     }
 
     public static RunMode flagToRunMode(byte flag) {
         switch (flag & CHANNEL_MODE_MASK_SELECTION) {
-            case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_PULSE_OUTPUT_TIME /*0*/:
+            case 0:
                 return RunMode.RUN_WITHOUT_ENCODERS;
-            case MIN_MOTOR /*1*/:
+            case 1:
                 return RunMode.RUN_USING_ENCODERS;
-            case MAX_MOTOR /*2*/:
+            case 2:
                 return RunMode.RUN_TO_POSITION;
-            case CHANNEL_MODE_MASK_SELECTION /*3*/:
+            case 3:
                 return RunMode.RESET_ENCODERS;
             default:
                 return RunMode.RUN_WITHOUT_ENCODERS;

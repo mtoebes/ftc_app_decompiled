@@ -73,8 +73,8 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
                 return false;
             }
             switch (this.f137c) {
-                case ModernRoboticsI2cGyro.OFFSET_COMMAND /*3*/:
-                case ModernRoboticsI2cGyro.OFFSET_Z_AXIS_SCALE_COEF /*16*/:
+                case 3 :
+                case 16 :
                     return Arrays.equals(this.f136b, transaction.f136b);
                 default:
                     return false;

@@ -45,18 +45,6 @@ public class HardwareDeviceManager extends DeviceManager {
     private RobotUsbManager robotUsbManager;
     private final EventLoopManager eventLoopManager;
 
-    static class C00001 {
-        static final int[] f8a;
-
-        static {
-            f8a = new int[DeviceEmulation.values().length];
-            try {
-                f8a[DeviceEmulation.ENABLE_DEVICE_EMULATION.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
-            }
-        }
-    }
-
     private enum DeviceEmulation {
         DEFAULT,
         ENABLE_DEVICE_EMULATION

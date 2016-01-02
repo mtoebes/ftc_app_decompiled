@@ -22,56 +22,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
     protected int physicalPort;
     protected MatrixServoController servoController;
     protected ConcurrentLinkedQueue<MatrixI2cTransaction> transactionQueue;
-
-    /* renamed from: com.qualcomm.hardware.MatrixMasterController.1 */
-    static /* synthetic */ class C00101 {
-        static final /* synthetic */ int[] f110a;
-
-        static {
-            f110a = new int[C0008a.values().length];
-            try {
-                f110a[C0008a.PROPERTY_BATTERY.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_POSITION.ordinal()] = 2;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_TARGET.ordinal()] = 3;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_MODE.ordinal()] = 4;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_SERVO.ordinal()] = 5;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_TIMEOUT.ordinal()] = 6;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_START.ordinal()] = 7;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_SPEED.ordinal()] = 8;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_MOTOR_BATCH.ordinal()] = 9;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f110a[C0008a.PROPERTY_SERVO_ENABLE.ordinal()] = 10;
-            } catch (NoSuchFieldError ignored) {
-            }
-        }
-    }
-
+    
     static {
         f111a = new byte[]{(byte) 0, HiTechnicNxtCompassSensor.CALIBRATION_FAILURE, (byte) 72, (byte) 74, (byte) 76};
         f112b = new byte[]{(byte) 0, (byte) 78, (byte) 88, (byte) 98, (byte) 108};
@@ -138,20 +89,20 @@ public class MatrixMasterController implements I2cPortReadyCallback {
 
     protected void handleReadDone(MatrixI2cTransaction transaction) {
         byte[] i2cReadCache = this.legacyModule.getI2cReadCache(this.physicalPort);
-        switch (C00101.f110a[transaction.property.ordinal()]) {
-            case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_I2C_PORT_I2C_ADDRESS /*1*/:
+        switch (transaction.property) {
+            case PROPERTY_BATTERY:
                 this.motorController.handleReadBattery(i2cReadCache);
                 break;
-            case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
+            case PROPERTY_POSITION:
                 this.motorController.handleReadPosition(transaction, i2cReadCache);
                 break;
-            case ModernRoboticsUsbLegacyModule.ADDRESS_BUFFER_STATUS /*3*/:
+            case PROPERTY_TARGET:
                 this.motorController.handleReadPosition(transaction, i2cReadCache);
                 break;
-            case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S0 /*4*/:
+            case PROPERTY_MODE:
                 this.motorController.handleReadMode(transaction, i2cReadCache);
                 break;
-            case ModernRoboticsUsbDeviceInterfaceModule.MAX_I2C_PORT_NUMBER /*5*/:
+            case PROPERTY_SERVO:
                 this.servoController.handleReadServo(transaction, i2cReadCache);
                 break;
             default:
@@ -198,47 +149,47 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                 }
             }
             byte b;
-            switch (C00101.f110a[matrixI2cTransaction.property.ordinal()]) {
-                case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_I2C_PORT_I2C_ADDRESS /*1*/:
+            switch (matrixI2cTransaction.property) {
+                case  PROPERTY_BATTERY :
                     bArr = new byte[]{(byte) 0};
                     i2 = 67;
                     i = 1;
                     break;
-                case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
+                case PROPERTY_POSITION :
                     byte b2 = f112b[matrixI2cTransaction.motor];
                     bArr = new byte[]{(byte) 0};
                     b = b2;
                     break;
-                case ModernRoboticsUsbLegacyModule.ADDRESS_BUFFER_STATUS /*3*/:
+                case PROPERTY_TARGET :
                     i2 = f113c[matrixI2cTransaction.motor];
                     bArr = TypeConversion.intToByteArray(matrixI2cTransaction.value);
                     break;
-                case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S0 /*4*/:
+                case PROPERTY_MODE :
                     bArr = new byte[]{(byte) matrixI2cTransaction.value};
                     b = f115e[matrixI2cTransaction.motor];
                     i = 1;
                     break;
-                case ModernRoboticsUsbDeviceInterfaceModule.MAX_I2C_PORT_NUMBER /*5*/:
+                case PROPERTY_SERVO :
                     bArr = new byte[]{matrixI2cTransaction.speed, (byte) matrixI2cTransaction.target};
                     b = f111a[matrixI2cTransaction.servo];
                     i = 2;
                     break;
-                case ModernRoboticsUsbServoController.MAX_SERVOS /*6*/:
+                case PROPERTY_TIMEOUT :
                     bArr = new byte[]{(byte) matrixI2cTransaction.value};
                     i2 = 66;
                     i = 1;
                     break;
-                case ModernRoboticsUsbDeviceInterfaceModule.MAX_ANALOG_PORT_NUMBER /*7*/:
+                case PROPERTY_START :
                     bArr = new byte[]{(byte) matrixI2cTransaction.value};
                     i2 = 68;
                     i = 1;
                     break;
-                case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S2 /*8*/:
+                case PROPERTY_SPEED :
                     bArr = new byte[]{(byte) matrixI2cTransaction.value};
                     b = f114d[matrixI2cTransaction.motor];
                     i = 1;
                     break;
-                case ModernRoboticsUsbServoController.MONITOR_LENGTH /*9*/:
+                case PROPERTY_MOTOR_BATCH :
                     byte b3 = f112b[matrixI2cTransaction.motor];
                     ByteBuffer allocate = ByteBuffer.allocate(10);
                     allocate.put(TypeConversion.intToByteArray(0));
@@ -249,7 +200,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                     b = b3;
                     i = 10;
                     break;
-                case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S3 /*10*/:
+                case PROPERTY_SERVO_ENABLE :
                     bArr = new byte[]{(byte) matrixI2cTransaction.value};
                     i2 = 69;
                     i = 1;

@@ -20,31 +20,6 @@ public class MatrixDcMotorController implements DcMotorController {
     protected DeviceMode deviceMode;
     protected MatrixMasterController master;
 
-    /* renamed from: com.qualcomm.hardware.MatrixDcMotorController.1 */
-    static /* synthetic */ class C00051 {
-        static final /* synthetic */ int[] f82a;
-
-        static {
-            f82a = new int[RunMode.values().length];
-            try {
-                f82a[RunMode.RUN_USING_ENCODERS.ordinal()] = 1;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f82a[RunMode.RUN_WITHOUT_ENCODERS.ordinal()] = 2;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f82a[RunMode.RUN_TO_POSITION.ordinal()] = 3;
-            } catch (NoSuchFieldError ignored) {
-            }
-            try {
-                f82a[RunMode.RESET_ENCODERS.ordinal()] = 4;
-            } catch (NoSuchFieldError ignored) {
-            }
-        }
-    }
-
     /* renamed from: com.qualcomm.hardware.MatrixDcMotorController.a */
     private class C0006a {
         public int f83a;
@@ -80,13 +55,14 @@ public class MatrixDcMotorController implements DcMotorController {
     }
 
     protected byte runModeToFlagMatrix(RunMode mode) {
-        switch (C00051.f82a[mode.ordinal()]) {
-            case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_I2C_PORT_I2C_ADDRESS /*1*/:
+        switch (mode) {
+            case RUN_USING_ENCODERS :
                 return (byte) 2;
-            case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
+            case RUN_WITHOUT_ENCODERS :
                 return (byte) 1;
-            case ModernRoboticsUsbLegacyModule.ADDRESS_BUFFER_STATUS /*3*/:
+            case RUN_TO_POSITION :
                 return (byte) 3;
+            case RESET_ENCODERS :
             default:
                 return (byte) 4;
         }
@@ -94,13 +70,13 @@ public class MatrixDcMotorController implements DcMotorController {
 
     protected RunMode flagMatrixToRunMode(byte flag) {
         switch (flag) {
-            case ModernRoboticsUsbDeviceInterfaceModule.OFFSET_I2C_PORT_I2C_ADDRESS /*1*/:
+            case 1 :
                 return RunMode.RUN_WITHOUT_ENCODERS;
-            case ModernRoboticsUsbDeviceInterfaceModule.WORD_SIZE /*2*/:
+            case 2 :
                 return RunMode.RUN_USING_ENCODERS;
-            case ModernRoboticsUsbLegacyModule.ADDRESS_BUFFER_STATUS /*3*/:
+            case 3 :
                 return RunMode.RUN_TO_POSITION;
-            case ModernRoboticsUsbLegacyModule.ADDRESS_ANALOG_PORT_S0 /*4*/:
+            case 4 :
                 return RunMode.RESET_ENCODERS;
             default:
                 RobotLog.e("Invalid run mode flag " + flag);
