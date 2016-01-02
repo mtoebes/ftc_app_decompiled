@@ -14,56 +14,55 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     public static final int BUFFER_LENGTH = 5;
     public static final int COMMAND_ACTIVE_LED = 0;
     public static final int COMMAND_PASSIVE_LED = 1;
-    public static final int OFFSET_BLUE_READING = 8;
-    public static final int OFFSET_COLOR_NUMBER = 5;
     public static final int OFFSET_COMMAND = 4;
-    public static final int OFFSET_GREEN_READING = 7;
-    public static final int OFFSET_RED_READING = 6;
-    private final LegacyModule f26a;
-    private final byte[] f27b;
-    private final Lock f28c;
-    private final byte[] f29d;
-    private final Lock f30e;
-    private C0003a f31f;
-    private volatile int f32g;
-    private final int f33h;
 
-    /* renamed from: com.qualcomm.hardware.HiTechnicNxtColorSensor.a */
-    private enum C0003a {
+    public static final int OFFSET_COLOR_NUMBER = 5;
+    public static final int OFFSET_RED_READING = 6;
+    public static final int OFFSET_GREEN_READING = 7;
+    public static final int OFFSET_BLUE_READING = 8;
+
+    private final LegacyModule legacyModule;
+    private final byte[] readCache;
+    private final Lock readCacheLock;
+    private final byte[] writeCache;
+    private final Lock writeCacheLock;
+    private ColorSensorMode mode = ColorSensorMode.READING_ONLY;
+    private volatile int ledMode = COMMAND_ACTIVE_LED;
+    private final int physicalPort;
+
+    private enum ColorSensorMode {
         READING_ONLY,
         PERFORMING_WRITE,
         SWITCHING_TO_READ
     }
 
     HiTechnicNxtColorSensor(LegacyModule legacyModule, int physicalPort) {
-        this.f31f = C0003a.READING_ONLY;
-        this.f32g = COMMAND_ACTIVE_LED;
-        this.f26a = legacyModule;
-        this.f33h = physicalPort;
-        this.f27b = legacyModule.getI2cReadCache(physicalPort);
-        this.f28c = legacyModule.getI2cReadCacheLock(physicalPort);
-        this.f29d = legacyModule.getI2cWriteCache(physicalPort);
-        this.f30e = legacyModule.getI2cWriteCacheLock(physicalPort);
-        legacyModule.enableI2cReadMode(physicalPort, ADDRESS_I2C, ADDRESS_COMMAND, OFFSET_COLOR_NUMBER);
+        this.legacyModule = legacyModule;
+        this.physicalPort = physicalPort;
+        this.readCache = legacyModule.getI2cReadCache(physicalPort);
+        this.readCacheLock = legacyModule.getI2cReadCacheLock(physicalPort);
+        this.writeCache = legacyModule.getI2cWriteCache(physicalPort);
+        this.writeCacheLock = legacyModule.getI2cWriteCacheLock(physicalPort);
+        legacyModule.enableI2cReadMode(physicalPort, ADDRESS_I2C, ADDRESS_COMMAND, BUFFER_LENGTH);
         legacyModule.setI2cPortActionFlag(physicalPort);
         legacyModule.writeI2cCacheToController(physicalPort);
         legacyModule.registerForI2cPortReadyCallback(this, physicalPort);
     }
 
     public int red() {
-        return m37a(OFFSET_RED_READING);
+        return getChannel(OFFSET_RED_READING);
     }
 
     public int green() {
-        return m37a(OFFSET_GREEN_READING);
+        return getChannel(OFFSET_GREEN_READING);
     }
 
     public int blue() {
-        return m37a(OFFSET_BLUE_READING);
+        return getChannel(OFFSET_BLUE_READING);
     }
 
     public int alpha() {
-        return COMMAND_ACTIVE_LED;
+        return 0;
     }
 
     public int argb() {
@@ -71,18 +70,16 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     }
 
     public void enableLed(boolean enable) {
-        byte b = (byte) 1;
-        if (enable) {
-            b = (byte) 0;
-        }
-        if (this.f32g != b) {
-            this.f32g = b;
-            this.f31f = C0003a.PERFORMING_WRITE;
+        byte newLEDMode = (byte) (enable ? COMMAND_ACTIVE_LED : COMMAND_PASSIVE_LED);
+
+        if (this.ledMode != newLEDMode) {
+            this.ledMode = newLEDMode;
+            this.mode = ColorSensorMode.PERFORMING_WRITE;
             try {
-                this.f30e.lock();
-                this.f29d[OFFSET_COMMAND] = b;
+                this.writeCacheLock.lock();
+                this.writeCache[OFFSET_COMMAND] = newLEDMode;
             } finally {
-                this.f30e.unlock();
+                this.writeCacheLock.unlock();
             }
         }
     }
@@ -95,13 +92,13 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
         throw new UnsupportedOperationException("getI2cAddress is not supported.");
     }
 
-    private int m37a(int i) {
+    private int getChannel(int channelIndex) {
         try {
-            this.f28c.lock();
-            byte b = this.f27b[i];
-            return TypeConversion.unsignedByteToInt(b);
+            this.readCacheLock.lock();
+            byte colorByte = this.readCache[channelIndex];
+            return TypeConversion.unsignedByteToInt(colorByte);
         } finally {
-            this.f28c.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
@@ -110,7 +107,7 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     }
 
     public String getConnectionInfo() {
-        return this.f26a.getConnectionInfo() + "; I2C port: " + this.f33h;
+        return this.legacyModule.getConnectionInfo() + "; I2C port: " + this.physicalPort;
     }
 
     public int getVersion() {
@@ -121,18 +118,18 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     }
 
     public void portIsReady(int port) {
-        this.f26a.setI2cPortActionFlag(this.f33h);
-        this.f26a.readI2cCacheFromController(this.f33h);
-        if (this.f31f == C0003a.PERFORMING_WRITE) {
-            this.f26a.enableI2cWriteMode(this.f33h, ADDRESS_I2C, ADDRESS_COMMAND, OFFSET_COLOR_NUMBER);
-            this.f26a.writeI2cCacheToController(this.f33h);
-            this.f31f = C0003a.SWITCHING_TO_READ;
-        } else if (this.f31f == C0003a.SWITCHING_TO_READ) {
-            this.f26a.enableI2cReadMode(this.f33h, ADDRESS_I2C, ADDRESS_COMMAND, OFFSET_COLOR_NUMBER);
-            this.f26a.writeI2cCacheToController(this.f33h);
-            this.f31f = C0003a.READING_ONLY;
+        this.legacyModule.setI2cPortActionFlag(this.physicalPort);
+        this.legacyModule.readI2cCacheFromController(this.physicalPort);
+        if (this.mode == ColorSensorMode.PERFORMING_WRITE) {
+            this.legacyModule.enableI2cWriteMode(this.physicalPort, ADDRESS_I2C, ADDRESS_COMMAND, BUFFER_LENGTH);
+            this.legacyModule.writeI2cCacheToController(this.physicalPort);
+            this.mode = ColorSensorMode.SWITCHING_TO_READ;
+        } else if (this.mode == ColorSensorMode.SWITCHING_TO_READ) {
+            this.legacyModule.enableI2cReadMode(this.physicalPort, ADDRESS_I2C, ADDRESS_COMMAND, BUFFER_LENGTH);
+            this.legacyModule.writeI2cCacheToController(this.physicalPort);
+            this.mode = ColorSensorMode.READING_ONLY;
         } else {
-            this.f26a.writeI2cPortFlagOnlyToController(this.f33h);
+            this.legacyModule.writeI2cPortFlagOnlyToController(this.physicalPort);
         }
     }
 }
