@@ -244,16 +244,17 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public boolean isI2cPortActionFlagSet(int physicalPort) {
+        boolean isFlagSet = false;
         validatePort(physicalPort);
         try {
             getI2cReadCacheLock(physicalPort).lock();
-            boolean isFlagSet = getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG;
+            isFlagSet = getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG;
             getI2cReadCacheLock(physicalPort).unlock();
-            return isFlagSet;
-        } catch (Throwable th) {
+        } catch (Throwable ignored) {
+        } finally {
             getI2cReadCacheLock(physicalPort).unlock();
         }
-        return false; //TODO originally no return statement. why?
+        return isFlagSet;
     }
 
     public void readI2cCacheFromController(int physicalPort) {
@@ -289,12 +290,11 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             if (getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_MODE] == NXT_MODE_READ) {
                 isReadMode = true;
             }
-            getI2cReadCacheLock(physicalPort).unlock();
-            return isReadMode;
-        } catch (Throwable th) {
+        } catch (Throwable ignored) {
+        } finally {
             getI2cReadCacheLock(physicalPort).unlock();
         }
-        return false; //TODO originally no return statement. why?
+        return isReadMode;
     }
 
     public boolean isI2cPortInWriteMode(int physicalPort) {
@@ -305,12 +305,11 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             if (getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_MODE] != NXT_MODE_I2C) {
                 isWriteMode = false;
             }
-            getI2cReadCacheLock(physicalPort).unlock();
-            return isWriteMode;
-        } catch (Throwable th) {
+        } catch (Throwable ignored) {
+        } finally {
             getI2cReadCacheLock(physicalPort).unlock();
         }
-        return false; //TODO originally no return statement. why?
+        return isWriteMode;
     }
 
     public boolean isI2cPortReady(int physicalPort) {
