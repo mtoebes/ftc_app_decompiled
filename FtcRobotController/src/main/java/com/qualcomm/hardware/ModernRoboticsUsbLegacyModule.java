@@ -21,8 +21,6 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public static final byte NUMBER_OF_PORTS = (byte) 6;
     public static final byte NXT_MODE_9V_ENABLED = (byte) 2;
     public static final byte NXT_MODE_ANALOG = (byte) 0;
-    public static final byte NXT_MODE_DIGITAL_0 = (byte) 4;
-    public static final byte NXT_MODE_DIGITAL_1 = (byte) 8;
     public static final byte NXT_MODE_I2C = (byte) 1;
     public static final byte NXT_MODE_READ = Byte.MIN_VALUE;
     public static final byte NXT_MODE_WRITE = (byte) 0;
