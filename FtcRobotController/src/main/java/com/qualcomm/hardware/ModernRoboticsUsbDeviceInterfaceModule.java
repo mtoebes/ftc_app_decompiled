@@ -10,43 +10,42 @@ import java.nio.ByteOrder;
 import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDevice implements DeviceInterfaceModule {
-    public static final boolean DEBUG_LOGGING = false;
+    private static final boolean DEBUG_LOGGING = false;
 
-    public static final int BUFFER_SIZE = 27;
-    public static final int START_ADDRESS = 3;
-    public static final int WORD_SIZE = 2;
-    public static final int MONITOR_LENGTH = 21;
+    private static final int BUFFER_SIZE = 27;
+    private static final int START_ADDRESS = 3;
+    private static final int MONITOR_LENGTH = 21;
 
-    public static final int ADDRESS_BUFFER_STATUS = 3;
+    private static final int ADDRESS_BUFFER_STATUS = 3;
 
-    public static final int ADDRESS_DIGITAL_INPUT_STATE = 20;
-    public static final int ADDRESS_DIGITAL_IO_CONTROL = 21;
-    public static final int ADDRESS_DIGITAL_OUTPUT_STATE = 22;
-    public static final int ADDRESS_LED_SET = 23;
+    private static final int ADDRESS_DIGITAL_INPUT_STATE = 20;
+    private static final int ADDRESS_DIGITAL_IO_CONTROL = 21;
+    private static final int ADDRESS_DIGITAL_OUTPUT_STATE = 22;
+    private static final int ADDRESS_LED_SET = 23;
 
-    public static final byte I2C_MODE_READ = Byte.MIN_VALUE;
-    public static final byte I2C_MODE_WRITE = (byte) 0;
+    private static final byte I2C_MODE_READ = Byte.MIN_VALUE;
+    private static final byte I2C_MODE_WRITE = (byte) 0;
 
-    public static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_VOLTAGE = 0;
-    public static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_FREQ = 2;
-    public static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_MODE = 4;
-    public static final int ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE = 5;
+    private static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_VOLTAGE = 0;
+    private static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_FREQ = 2;
+    private static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_MODE = 4;
+    private static final int ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE = 5;
 
-    public static final int OFFSET_PULSE_OUTPUT_TIME = 0;
-    public static final int OFFSET_PULSE_OUTPUT_PERIOD = 2;
-    public static final int PULSE_OUTPUT_BUFFER_SIZE = 4;
+    private static final int OFFSET_PULSE_OUTPUT_TIME = 0;
+    private static final int OFFSET_PULSE_OUTPUT_PERIOD = 2;
+    private static final int PULSE_OUTPUT_BUFFER_SIZE = 4;
 
-    public static final int OFFSET_I2C_PORT_MODE = 0;
-    public static final int OFFSET_I2C_PORT_I2C_ADDRESS = 1;
-    public static final int OFFSET_I2C_PORT_MEMORY_ADDRESS = 2;
-    public static final int OFFSET_I2C_PORT_MEMORY_LENGTH = 3;
-    public static final int OFFSET_I2C_PORT_MEMORY_BUFFER = 4;
-    public static final int I2C_PORT_BUFFER_SIZE = 32;
+    private static final int OFFSET_I2C_PORT_MODE = 0;
+    private static final int OFFSET_I2C_PORT_I2C_ADDRESS = 1;
+    private static final int OFFSET_I2C_PORT_MEMORY_ADDRESS = 2;
+    private static final int OFFSET_I2C_PORT_MEMORY_LENGTH = 3;
+    private static final int OFFSET_I2C_PORT_MEMORY_BUFFER = 4;
+    private static final int I2C_PORT_BUFFER_SIZE = 32;
 
-    public static final int OFFSET_I2C_PORT_FLAG = 31;
-    public static final byte I2C_ACTION_FLAG = (byte) -1;
+    private static final int OFFSET_I2C_PORT_FLAG = 31;
+    private static final byte I2C_ACTION_FLAG = (byte) -1;
 
-    public static final int ANALOG_INPUT_BUFFER_SIZE = 2;
+    private static final int ANALOG_INPUT_BUFFER_SIZE = 2;
 
     private static final int NUMBER_OF_ANALOG_OUTPUT_PORTS = 2;
     private static final int NUMBER_OF_PULSE_OUTPUT_PORTS = 2;
@@ -54,10 +53,10 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private static final int NUMBER_OF_ANALOG_INPUT_PORTS = 8;
 
     private final I2cPortReadyCallback[] callbacks = new I2cPortReadyCallback[NUMBER_OF_I2C_PORTS];
-    private ReadWriteRunnableSegment[] analogOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_ANALOG_OUTPUT_PORTS];
-    private ReadWriteRunnableSegment[] pulseOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_PULSE_OUTPUT_PORTS];
-    private ReadWriteRunnableSegment[] i2cSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
-    private ReadWriteRunnableSegment[] flagSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
+    private final ReadWriteRunnableSegment[] analogOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_ANALOG_OUTPUT_PORTS];
+    private final ReadWriteRunnableSegment[] pulseOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_PULSE_OUTPUT_PORTS];
+    private final ReadWriteRunnableSegment[] i2cSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
+    private final ReadWriteRunnableSegment[] flagSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
 
     protected ModernRoboticsUsbDeviceInterfaceModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
@@ -114,7 +113,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public void setDigitalChannelState(int channel, boolean state) {
         if (Mode.OUTPUT == getDigitalChannelMode(channel)) {
-            int i;
             byte data = readFromWriteCache(ADDRESS_DIGITAL_OUTPUT_STATE);
             int mask = getDigitalBitMask(channel);
             if (state) {
