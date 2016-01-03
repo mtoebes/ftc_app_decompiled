@@ -36,10 +36,10 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     private static final double BATTERY_MAX_MEASURABLE_VOLTAGE = 20.4d;
     private static final int BATTERY_MAX_MEASURABLE_VOLTAGE_INT = 1023;
 
-    private static final byte CHANNEL_MODE_FLAG_SELECT_RESET = (byte) 3;
-    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED = (byte) 1;
     private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY = (byte) 0;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED = (byte) 1;
     private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION = (byte) 2;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RESET = (byte) 3;
     private static final int CHANNEL_MODE_MASK_SELECTION = 3;
 
 
