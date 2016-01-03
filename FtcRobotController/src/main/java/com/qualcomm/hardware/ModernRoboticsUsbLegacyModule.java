@@ -25,7 +25,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
 
     public static final int ADDRESS_BUFFER_STATUS = 3;
     public static final byte OFFSET_I2C_PORT_MEMORY_LENGTH = (byte) 3;
-    public static final byte START_ADDRESS = (byte) 3;
+    public static final int START_ADDRESS = 3;
 
     public static final byte I2C_ACTION_FLAG = (byte) -1;
     public static final byte MAX_PORT_NUMBER = (byte) 5;
@@ -44,7 +44,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     private final I2cPortReadyCallback[] callbacks;
 
     protected ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
-        super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, 3, DEBUG_LOGGING));
+        super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
         this.segments = new ReadWriteRunnableSegment[2*NUMBER_OF_PORTS];
         this.callbacks = new I2cPortReadyCallback[NUMBER_OF_PORTS];
         this.readWriteRunnable.setCallback(this);
@@ -86,7 +86,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             writeBuffer[0] = (byte) NXT_MODE_READ;
             writeBuffer[1] = (byte) i2cAddress;
             writeBuffer[2] = (byte) memAddress;
-            writeBuffer[3] = (byte) length;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
         } finally {
             lock.unlock();
         }
@@ -102,7 +102,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             writeBuffer[0] = 1;
             writeBuffer[1] = (byte) i2cAddress;
             writeBuffer[2] = (byte) memAddress;
-            writeBuffer[3] = (byte) length;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
         } finally {
             lock.unlock();
         }
@@ -149,7 +149,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             writeBuffer[0] = (byte) NXT_MODE_READ;
             writeBuffer[1] = (byte) i2cAddr;
             writeBuffer[2] = (byte) memAddr;
-            writeBuffer[3] = (byte) memLen;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) memLen;
         } finally {
             lock.unlock();
         }
@@ -177,7 +177,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             lock.lock();
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             System.arraycopy(data, 0, writeBuffer, OFFSET_I2C_PORT_MEMORY_BUFFER, length);
-            writeBuffer[3] = (byte) length;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
         } finally {
             lock.unlock();
         }
@@ -213,7 +213,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         try {
             lock.lock();
             byte[] readBuffer = this.segments[physicalPort].getReadBuffer();
-            byte[] copyBuffer = new byte[readBuffer[3]];
+            byte[] copyBuffer = new byte[readBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH]];
             System.arraycopy(readBuffer, OFFSET_I2C_PORT_MEMORY_BUFFER, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
@@ -227,7 +227,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         try {
             lock.lock();
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
-            byte[] copyBuffer = new byte[writeBuffer[3]];
+            byte[] copyBuffer = new byte[writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH]];
             System.arraycopy(writeBuffer, OFFSET_I2C_PORT_MEMORY_BUFFER, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
@@ -329,7 +329,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public boolean isI2cPortReady(int physicalPort) {
-        return checkPortData(physicalPort, read(3));
+        return checkPortData(physicalPort, read(ADDRESS_BUFFER_STATUS));
     }
 
     private void validatePort(int port) {
@@ -352,7 +352,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
 
     public void readComplete() throws InterruptedException {
         if (this.callbacks != null) {
-            byte data = read(3);
+            byte data = read(ADDRESS_BUFFER_STATUS);
             for (int port = 0; port < NUMBER_OF_PORTS; port++) {
                 if (this.callbacks[port] != null && checkPortData(port, data)) {
                     this.callbacks[port].portIsReady(port);
