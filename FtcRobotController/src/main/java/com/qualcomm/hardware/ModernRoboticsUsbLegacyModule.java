@@ -9,25 +9,9 @@ import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice implements LegacyModule {
-    public static final int ADDRESS_ANALOG_PORT_S0 = 4;
-    public static final int ADDRESS_ANALOG_PORT_S1 = 6;
-    public static final int ADDRESS_ANALOG_PORT_S2 = 8;
-    public static final int ADDRESS_ANALOG_PORT_S3 = 10;
-    public static final int ADDRESS_ANALOG_PORT_S4 = 12;
-    public static final int ADDRESS_ANALOG_PORT_S5 = 14;
+
     public static final int ADDRESS_BUFFER_STATUS = 3;
-    public static final int ADDRESS_I2C_PORT_S1 = 48;
-    public static final int ADDRESS_I2C_PORT_S2 = 80;
-    public static final int ADDRESS_I2C_PORT_S3 = 112;
-    public static final int ADDRESS_I2C_PORT_S4 = 144;
-    public static final int ADDRESS_I2C_PORT_S5 = 176;
-    public static final int ADDRESS_I2C_PORT_SO = 16;
-    public static final byte BUFFER_FLAG_S0 = (byte) 1;
-    public static final byte BUFFER_FLAG_S1 = (byte) 2;
-    public static final byte BUFFER_FLAG_S2 = (byte) 4;
-    public static final byte BUFFER_FLAG_S3 = (byte) 8;
-    public static final byte BUFFER_FLAG_S4 = (byte) 16;
-    public static final byte BUFFER_FLAG_S5 = (byte) 32;
+
     public static final boolean DEBUG_LOGGING = false;
     public static final byte I2C_ACTION_FLAG = (byte) -1;
     public static final byte I2C_NO_ACTION_FLAG = (byte) 0;
@@ -48,7 +32,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public static final byte OFFSET_I2C_PORT_MEMORY_BUFFER = (byte) 4;
     public static final byte OFFSET_I2C_PORT_MEMORY_LENGTH = (byte) 3;
     public static final byte OFFSET_I2C_PORT_MODE = (byte) 0;
-    public static final int[] PORT_9V_CAPABLE = new int[]{ADDRESS_ANALOG_PORT_S0, 5};
+    public static final int[] PORT_9V_CAPABLE = new int[]{4, 5};
     public static final byte SIZE_ANALOG_BUFFER = (byte) 2;
     public static final byte SIZE_I2C_BUFFER = (byte) 27;
     public static final byte SIZE_OF_PORT_BUFFER = (byte) 32;
@@ -58,12 +42,12 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
 
     protected ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, ADDRESS_BUFFER_STATUS, DEBUG_LOGGING));
-        this.segments = new ReadWriteRunnableSegment[ADDRESS_ANALOG_PORT_S4];
-        this.callbacks = new I2cPortReadyCallback[ADDRESS_ANALOG_PORT_S1];
+        this.segments = new ReadWriteRunnableSegment[2*6];
+        this.callbacks = new I2cPortReadyCallback[6];
         this.readWriteRunnable.setCallback(this);
-        for (int port = 0; port < ADDRESS_ANALOG_PORT_S1; port++) {
+        for (int port = 0; port < 6; port++) {
             this.segments[port] = this.readWriteRunnable.createSegment(port, getI2cPortAddress(port), 32);
-            this.segments[port + ADDRESS_ANALOG_PORT_S1] = this.readWriteRunnable.createSegment(port + ADDRESS_ANALOG_PORT_S1, getI2cPortAddress(port) + 31, 1);
+            this.segments[port + 6] = this.readWriteRunnable.createSegment(port + 6, getI2cPortAddress(port) + 31, 1);
             enableAnalogReadMode(port);
             this.readWriteRunnable.queueSegmentWrite(port);
         }
@@ -189,7 +173,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         try {
             lock.lock();
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
-            System.arraycopy(data, 0, writeBuffer, ADDRESS_ANALOG_PORT_S0, length);
+            System.arraycopy(data, 0, writeBuffer, 4, length);
             writeBuffer[ADDRESS_BUFFER_STATUS] = (byte) length;
         } finally {
             lock.unlock();
@@ -227,7 +211,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             lock.lock();
             byte[] readBuffer = this.segments[physicalPort].getReadBuffer();
             byte[] copyBuffer = new byte[readBuffer[ADDRESS_BUFFER_STATUS]];
-            System.arraycopy(readBuffer, ADDRESS_ANALOG_PORT_S0, copyBuffer, 0, copyBuffer.length);
+            System.arraycopy(readBuffer, 4, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
             lock.unlock();
@@ -241,7 +225,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             lock.lock();
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             byte[] copyBuffer = new byte[writeBuffer[ADDRESS_BUFFER_STATUS]];
-            System.arraycopy(writeBuffer, ADDRESS_ANALOG_PORT_S0, copyBuffer, 0, copyBuffer.length);
+            System.arraycopy(writeBuffer, 4, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
             lock.unlock();
@@ -254,7 +238,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         Lock lock = this.segments[physicalPort].getWriteLock();
         try {
             lock.lock();
-            System.arraycopy(buffer, 0, this.segments[physicalPort].getWriteBuffer(), ADDRESS_ANALOG_PORT_S0, buffer.length);
+            System.arraycopy(buffer, 0, this.segments[physicalPort].getWriteBuffer(), 4, buffer.length);
         } finally {
             lock.unlock();
         }
@@ -297,12 +281,12 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public void writeI2cPortFlagOnlyToController(int physicalPort) {
         validatePort(physicalPort);
         ReadWriteRunnableSegment readWriteRunnableSegment = this.segments[physicalPort];
-        ReadWriteRunnableSegment readWriteRunnableSegment2 = this.segments[physicalPort + ADDRESS_ANALOG_PORT_S1];
+        ReadWriteRunnableSegment readWriteRunnableSegment2 = this.segments[physicalPort + 6];
         try {
             readWriteRunnableSegment.getWriteLock().lock();
             readWriteRunnableSegment2.getWriteLock().lock();
             readWriteRunnableSegment2.getWriteBuffer()[0] = readWriteRunnableSegment.getWriteBuffer()[31];
-            this.readWriteRunnable.queueSegmentWrite(physicalPort + ADDRESS_ANALOG_PORT_S1);
+            this.readWriteRunnable.queueSegmentWrite(physicalPort + 6);
         } finally {
             readWriteRunnableSegment.getWriteLock().unlock();
             readWriteRunnableSegment2.getWriteLock().unlock();
@@ -366,7 +350,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public void readComplete() throws InterruptedException {
         if (this.callbacks != null) {
             byte data = read(ADDRESS_BUFFER_STATUS);
-            for (int port = 0; port < ADDRESS_ANALOG_PORT_S1; port++) {
+            for (int port = 0; port < 6; port++) {
                 if (this.callbacks[port] != null && checkPortData(port, data)) {
                     this.callbacks[port].portIsReady(port);
                 }
