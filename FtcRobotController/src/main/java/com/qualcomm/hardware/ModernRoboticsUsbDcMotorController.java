@@ -3,8 +3,6 @@ package com.qualcomm.hardware;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DcMotorController.DeviceMode;
-import com.qualcomm.robotcore.hardware.DcMotorController.RunMode;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
 import com.qualcomm.robotcore.util.DifferentialControlLoopCoefficients;
@@ -71,34 +69,32 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     public static final byte RATIO_MAX = Byte.MAX_VALUE;
     public static final byte RATIO_MIN = Byte.MIN_VALUE;
     public static final byte START_ADDRESS = (byte) 64;
-    private C0015a[] f176a;
+    private HelperClass[] helperClasses;
 
-    /* renamed from: com.qualcomm.hardware.ModernRoboticsUsbDcMotorController.a */
-    private static class C0015a {
-        private int[] f173a;
-        private int[] f174b;
-        private int f175c;
+    private static class HelperClass { // TODO figure this out
+        private int[] controller1;
+        private int[] controller2;
+        private int counter;
 
-        private C0015a() {
-            this.f173a = new int[ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_SELECTION];
-            this.f174b = new int[ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_SELECTION];
-            this.f175c = 0;
+        private HelperClass() {
+            this.controller1 = new int[ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_SELECTION];
+            this.controller2 = new int[ModernRoboticsUsbDcMotorController.CHANNEL_MODE_MASK_SELECTION];
+            this.counter = 0;
         }
 
-        public void m54a(int i) {
-            int i2 = this.f173a[this.f175c];
-            this.f175c = (this.f175c + ModernRoboticsUsbDcMotorController.MIN_MOTOR) % this.f173a.length;
-            this.f174b[this.f175c] = Math.abs(i2 - i);
-            this.f173a[this.f175c] = i;
+        public void unknownHelper1(int i) {
+            int i2 = this.controller1[this.counter];
+            this.counter = (this.counter + 1) % 3;
+            this.controller2[this.counter] = Math.abs(i2 - i);
+            this.controller1[this.counter] = i;
         }
 
-        public boolean m55a() {
-            int[] iArr = this.f174b;
+        public boolean unknownHelper2() {
             int i = 0;
-            for (int anIArr : iArr) {
-                i += anIArr;
+            for (int i2 : controller2) {
+                i += i2;
             }
-            return i > 6 || ModernRoboticsUsbDcMotorController.DEBUG_LOGGING;
+            return i > 6;
         }
     }
 
@@ -113,15 +109,13 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
 
     protected ModernRoboticsUsbDcMotorController(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableBlocking(serialNumber, device, MONITOR_LENGTH, CHANNEL_MODE_MASK_ERROR, DEBUG_LOGGING));
-        int i = 0;
-        this.f176a = new C0015a[CHANNEL_MODE_MASK_SELECTION];
+        this.helperClasses = new HelperClass[CHANNEL_MODE_MASK_SELECTION];
         this.readWriteRunnable.setCallback(this);
-        while (i < this.f176a.length) {
-            this.f176a[i] = new C0015a();
-            i += MIN_MOTOR;
+        for (int i = 0; i < this.helperClasses.length; i++) {
+            this.helperClasses[i] = new HelperClass();
         }
-        m56a();
-        m58b();
+        setMotorsPowerFloat();
+        writeMotors();
     }
 
     public String getDeviceName() {
@@ -133,7 +127,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     }
 
     public void close() {
-        m56a();
+        setMotorsPowerFloat();
         super.close();
     }
 
@@ -145,26 +139,26 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     }
 
     public void setMotorChannelMode(int motor, RunMode mode) {
-        m57a(motor);
+        validateMotor(motor);
         write(ADDRESS_MOTOR_MODE_MAP[motor], runModeToFlag(mode));
     }
 
     public RunMode getMotorChannelMode(int motor) {
-        m57a(motor);
+        validateMotor(motor);
         return flagToRunMode(read(ADDRESS_MOTOR_MODE_MAP[motor]));
     }
 
     public void setMotorPower(int motor, double power) {
-        m57a(motor);
+        validateMotor(motor);
         Range.throwIfRangeIsInvalid(power, HiTechnicNxtCompassSensor.INVALID_DIRECTION, 1.0d);
-        int i = ADDRESS_MOTOR_POWER_MAP[motor];
-        byte[] bArr = new byte[MIN_MOTOR];
-        bArr[0] = (byte) ((int) (100.0d * power));
-        write(i, bArr);
+        int motorPowerAddress = ADDRESS_MOTOR_POWER_MAP[motor];
+        byte[] motorPowerBuffer = new byte[1];
+        motorPowerBuffer[0] = (byte) ((int) (100.0d * power));
+        write(motorPowerAddress, motorPowerBuffer);
     }
 
     public double getMotorPower(int motor) {
-        m57a(motor);
+        validateMotor(motor);
         byte read = read(ADDRESS_MOTOR_POWER_MAP[motor]);
         if (read == -128) {
             return 0.0d;
@@ -173,36 +167,36 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     }
 
     public boolean isBusy(int motor) {
-        m57a(motor);
-        return this.f176a[motor].m55a();
+        validateMotor(motor);
+        return this.helperClasses[motor].unknownHelper2();
     }
 
     public void setMotorPowerFloat(int motor) {
-        m57a(motor);
-        int i = ADDRESS_MOTOR_POWER_MAP[motor];
-        byte[] bArr = new byte[MIN_MOTOR];
-        bArr[0] = RATIO_MIN;
-        write(i, bArr);
+        validateMotor(motor);
+        int motorPowerAddress = ADDRESS_MOTOR_POWER_MAP[motor];
+        byte[] motorPowerBuffer = new byte[1];
+        motorPowerBuffer[0] = RATIO_MIN;
+        write(motorPowerAddress, motorPowerBuffer);
     }
 
     public boolean getMotorPowerFloat(int motor) {
-        m57a(motor);
-        return read(ADDRESS_MOTOR_POWER_MAP[motor]) == -128 || DEBUG_LOGGING;
+        validateMotor(motor);
+        return read(ADDRESS_MOTOR_POWER_MAP[motor]) == -128;
     }
 
     public void setMotorTargetPosition(int motor, int position) {
-        m57a(motor);
-        Range.throwIfRangeIsInvalid((double) position, -2.147483648E9d, 2.147483647E9d);
+        validateMotor(motor);
+        Range.throwIfRangeIsInvalid((double) position, Integer.MIN_VALUE, Integer.MAX_VALUE);
         write(ADDRESS_MOTOR_TARGET_ENCODER_VALUE_MAP[motor], TypeConversion.intToByteArray(position));
     }
 
     public int getMotorTargetPosition(int motor) {
-        m57a(motor);
+        validateMotor(motor);
         return TypeConversion.byteArrayToInt(read(ADDRESS_MOTOR_TARGET_ENCODER_VALUE_MAP[motor], CHANNEL_MODE_MASK_LOCK));
     }
 
     public int getMotorCurrentPosition(int motor) {
-        m57a(motor);
+        validateMotor(motor);
         return TypeConversion.byteArrayToInt(read(ADDRESS_MOTOR_CURRENT_ENCODER_VALUE_MAP[motor], CHANNEL_MODE_MASK_LOCK));
     }
 
@@ -211,57 +205,58 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     }
 
     public void setGearRatio(int motor, double ratio) {
-        m57a(motor);
+        validateMotor(motor);
         Range.throwIfRangeIsInvalid(ratio, HiTechnicNxtCompassSensor.INVALID_DIRECTION, 1.0d);
-        int i = ADDRESS_MOTOR_GEAR_RATIO_MAP[motor];
-        byte[] bArr = new byte[MIN_MOTOR];
-        bArr[0] = (byte) ((int) (127.0d * ratio));
-        write(i, bArr);
+        int gearRatioAddress = ADDRESS_MOTOR_GEAR_RATIO_MAP[motor];
+        byte[] gearRatioBuffer = new byte[1];
+        gearRatioBuffer[0] = (byte) ((int) (127.0d * ratio));
+        write(gearRatioAddress, gearRatioBuffer);
     }
 
     public double getGearRatio(int motor) {
-        m57a(motor);
-        return ((double) read(ADDRESS_MOTOR_GEAR_RATIO_MAP[motor], MIN_MOTOR)[0]) / 127.0d;
+        validateMotor(motor);
+        return ((double) read(ADDRESS_MOTOR_GEAR_RATIO_MAP[motor], 1)[0]) / 127.0d;
     }
 
     public void setDifferentialControlLoopCoefficients(int motor, DifferentialControlLoopCoefficients pid) {
-        m57a(motor);
-        if (pid.p > 255.0d) {
-            pid.p = 255.0d;
+        validateMotor(motor);
+        double maxValue = 255.0d;
+        if (pid.p > maxValue) {
+            pid.p = maxValue;
         }
-        if (pid.i > 255.0d) {
-            pid.i = 255.0d;
+        if (pid.i > maxValue) {
+            pid.i = maxValue;
         }
-        if (pid.d > 255.0d) {
-            pid.d = 255.0d;
+        if (pid.d > maxValue) {
+            pid.d = maxValue;
         }
         int i = ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP[motor];
-        byte[] bArr = new byte[CHANNEL_MODE_MASK_SELECTION];
-        bArr[0] = (byte) ((int) pid.p);
-        bArr[MIN_MOTOR] = (byte) ((int) pid.i);
-        bArr[MAX_MOTOR] = (byte) ((int) pid.d);
-        write(i, bArr);
+        byte[] pidBuffer = new byte[CHANNEL_MODE_MASK_SELECTION];
+        pidBuffer[0] = (byte) ((int) pid.p);
+        pidBuffer[1] = (byte) ((int) pid.i);
+        pidBuffer[2] = (byte) ((int) pid.d);
+        write(i, pidBuffer);
     }
 
     public DifferentialControlLoopCoefficients getDifferentialControlLoopCoefficients(int motor) {
-        m57a(motor);
+        validateMotor(motor);
         DifferentialControlLoopCoefficients differentialControlLoopCoefficients = new DifferentialControlLoopCoefficients();
         byte[] read = read(ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP[motor], CHANNEL_MODE_MASK_SELECTION);
         differentialControlLoopCoefficients.p = (double) read[0];
-        differentialControlLoopCoefficients.i = (double) read[MIN_MOTOR];
-        differentialControlLoopCoefficients.d = (double) read[MAX_MOTOR];
+        differentialControlLoopCoefficients.i = (double) read[1];
+        differentialControlLoopCoefficients.d = (double) read[2];
         return differentialControlLoopCoefficients;
     }
 
     public static byte runModeToFlag(RunMode mode) {
         switch (mode) {
-            case RUN_USING_ENCODERS :
+            case RUN_USING_ENCODERS:
                 return CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED;
-            case RUN_WITHOUT_ENCODERS :
-                return POWER_BREAK;
+            case RUN_WITHOUT_ENCODERS:
+                return CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY;
             case RUN_TO_POSITION:
                 return CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION;
-            case RESET_ENCODERS :
+            case RESET_ENCODERS:
             default :
                 return CHANNEL_MODE_FLAG_SELECT_RESET;
         }
@@ -269,31 +264,30 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
 
     public static RunMode flagToRunMode(byte flag) {
         switch (flag & CHANNEL_MODE_MASK_SELECTION) {
-            case 0:
+            case CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY:
                 return RunMode.RUN_WITHOUT_ENCODERS;
-            case 1:
+            case CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED:
                 return RunMode.RUN_USING_ENCODERS;
-            case 2:
+            case CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION:
                 return RunMode.RUN_TO_POSITION;
-            case 3:
-                return RunMode.RESET_ENCODERS;
+            case CHANNEL_MODE_FLAG_SELECT_RESET:
             default:
-                return RunMode.RUN_WITHOUT_ENCODERS;
+                return RunMode.RESET_ENCODERS;
         }
     }
 
-    private void m56a() {
+    private void setMotorsPowerFloat() {
         setMotorPowerFloat(MIN_MOTOR);
         setMotorPowerFloat(MAX_MOTOR);
     }
 
-    private void m58b() {
-        for (int i = MIN_MOTOR; i <= MAX_MOTOR; i += MIN_MOTOR) {
-            write(ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP[i], new byte[]{RATIO_MIN, START_ADDRESS, DEFAULT_D_COEFFICIENT});
+    private void writeMotors() {
+        for (int motor = MIN_MOTOR; motor <= MAX_MOTOR; motor ++) {
+            write(ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP[motor], new byte[]{RATIO_MIN, START_ADDRESS, DEFAULT_D_COEFFICIENT});
         }
     }
 
-    private void m57a(int i) {
+    private void validateMotor(int i) {
         if (i < MIN_MOTOR || i > MAX_MOTOR) {
             Object[] objArr = new Object[MAX_MOTOR];
             objArr[0] = i;
@@ -304,7 +298,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
 
     public void readComplete() throws InterruptedException {
         for (int i = MIN_MOTOR; i <= MAX_MOTOR; i += MIN_MOTOR) {
-            this.f176a[i].m54a(getMotorCurrentPosition(i));
+            this.helperClasses[i].unknownHelper1(getMotorCurrentPosition(i));
         }
     }
 }
