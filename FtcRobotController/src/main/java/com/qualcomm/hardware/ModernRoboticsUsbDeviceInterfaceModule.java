@@ -10,84 +10,60 @@ import java.nio.ByteOrder;
 import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDevice implements DeviceInterfaceModule {
-    public static final int ADDRESS_ANALOG_PORT_A0 = 4;
-    public static final int ADDRESS_ANALOG_PORT_A1 = 6;
-    public static final int ADDRESS_ANALOG_PORT_A2 = 8;
-    public static final int ADDRESS_ANALOG_PORT_A3 = 10;
-    public static final int ADDRESS_ANALOG_PORT_A4 = 12;
-    public static final int ADDRESS_ANALOG_PORT_A5 = 14;
-    public static final int ADDRESS_ANALOG_PORT_A6 = 16;
-    public static final int ADDRESS_ANALOG_PORT_A7 = 18;
+    public static final boolean DEBUG_LOGGING = false;
+
+
+    public static final int BUFFER_SIZE = 27;
+    public static final int START_ADDRESS = 3;
+    public static final int WORD_SIZE = 2;
+    public static final int MONITOR_LENGTH = 21;
+
     public static final int ADDRESS_BUFFER_STATUS = 3;
+
     public static final int ADDRESS_DIGITAL_INPUT_STATE = 20;
     public static final int ADDRESS_DIGITAL_IO_CONTROL = 21;
     public static final int ADDRESS_DIGITAL_OUTPUT_STATE = 22;
 
     public static final int ADDRESS_LED_SET = 23;
 
-    public static final int ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE = 5;
-    public static final byte BUFFER_FLAG_I2C0 = (byte) 1;
-    public static final byte BUFFER_FLAG_I2C1 = (byte) 2;
-    public static final byte BUFFER_FLAG_I2C2 = (byte) 4;
-    public static final byte BUFFER_FLAG_I2C3 = (byte) 8;
-    public static final byte BUFFER_FLAG_I2C4 = (byte) 16;
-    public static final byte BUFFER_FLAG_I2C5 = (byte) 32;
-    public static final int D0_MASK = 1;
-    public static final int D1_MASK = 2;
-    public static final int D2_MASK = 4;
-    public static final int D3_MASK = 8;
-    public static final int D4_MASK = 16;
-    public static final int D5_MASK = 32;
-    public static final int D6_MASK = 64;
-    public static final int D7_MASK = 128;
-    public static final boolean DEBUG_LOGGING = false;
-    public static final byte I2C_ACTION_FLAG = (byte) -1;
     public static final byte I2C_MODE_READ = Byte.MIN_VALUE;
     public static final byte I2C_MODE_WRITE = (byte) 0;
-    public static final byte I2C_NO_ACTION_FLAG = (byte) 0;
-    public static final int I2C_PORT_BUFFER_SIZE = 32;
-    public static final int LED_0_BIT_MASK = 1;
-    public static final int LED_1_BIT_MASK = 2;
-    public static final int MAX_ANALOG_PORT_NUMBER = 7;
-    public static final int MAX_I2C_PORT_NUMBER = 5;
-    public static final int MIN_ANALOG_PORT_NUMBER = 0;
-    public static final int MIN_I2C_PORT_NUMBER = 0;
-    public static final int MONITOR_LENGTH = 21;
-    public static final int NUMBER_OF_PORTS = 6;
+
     public static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_FREQ = 2;
     public static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_MODE = 4;
     public static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_VOLTAGE = 0;
-    public static final int OFFSET_I2C_PORT_FLAG = 31;
+    public static final int ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE = 5;
+
+    public static final int OFFSET_PULSE_OUTPUT_TIME = 0;
+    public static final int OFFSET_PULSE_OUTPUT_PERIOD = 2;
+    public static final int PULSE_OUTPUT_BUFFER_SIZE = 4;
+
+    public static final int OFFSET_I2C_PORT_MODE = 0;
     public static final int OFFSET_I2C_PORT_I2C_ADDRESS = 1;
     public static final int OFFSET_I2C_PORT_MEMORY_ADDRESS = 2;
-    public static final int OFFSET_I2C_PORT_MEMORY_BUFFER = 4;
     public static final int OFFSET_I2C_PORT_MEMORY_LENGTH = 3;
-    public static final int OFFSET_I2C_PORT_MODE = 0;
-    public static final int OFFSET_PULSE_OUTPUT_PERIOD = 2;
-    public static final int OFFSET_PULSE_OUTPUT_TIME = 0;
-    public static final int PULSE_OUTPUT_BUFFER_SIZE = 4;
-    public static final int SIZE_ANALOG_BUFFER = 2;
-    public static final int SIZE_I2C_BUFFER = 27;
-    public static final int START_ADDRESS = 3;
-    public static final int WORD_SIZE = 2;
+    public static final int OFFSET_I2C_PORT_MEMORY_BUFFER = 4;
+    public static final int I2C_PORT_BUFFER_SIZE = 32;
 
-    private final I2cPortReadyCallback[] callbacks = new I2cPortReadyCallback[NUMBER_OF_PORTS];
-    private ReadWriteRunnableSegment[] analogOutputSegments;
-    private ReadWriteRunnableSegment[] pulseOutputSegments;
-    private ReadWriteRunnableSegment[] i2cSegments;
-    private ReadWriteRunnableSegment[] flagSegments;
+    public static final int OFFSET_I2C_PORT_FLAG = 31;
+    public static final byte I2C_ACTION_FLAG = (byte) -1;
+    public static final byte I2C_NO_ACTION_FLAG = (byte) 0;
+    
+    public static final int ANALOG_INPUT_BUFFER_SIZE = 2;
 
     private static final int NUMBER_OF_ANALOG_OUTPUT_PORTS = 2;
     private static final int NUMBER_OF_PULSE_OUTPUT_PORTS = 2;
     private static final int NUMBER_OF_I2C_PORTS = 6;
+    private static final int NUMBER_OF_ANALOG_INPUT_PORTS = 8;
+
+    private final I2cPortReadyCallback[] callbacks = new I2cPortReadyCallback[NUMBER_OF_I2C_PORTS];
+    private ReadWriteRunnableSegment[] analogOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_ANALOG_OUTPUT_PORTS];
+    private ReadWriteRunnableSegment[] pulseOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_PULSE_OUTPUT_PORTS];
+    private ReadWriteRunnableSegment[] i2cSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
+    private ReadWriteRunnableSegment[] flagSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
 
     protected ModernRoboticsUsbDeviceInterfaceModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
-
-        this.analogOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_ANALOG_OUTPUT_PORTS];
-        this.pulseOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_PULSE_OUTPUT_PORTS];
-        this.i2cSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
-        this.flagSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
 
         for (int analogPort = 0; analogPort < NUMBER_OF_ANALOG_OUTPUT_PORTS; analogPort++) {
             this.analogOutputSegments[analogPort] = this.readWriteRunnable.createSegment(getAnalogOutputKey(analogPort), getAnalogOutputPortAddress(analogPort), ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE);
@@ -120,13 +96,13 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public void setDigitalChannelMode(int channel, Mode mode) {
         int a = m59a(channel, mode);
-        byte readFromWriteCache = readFromWriteCache(MONITOR_LENGTH);
+        byte readFromWriteCache = readFromWriteCache(ADDRESS_DIGITAL_IO_CONTROL);
         if (mode == Mode.OUTPUT) {
             a |= readFromWriteCache;
         } else {
             a &= readFromWriteCache;
         }
-        write(MONITOR_LENGTH, a);
+        write(ADDRESS_DIGITAL_IO_CONTROL, a);
     }
 
     public boolean getDigitalChannelState(int channel) {
@@ -157,11 +133,11 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     public byte getDigitalIOControlByte() {
-        return read(MONITOR_LENGTH);
+        return read(ADDRESS_DIGITAL_IO_CONTROL);
     }
 
     public void setDigitalIOControlByte(byte input) {
-        write(MONITOR_LENGTH, input);
+        write(ADDRESS_DIGITAL_IO_CONTROL, input);
     }
 
     public byte getDigitalOutputStateByte() {
@@ -493,20 +469,20 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private void validateAnalogInputPort(int port) {
-        if (port < 0 || port > MAX_ANALOG_PORT_NUMBER) {
-            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, MAX_ANALOG_PORT_NUMBER));
+        if (port < 0 || port >= NUMBER_OF_ANALOG_INPUT_PORTS) {
+            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, NUMBER_OF_ANALOG_INPUT_PORTS-1));
         }
     }
 
     private void validateI2cPort(int port) {
         if (port < 0 || port >= NUMBER_OF_I2C_PORTS) {
-            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, NUMBER_OF_I2C_PORTS -1));
+            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, NUMBER_OF_I2C_PORTS-1));
         }
     }
 
     private void validateI2CBufferLength(int length) {
-        if (length > SIZE_I2C_BUFFER) {
-            throw new IllegalArgumentException(String.format("buffer is too large (%d byte), max size is %d bytes", length, SIZE_I2C_BUFFER));
+        if (length > BUFFER_SIZE) {
+            throw new IllegalArgumentException(String.format("buffer is too large (%d byte), max size is %d bytes", length, BUFFER_SIZE));
         }
     }
 
@@ -518,7 +494,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         if (this.callbacks != null) {
             byte read = read(START_ADDRESS);
             int i = 0;
-            while (i < NUMBER_OF_PORTS) {
+            while (i < NUMBER_OF_I2C_PORTS) {
                 if (this.callbacks[i] != null && checkPortData(i, read)) {
                     this.callbacks[i].portIsReady(i);
                 }
