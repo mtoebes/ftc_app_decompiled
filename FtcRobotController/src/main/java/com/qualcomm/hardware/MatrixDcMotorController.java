@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class MatrixDcMotorController implements DcMotorController {
@@ -37,8 +39,8 @@ public class MatrixDcMotorController implements DcMotorController {
 
     private class MotorInfo {
         public final int motor;
-        public RunMode runMode = RunMode.RESET_ENCODERS;
-        public boolean powerFloat;
+        public RunMode runMode = RunMode.RUN_WITHOUT_ENCODERS;
+        public boolean powerFloat = true;
         public int targetPosition;
         public int position;
         public byte deviceModeInfo;
@@ -47,9 +49,6 @@ public class MatrixDcMotorController implements DcMotorController {
         public MotorInfo(int motor) {
             validateMotor(motor);
             this.motor = motor;
-            this.runMode = RunMode.RUN_WITHOUT_ENCODERS;
-            this.powerFloat = true;
-            motorInfoList[getIndex(motor)] = this;
         }
 
         public boolean isBusy() {
@@ -57,9 +56,12 @@ public class MatrixDcMotorController implements DcMotorController {
         }
     }
 
+    private void setMotorInfo(int motor, MotorInfo motorInfo) {
+        motorInfoList[getIndex(motor)] = motorInfo;
+    }
+
     private MotorInfo getMotorInfo(int motor) {
         validateMotor(motor);
-
         return motorInfoList[getIndex(motor)];
     }
 
@@ -72,7 +74,7 @@ public class MatrixDcMotorController implements DcMotorController {
         master.registerMotorController(this);
         for (int motor = 0; motor < NUMBER_OF_MOTORS; motor++) {
             master.queueTransaction(new MatrixI2cTransaction((byte) motor, (byte) 0, 0, (byte) 0));
-            new MotorInfo(motor);
+            setMotorInfo(motor, new MotorInfo(motor));
         }
     }
 
