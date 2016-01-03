@@ -252,7 +252,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     private void validateMotor(int motor) {
         int index = getIndex(motor);
         if (index < 0 || index >= NUM_OF_MOTORS) {
-            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are %d..%d", motor, 0, NUM_OF_MOTORS -1));
+            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are %d..%d", motor, getMotor(0), getMotor(NUM_OF_MOTORS -1)));
         }
     }
 
