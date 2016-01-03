@@ -294,8 +294,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
             System.arraycopy(readBuffer, OFFSET_I2C_PORT_MEMORY_BUFFER, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
-            Lock bArr = getI2cReadCacheLock(physicalPort);
-            bArr.unlock();
+            getI2cReadCacheLock(physicalPort).unlock();
         }
     }
 
@@ -308,8 +307,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
             System.arraycopy(writeBuffer, OFFSET_I2C_PORT_MEMORY_BUFFER, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
-            Lock bArr = getI2cWriteCacheLock(physicalPort);
-            bArr.unlock();
+            getI2cWriteCacheLock(physicalPort).unlock();
         }
     }
 
@@ -336,15 +334,15 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public boolean isI2cPortActionFlagSet(int port) {
         validateI2cPort(port);
+        boolean isFlagSet = false;
         try {
             getI2cReadCacheLock(port).lock();
-            boolean z = this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG;
-            getI2cReadCacheLock(port).unlock();
-            return z;
-        } catch (Throwable th) {
+            isFlagSet = this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG;
+        } catch (Throwable ignored) {
+        } finally {
             getI2cReadCacheLock(port).unlock();
         }
-        return false; //TODO originally no return statement. why?
+        return isFlagSet;
     }
 
     public void readI2cCacheFromController(int port) {
@@ -359,49 +357,43 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public void writeI2cPortFlagOnlyToController(int port) {
         validateI2cPort(port);
-        ReadWriteRunnableSegment readWriteRunnableSegment = this.i2cSegments[port];
-        ReadWriteRunnableSegment readWriteRunnableSegment2 = this.flagSegments[port];
+        ReadWriteRunnableSegment i2cSegment = this.i2cSegments[port];
+        ReadWriteRunnableSegment flagSegment = this.flagSegments[port];
         try {
-            readWriteRunnableSegment.getWriteLock().lock();
-            readWriteRunnableSegment2.getWriteLock().lock();
-            readWriteRunnableSegment2.getWriteBuffer()[0] = readWriteRunnableSegment.getWriteBuffer()[OFFSET_I2C_PORT_FLAG];
+            i2cSegment.getWriteLock().lock();
+            flagSegment.getWriteLock().lock();
+            flagSegment.getWriteBuffer()[0] = i2cSegment.getWriteBuffer()[OFFSET_I2C_PORT_FLAG];
             this.readWriteRunnable.queueSegmentWrite(getFlagKey(port));
         } finally {
-            readWriteRunnableSegment.getWriteLock().unlock();
-            readWriteRunnableSegment2.getWriteLock().unlock();
+            i2cSegment.getWriteLock().unlock();
+            flagSegment.getWriteLock().unlock();
         }
     }
 
     public boolean isI2cPortInReadMode(int port) {
-        boolean z = DEBUG_LOGGING;
+        boolean isReadMode = DEBUG_LOGGING;
         validateI2cPort(port);
         try {
             getI2cReadCacheLock(port).lock();
-            if (this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_MODE] == -128) {
-                z = true;
-            }
-            getI2cReadCacheLock(port).unlock();
-            return z;
-        } catch (Throwable th) {
+            isReadMode = (this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_MODE] == I2C_MODE_READ);
+        } catch (Throwable ignored) {
+        } finally {
             getI2cReadCacheLock(port).unlock();
         }
-        return false; //TODO originally no return statement. why?
+        return isReadMode;
     }
 
     public boolean isI2cPortInWriteMode(int port) {
-        boolean z = DEBUG_LOGGING;
+        boolean isWriteMode = false;
         validateI2cPort(port);
         try {
             getI2cReadCacheLock(port).lock();
-            if (this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_MODE] == I2C_MODE_WRITE) {
-                z = true;
-            }
-            getI2cReadCacheLock(port).unlock();
-            return z;
-        } catch (Throwable th) {
+            isWriteMode = (this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_MODE] == I2C_MODE_WRITE);
+        } catch (Throwable ignored) {
+        } finally {
             getI2cReadCacheLock(port).unlock();
         }
-        return false; //TODO originally no return statement. why?
+        return isWriteMode;
     }
 
     public boolean isI2cPortReady(int port) {
