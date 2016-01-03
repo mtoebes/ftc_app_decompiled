@@ -85,7 +85,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = (byte) NXT_MODE_READ;
             writeBuffer[1] = (byte) i2cAddress;
-            writeBuffer[2] = (byte) memAddress;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
         } finally {
             lock.unlock();
@@ -101,7 +101,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = 1;
             writeBuffer[1] = (byte) i2cAddress;
-            writeBuffer[2] = (byte) memAddress;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
         } finally {
             lock.unlock();
@@ -129,9 +129,9 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             lock.lock();
             byte port9vCapableData = this.segments[physicalPort].getWriteBuffer()[0];
             if (enable) {
-                port9vCapableData = (byte) (port9vCapableData | 2);
+                port9vCapableData = (byte) (port9vCapableData | NXT_MODE_9V_ENABLED);
             } else {
-                port9vCapableData = (byte) (port9vCapableData & -3);
+                port9vCapableData = (byte) (port9vCapableData & ~NXT_MODE_9V_ENABLED);
             }
             this.segments[physicalPort].getWriteBuffer()[0] = port9vCapableData;
             writeI2cCacheToController(physicalPort);
@@ -148,7 +148,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = (byte) NXT_MODE_READ;
             writeBuffer[1] = (byte) i2cAddr;
-            writeBuffer[2] = (byte) memAddr;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddr;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) memLen;
         } finally {
             lock.unlock();
@@ -163,7 +163,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
             writeBuffer[0] = 1;
             writeBuffer[1] = (byte) i2cAddress;
-            writeBuffer[2] = (byte) memAddress;
+            writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
         } finally {
             lock.unlock();
         }
