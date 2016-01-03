@@ -1,11 +1,9 @@
 package com.qualcomm.hardware;
 
-import com.qualcomm.hardware.MatrixI2cTransaction.C0008a;
+import com.qualcomm.hardware.MatrixI2cTransaction.MatrixI2cProperties;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotor.Direction;
 import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DcMotorController.DeviceMode;
-import com.qualcomm.robotcore.hardware.DcMotorController.RunMode;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
@@ -13,70 +11,94 @@ import java.util.Arrays;
 import java.util.Set;
 
 public class MatrixDcMotorController implements DcMotorController {
-    public static final byte POWER_MAX = (byte) 100;
-    public static final byte POWER_MIN = (byte) -100;
-    private C0006a[] f90a;
-    private int f91b;
-    protected DeviceMode deviceMode;
-    protected MatrixMasterController master;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY = (byte) 1;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED = (byte) 2;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION = (byte) 3;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RESET = (byte) 4;
 
-    /* renamed from: com.qualcomm.hardware.MatrixDcMotorController.a */
-    private class C0006a {
-        public int f83a;
-        public int f84b;
-        public byte f85c;
-        public boolean f86d;
-        public double f87e;
-        public RunMode f88f;
-        final /* synthetic */ MatrixDcMotorController f89g;
+    private static final int NUMBER_OF_MOTORS = 4;
 
-        public C0006a(MatrixDcMotorController matrixDcMotorController) {
-            this.f89g = matrixDcMotorController;
-            this.f83a = 0;
-            this.f84b = 0;
-            this.f85c = (byte) 0;
-            this.f87e = 0.0d;
-            this.f86d = true;
-            this.f88f = RunMode.RESET_ENCODERS;
+    private static final byte BUSY_BIT_MASK = (byte) (1<<7);
+    private static final byte UNKNOWN_BIT_MASK = (byte) (1<<3); //TODO what is this?
+
+    private static final int BYTES_IN_INT = 4;
+    private static final int START_ADDRESS = 4;
+
+    private static final double POWER_MIN = -1.0d;
+    private static final double POWER_MAX = 1.0d;
+    private static final int POWER_RATIO = (byte) 100;
+    private static final int BATTERY_RATIO = (byte) 40;
+
+    private int battery;
+    private DeviceMode controllerDeviceMode = DeviceMode.READ_ONLY;
+    private final MatrixMasterController master;
+
+    private final MotorInfo[] motorInfoList = new MotorInfo[NUMBER_OF_MOTORS];
+
+    private class MotorInfo {
+        public final int motor;
+        public RunMode runMode = RunMode.RESET_ENCODERS;
+        public boolean powerFloat;
+        public int targetPosition;
+        public int position;
+        public byte deviceModeInfo;
+        public double power;
+
+        public MotorInfo(int motor) {
+            validateMotor(motor);
+            this.motor = motor;
+            this.runMode = RunMode.RUN_WITHOUT_ENCODERS;
+            this.powerFloat = true;
+            motorInfoList[getIndex(motor)] = this;
         }
+
+        public boolean isBusy() {
+            return (deviceModeInfo & BUSY_BIT_MASK) == BUSY_BIT_MASK;
+        }
+    }
+
+    private MotorInfo getMotorInfo(int motor) {
+        validateMotor(motor);
+
+        return motorInfoList[getIndex(motor)];
+    }
+
+    private int getIndex(int motor) {
+        return motor - 1;
     }
 
     public MatrixDcMotorController(MatrixMasterController master) {
-        this.f90a = new C0006a[]{new C0006a(this), new C0006a(this), new C0006a(this), new C0006a(this), new C0006a(this)};
         this.master = master;
-        this.f91b = 0;
         master.registerMotorController(this);
-        for (int i = 0; i < 4; i = (byte) (i + 1)) {
-            master.queueTransaction(new MatrixI2cTransaction((byte) i, (byte) 0, 0, (byte) 0));
-            this.f90a[i].f88f = RunMode.RUN_WITHOUT_ENCODERS;
-            this.f90a[i].f86d = true;
+        for (int motor = 0; motor < NUMBER_OF_MOTORS; motor++) {
+            master.queueTransaction(new MatrixI2cTransaction((byte) motor, (byte) 0, 0, (byte) 0));
+            new MotorInfo(motor);
         }
-        this.deviceMode = DeviceMode.READ_ONLY;
     }
 
-    protected byte runModeToFlagMatrix(RunMode mode) {
+    private byte runModeToFlagMatrix(RunMode mode) {
         switch (mode) {
             case RUN_USING_ENCODERS :
-                return (byte) 2;
+                return CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED;
             case RUN_WITHOUT_ENCODERS :
-                return (byte) 1;
+                return CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY;
             case RUN_TO_POSITION :
-                return (byte) 3;
+                return CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION;
             case RESET_ENCODERS :
             default:
-                return (byte) 4;
+                return CHANNEL_MODE_FLAG_SELECT_RESET;
         }
     }
 
     protected RunMode flagMatrixToRunMode(byte flag) {
         switch (flag) {
-            case 1 :
+            case CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY :
                 return RunMode.RUN_WITHOUT_ENCODERS;
-            case 2 :
+            case CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED :
                 return RunMode.RUN_USING_ENCODERS;
-            case 3 :
+            case CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION :
                 return RunMode.RUN_TO_POSITION;
-            case 4 :
+            case CHANNEL_MODE_FLAG_SELECT_RESET :
                 return RunMode.RESET_ENCODERS;
             default:
                 RobotLog.e("Invalid run mode flag " + flag);
@@ -85,99 +107,111 @@ public class MatrixDcMotorController implements DcMotorController {
     }
 
     public boolean isBusy(int motor) {
-        MatrixI2cTransaction matrixI2cTransaction = new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE);
+        MatrixI2cTransaction matrixI2cTransaction = new MatrixI2cTransaction((byte) motor, MatrixI2cProperties.PROPERTY_MODE);
         this.master.queueTransaction(matrixI2cTransaction);
         this.master.waitOnRead();
-        return (this.f90a[matrixI2cTransaction.motor].f85c & 128) != 0;
+        return getMotorInfo(matrixI2cTransaction.motor).isBusy();
     }
 
     public void setMotorControllerDeviceMode(DeviceMode mode) {
-        this.deviceMode = mode;
+        this.controllerDeviceMode = mode;
     }
 
     public DeviceMode getMotorControllerDeviceMode() {
-        return this.deviceMode;
+        return this.controllerDeviceMode;
     }
 
     public void setMotorChannelMode(int motor, RunMode mode) {
-        m49a(motor);
-        if (this.f90a[motor].f86d || this.f90a[motor].f88f != mode) {
-            this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE, runModeToFlagMatrix(mode)));
-            this.f90a[motor].f88f = mode;
-            this.f90a[motor].f86d = mode == RunMode.RESET_ENCODERS;
+        MotorInfo motorInfo = getMotorInfo(motor);
+        if (motorInfo.powerFloat || mode != motorInfo.runMode) {
+            this.master.queueTransaction(
+                    new MatrixI2cTransaction((byte) motor, MatrixI2cProperties.PROPERTY_MODE, runModeToFlagMatrix(mode)));
+            motorInfo.runMode = mode;
+            motorInfo.powerFloat = (mode == RunMode.RESET_ENCODERS);
         }
     }
 
     public RunMode getMotorChannelMode(int motor) {
-        m49a(motor);
-        return this.f90a[motor].f88f;
+        return getMotorInfo(motor).runMode;
     }
 
     public void setMotorPowerFloat(int motor) {
-        m49a(motor);
-        if (!this.f90a[motor].f86d) {
-            this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE, 4));
+        if (!getMotorInfo(motor).powerFloat) {
+            getMotorInfo(motor).powerFloat = true;
+            this.master.queueTransaction(
+                    new MatrixI2cTransaction((byte) motor, MatrixI2cProperties.PROPERTY_MODE, 4));
         }
-        this.f90a[motor].f86d = true;
     }
 
     public boolean getMotorPowerFloat(int motor) {
-        m49a(motor);
-        return this.f90a[motor].f86d;
+        return getMotorInfo(motor).powerFloat;
     }
 
     public void setMotorPower(Set<DcMotor> motors, double power) {
-        Range.throwIfRangeIsInvalid(power, HiTechnicNxtCompassSensor.INVALID_DIRECTION, 1.0d);
+        Range.throwIfRangeIsInvalid(power, POWER_MIN, POWER_MAX);
         for (DcMotor dcMotor : motors) {
-            byte b = (byte) ((int) (100.0d * power));
-            if (dcMotor.getDirection() == Direction.REVERSE) {
-                b = (byte) (b * -1);
+            byte speed = (byte) (POWER_RATIO * power);
+
+            if(dcMotor.getDirection() == Direction.REVERSE) {
+                speed = (byte) -speed;
             }
-            int portNumber = dcMotor.getPortNumber();
-            this.master.queueTransaction(new MatrixI2cTransaction((byte) portNumber, b, this.f90a[portNumber].f83a, (byte) (runModeToFlagMatrix(this.f90a[portNumber].f88f) | 8)));
+
+            int motor = dcMotor.getPortNumber();
+            MotorInfo motorInfo = getMotorInfo(motor);
+            byte mode = (byte) (runModeToFlagMatrix(motorInfo.runMode) | UNKNOWN_BIT_MASK);
+
+            this.master.queueTransaction(
+                    new MatrixI2cTransaction((byte) motor, speed, motorInfo.targetPosition, mode));
         }
-        this.master.queueTransaction(new MatrixI2cTransaction((byte) 0, C0008a.PROPERTY_START, 1));
+        this.master.queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_START, 1));
     }
 
     public void setMotorPower(int motor, double power) {
-        m49a(motor);
-        Range.throwIfRangeIsInvalid(power, HiTechnicNxtCompassSensor.INVALID_DIRECTION, 1.0d);
-        this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, (byte) ((int) (100.0d * power)), this.f90a[motor].f83a, runModeToFlagMatrix(this.f90a[motor].f88f)));
-        this.f90a[motor].f87e = power;
+        Range.throwIfRangeIsInvalid(power, POWER_MIN, POWER_MAX);
+        MotorInfo motorInfo = getMotorInfo(motor);
+        motorInfo.power = power;
+
+        byte speed = (byte) ((int) (POWER_RATIO * power));
+        byte mode = runModeToFlagMatrix(motorInfo.runMode);
+
+        this.master.queueTransaction(
+                new MatrixI2cTransaction((byte) motor, speed, motorInfo.targetPosition, mode));
     }
 
     public double getMotorPower(int motor) {
-        m49a(motor);
-        return this.f90a[motor].f87e;
+        return getMotorInfo(motor).power;
     }
 
     public void setMotorTargetPosition(int motor, int position) {
-        m49a(motor);
-        this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_TARGET, position));
-        this.f90a[motor].f83a = position;
+        this.getMotorInfo(motor).targetPosition = position;
+        this.master.queueTransaction(
+                new MatrixI2cTransaction((byte) motor, MatrixI2cProperties.PROPERTY_TARGET, position));
     }
 
     public int getMotorTargetPosition(int motor) {
-        m49a(motor);
-        if (this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_TARGET))) {
+        MotorInfo motorInfo = getMotorInfo(motor);
+        if (this.master.queueTransaction(
+                new MatrixI2cTransaction((byte) motor, MatrixI2cProperties.PROPERTY_TARGET))) {
             this.master.waitOnRead();
         }
-        return this.f90a[motor].f83a;
+        return motorInfo.targetPosition;
     }
 
     public int getMotorCurrentPosition(int motor) {
-        m49a(motor);
-        if (this.master.queueTransaction(new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_POSITION))) {
+        MotorInfo motorInfo = getMotorInfo(motor);
+        if (this.master.queueTransaction(
+                new MatrixI2cTransaction((byte) motor, MatrixI2cProperties.PROPERTY_POSITION))) {
             this.master.waitOnRead();
         }
-        return this.f90a[motor].f84b;
+        return motorInfo.position;
     }
 
     public int getBattery() {
-        if (this.master.queueTransaction(new MatrixI2cTransaction((byte) 0, C0008a.PROPERTY_BATTERY))) {
+        if (this.master.queueTransaction(
+                new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_BATTERY))) {
             this.master.waitOnRead();
         }
-        return this.f91b;
+        return this.battery;
     }
 
     public String getDeviceName() {
@@ -193,35 +227,37 @@ public class MatrixDcMotorController implements DcMotorController {
     }
 
     public void close() {
-        setMotorPowerFloat(1);
-        setMotorPowerFloat(2);
-        setMotorPowerFloat(3);
-        setMotorPowerFloat(4);
+        for(int i = 1; i <= NUMBER_OF_MOTORS; i++) {
+            setMotorPowerFloat(i);
+        }
     }
 
     public void handleReadBattery(byte[] buffer) {
-        this.f91b = TypeConversion.unsignedByteToInt(buffer[4]) * 40;
-        RobotLog.v("Battery voltage: " + this.f91b + "mV");
+        this.battery = BATTERY_RATIO * TypeConversion.unsignedByteToInt(buffer[START_ADDRESS]);
+        RobotLog.v("Battery voltage: " + this.battery + "mV");
     }
 
     public void handleReadPosition(MatrixI2cTransaction transaction, byte[] buffer) {
-        this.f90a[transaction.motor].f84b = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, 4, 8));
-        RobotLog.v("Position motor: " + transaction.motor + " " + this.f90a[transaction.motor].f84b);
+        MotorInfo motorInfo = getMotorInfo(transaction.motor);
+        motorInfo.position = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, START_ADDRESS, START_ADDRESS + BYTES_IN_INT));
+        RobotLog.v("Position motor: " + transaction.motor + " " + motorInfo.position);
     }
 
     public void handleReadTargetPosition(MatrixI2cTransaction transaction, byte[] buffer) {
-        this.f90a[transaction.motor].f83a = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, 4, 8));
-        RobotLog.v("Target motor: " + transaction.motor + " " + this.f90a[transaction.motor].f83a);
+        MotorInfo motorInfo = getMotorInfo(transaction.motor);
+        motorInfo.targetPosition = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, START_ADDRESS, START_ADDRESS + BYTES_IN_INT));
+        RobotLog.v("Target motor: " + transaction.motor + " " + motorInfo.targetPosition);
     }
 
     public void handleReadMode(MatrixI2cTransaction transaction, byte[] buffer) {
-        this.f90a[transaction.motor].f85c = buffer[4];
-        RobotLog.v("Mode: " + this.f90a[transaction.motor].f85c);
+        MotorInfo motorInfo = getMotorInfo(transaction.motor);
+        motorInfo.deviceModeInfo = buffer[START_ADDRESS];
+        RobotLog.v("Mode: " + motorInfo.deviceModeInfo);
     }
 
-    private void m49a(int i) {
-        if (i < 1 || i > 4) {
-            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", new Object[]{i, 4}));
+    private void validateMotor(int motor) {
+        if (motor < 1 || motor > NUMBER_OF_MOTORS) {
+            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", motor, NUMBER_OF_MOTORS));
         }
     }
 }
