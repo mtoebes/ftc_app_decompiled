@@ -22,17 +22,9 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public static final int ADDRESS_DIGITAL_INPUT_STATE = 20;
     public static final int ADDRESS_DIGITAL_IO_CONTROL = 21;
     public static final int ADDRESS_DIGITAL_OUTPUT_STATE = 22;
-    public static final int ADDRESS_I2C0 = 48;
-    public static final int ADDRESS_I2C1 = 80;
-    public static final int ADDRESS_I2C2 = 112;
-    public static final int ADDRESS_I2C3 = 144;
-    public static final int ADDRESS_I2C4 = 176;
-    public static final int ADDRESS_I2C5 = 208;
+
     public static final int ADDRESS_LED_SET = 23;
-    public static final int ADDRESS_PULSE_OUTPUT_PORT_0 = 36;
-    public static final int ADDRESS_PULSE_OUTPUT_PORT_1 = 40;
-    public static final int ADDRESS_VOLTAGE_OUTPUT_PORT_0 = 24;
-    public static final int ADDRESS_VOLTAGE_OUTPUT_PORT_1 = 30;
+
     public static final int ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE = 5;
     public static final byte BUFFER_FLAG_I2C0 = (byte) 1;
     public static final byte BUFFER_FLAG_I2C1 = (byte) 2;
@@ -57,6 +49,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public static final int LED_0_BIT_MASK = 1;
     public static final int LED_1_BIT_MASK = 2;
     public static final int MAX_ANALOG_PORT_NUMBER = 7;
+    public static final int MAX_I2C_PORT_NUMBER = 5;
     public static final int MIN_ANALOG_PORT_NUMBER = 0;
     public static final int MIN_I2C_PORT_NUMBER = 0;
     public static final int MONITOR_LENGTH = 21;
@@ -84,25 +77,25 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private ReadWriteRunnableSegment[] i2cSegments;
     private ReadWriteRunnableSegment[] flagSegments;
 
-    private static final int MAX_ANALOG_OUTPUT_PORT_NUMBER = 2;
-    private static final int MAX_PULSE_OUTPUT_PORT_NUMBER = 2;
-    private static final int MAX_I2C_PORT_NUMBER = 6; //TODO was defined as 5 originally but key array has 6 keys
+    private static final int NUMBER_OF_ANALOG_OUTPUT_PORTS = 2;
+    private static final int NUMBER_OF_PULSE_OUTPUT_PORTS = 2;
+    private static final int NUMBER_OF_I2C_PORTS = 6;
 
     protected ModernRoboticsUsbDeviceInterfaceModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
 
-        this.analogOutputSegments = new ReadWriteRunnableSegment[MAX_ANALOG_OUTPUT_PORT_NUMBER];
-        this.pulseOutputSegments = new ReadWriteRunnableSegment[MAX_PULSE_OUTPUT_PORT_NUMBER];
-        this.i2cSegments = new ReadWriteRunnableSegment[MAX_I2C_PORT_NUMBER];
-        this.flagSegments = new ReadWriteRunnableSegment[MAX_I2C_PORT_NUMBER];
+        this.analogOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_ANALOG_OUTPUT_PORTS];
+        this.pulseOutputSegments = new ReadWriteRunnableSegment[NUMBER_OF_PULSE_OUTPUT_PORTS];
+        this.i2cSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
+        this.flagSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
 
-        for (int analogPort = 0; analogPort < MAX_ANALOG_OUTPUT_PORT_NUMBER; analogPort++) {
+        for (int analogPort = 0; analogPort < NUMBER_OF_ANALOG_OUTPUT_PORTS; analogPort++) {
             this.analogOutputSegments[analogPort] = this.readWriteRunnable.createSegment(getAnalogOutputKey(analogPort), getAnalogOutputPortAddress(analogPort), ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE);
         }
-        for (int pulsePort = 0; pulsePort < MAX_PULSE_OUTPUT_PORT_NUMBER; pulsePort++) {
+        for (int pulsePort = 0; pulsePort < NUMBER_OF_PULSE_OUTPUT_PORTS; pulsePort++) {
             this.pulseOutputSegments[pulsePort] = this.readWriteRunnable.createSegment(getPulseOutputKey(pulsePort), getPulseOutputPortAddress(pulsePort), PULSE_OUTPUT_BUFFER_SIZE);
         }
-        for (int i2cPort = 0; i2cPort < MAX_I2C_PORT_NUMBER; i2cPort++) {
+        for (int i2cPort = 0; i2cPort < NUMBER_OF_I2C_PORTS; i2cPort++) {
             this.i2cSegments[i2cPort] = this.readWriteRunnable.createSegment(getI2cKey(i2cPort), getI2cPortAddress(i2cPort), I2C_PORT_BUFFER_SIZE);
             this.flagSegments[i2cPort] = this.readWriteRunnable.createSegment(getFlagKey(i2cPort), getI2cPortAddress(i2cPort) + OFFSET_I2C_PORT_FLAG, OFFSET_I2C_PORT_I2C_ADDRESS);
         }
@@ -143,7 +136,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         } else {
             digitalOutputStateByte = getDigitalInputStateByte();
         }
-        return (digitalOutputStateByte & getDigitalBitMask(channel)) > 0 || DEBUG_LOGGING;
+        return (digitalOutputStateByte & getDigitalBitMask(channel)) > 0;
     }
 
     public void setDigitalChannelState(int channel, boolean state) {
@@ -197,7 +190,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public boolean getLEDState(int channel) {
         validateLedPort(channel);
-        return (read(ADDRESS_LED_SET) & getLedBitMask(channel)) > 0 || DEBUG_LOGGING;
+        return (read(ADDRESS_LED_SET) & getLedBitMask(channel)) > 0;
     }
 
     public void setLED(int channel, boolean set) {
@@ -439,7 +432,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     public boolean isI2cPortReady(int port) {
-        return m62a(port, read(START_ADDRESS));
+        return checkPortData(port, read(START_ADDRESS));
     }
 
     public Lock getI2cReadCacheLock(int port) {
@@ -488,13 +481,13 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private void validateAnalogOutputPort(int port) {
-        if (port != 0 && port != 1) {
+        if (port != 0 && port >= NUMBER_OF_ANALOG_OUTPUT_PORTS) {
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are 0 and 1.", port));
         }
     }
 
     private void validatePulseOutputPort(int port) {
-        if (port != 0 && port != 1) {
+        if (port < 0 || port >= NUMBER_OF_PULSE_OUTPUT_PORTS) {
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are 0 and 1.", port));
         }
     }
@@ -506,8 +499,8 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private void validateI2cPort(int port) {
-        if (port < 0 || port > MAX_I2C_PORT_NUMBER) {
-            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, MAX_I2C_PORT_NUMBER));
+        if (port < 0 || port >= NUMBER_OF_I2C_PORTS) {
+            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, NUMBER_OF_I2C_PORTS -1));
         }
     }
 
@@ -517,8 +510,8 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         }
     }
 
-    private boolean m62a(int i, byte b) {
-        return ((1 << i) & b) == 0 || DEBUG_LOGGING;
+    private boolean checkPortData(int port, byte data) {
+        return ((1 << port) & data) == 0;
     }
 
     public void readComplete() throws InterruptedException {
@@ -526,7 +519,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
             byte read = read(START_ADDRESS);
             int i = 0;
             while (i < NUMBER_OF_PORTS) {
-                if (this.callbacks[i] != null && m62a(i, read)) {
+                if (this.callbacks[i] != null && checkPortData(i, read)) {
                     this.callbacks[i].portIsReady(i);
                 }
                 i ++;
