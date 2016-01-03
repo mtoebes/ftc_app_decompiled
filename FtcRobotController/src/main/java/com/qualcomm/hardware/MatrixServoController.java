@@ -1,8 +1,7 @@
 package com.qualcomm.hardware;
 
-import com.qualcomm.hardware.MatrixI2cTransaction.C0008a;
+import com.qualcomm.hardware.MatrixI2cTransaction.MatrixI2cProperties;
 import com.qualcomm.robotcore.hardware.ServoController;
-import com.qualcomm.robotcore.hardware.ServoController.PwmStatus;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.Arrays;
@@ -22,12 +21,12 @@ public class MatrixServoController implements ServoController {
     }
 
     public void pwmEnable() {
-        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) 0, C0008a.PROPERTY_SERVO_ENABLE, 15));
+        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_SERVO_ENABLE, 15));
         this.pwmStatus = PwmStatus.ENABLED;
     }
 
     public void pwmDisable() {
-        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) 0, C0008a.PROPERTY_SERVO_ENABLE, 0));
+        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_SERVO_ENABLE, 0));
         this.pwmStatus = PwmStatus.DISABLED;
     }
 
@@ -48,7 +47,7 @@ public class MatrixServoController implements ServoController {
     }
 
     public double getServoPosition(int channel) {
-        if (this.f118a.queueTransaction(new MatrixI2cTransaction((byte) channel, C0008a.PROPERTY_SERVO))) {
+        if (this.f118a.queueTransaction(new MatrixI2cTransaction((byte) channel, MatrixI2cProperties.PROPERTY_SERVO))) {
             this.f118a.waitOnRead();
         }
         return this.servoCache[channel] / 240.0d;

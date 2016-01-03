@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 public class MatrixI2cTransaction {
     public byte mode;
     public byte motor;
-    public C0008a property;
+    public MatrixI2cProperties property;
     public byte servo;
     public byte speed;
     public C0009b state;
@@ -14,7 +14,7 @@ public class MatrixI2cTransaction {
     public boolean write;
 
     /* renamed from: com.qualcomm.hardware.MatrixI2cTransaction.a */
-    enum C0008a {
+    enum MatrixI2cProperties {
         PROPERTY_MODE,
         PROPERTY_TARGET,
         PROPERTY_SPEED,
@@ -36,14 +36,14 @@ public class MatrixI2cTransaction {
         DONE
     }
 
-    MatrixI2cTransaction(byte motor, C0008a property) {
+    MatrixI2cTransaction(byte motor, MatrixI2cProperties property) {
         this.motor = motor;
         this.property = property;
         this.state = C0009b.QUEUED;
         this.write = false;
     }
 
-    MatrixI2cTransaction(byte motor, C0008a property, int value) {
+    MatrixI2cTransaction(byte motor, MatrixI2cProperties property, int value) {
         this.motor = motor;
         this.value = value;
         this.property = property;
@@ -56,7 +56,7 @@ public class MatrixI2cTransaction {
         this.speed = speed;
         this.target = target;
         this.mode = mode;
-        this.property = C0008a.PROPERTY_MOTOR_BATCH;
+        this.property = MatrixI2cProperties.PROPERTY_MOTOR_BATCH;
         this.state = C0009b.QUEUED;
         this.write = true;
     }
@@ -65,7 +65,7 @@ public class MatrixI2cTransaction {
         this.servo = servo;
         this.speed = speed;
         this.target = target;
-        this.property = C0008a.PROPERTY_SERVO;
+        this.property = MatrixI2cProperties.PROPERTY_SERVO;
         this.state = C0009b.QUEUED;
         this.write = true;
     }
@@ -96,13 +96,13 @@ public class MatrixI2cTransaction {
     }
 
     public String toString() {
-        if (this.property == C0008a.PROPERTY_MOTOR_BATCH) {
+        if (this.property == MatrixI2cProperties.PROPERTY_MOTOR_BATCH) {
             return "Matrix motor transaction: " + this.property + " motor " + this.motor + " write " + this.write + " speed " + this.speed + " target " + this.target + " mode " + this.mode;
         }
-        if (this.property == C0008a.PROPERTY_SERVO) {
+        if (this.property == MatrixI2cProperties.PROPERTY_SERVO) {
             return "Matrix servo transaction: " + this.property + " servo " + this.servo + " write " + this.write + " change rate " + this.speed + " target " + this.target;
         }
-        if (this.property == C0008a.PROPERTY_SERVO_ENABLE) {
+        if (this.property == MatrixI2cProperties.PROPERTY_SERVO_ENABLE) {
             return "Matrix servo transaction: " + this.property + " servo " + this.servo + " write " + this.write + " value " + this.value;
         }
         return "Matrix motor transaction: " + this.property + " motor " + this.motor + " write " + this.write + " value " + this.value;

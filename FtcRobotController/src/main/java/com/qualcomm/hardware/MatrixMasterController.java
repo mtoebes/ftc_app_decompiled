@@ -1,6 +1,6 @@
 package com.qualcomm.hardware;
 
-import com.qualcomm.hardware.MatrixI2cTransaction.C0008a;
+import com.qualcomm.hardware.MatrixI2cTransaction.MatrixI2cProperties;
 import com.qualcomm.hardware.MatrixI2cTransaction.C0009b;
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -22,7 +22,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
     protected int physicalPort;
     protected MatrixServoController servoController;
     protected ConcurrentLinkedQueue<MatrixI2cTransaction> transactionQueue;
-    
+
     static {
         f111a = new byte[]{(byte) 0, HiTechnicNxtCompassSensor.CALIBRATION_FAILURE, (byte) 72, (byte) 74, (byte) 76};
         f112b = new byte[]{(byte) 0, (byte) 78, (byte) 88, (byte) 98, (byte) 108};
@@ -118,7 +118,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
     }
 
     protected void sendHeartbeat() {
-        queueTransaction(new MatrixI2cTransaction((byte) 0, C0008a.PROPERTY_TIMEOUT, 3));
+        queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_TIMEOUT, 3));
     }
 
     public void portIsReady(int port) {
