@@ -10,35 +10,31 @@ import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice implements LegacyModule {
 
-    public static final byte I2C_NO_ACTION_FLAG = (byte) 0;
-    public static final byte MIN_PORT_NUMBER = (byte) 0;
-    public static final byte NXT_MODE_ANALOG = (byte) 0;
-    public static final byte NXT_MODE_WRITE = (byte) 0;
-    public static final byte OFFSET_I2C_PORT_MODE = (byte) 0;
-
-    public static final byte NXT_MODE_I2C = (byte) 1;
-    public static final byte OFFSET_I2C_PORT_I2C_ADDRESS = (byte) 1;
-
-    public static final byte NXT_MODE_9V_ENABLED = (byte) 2;
-    public static final byte OFFSET_I2C_PORT_MEMORY_ADDRESS = (byte) 2;
-    public static final byte SIZE_ANALOG_BUFFER = (byte) 2;
-
-    public static final int ADDRESS_BUFFER_STATUS = 3;
-    public static final byte OFFSET_I2C_PORT_MEMORY_LENGTH = (byte) 3;
-    public static final int START_ADDRESS = 3;
-
-    public static final byte I2C_ACTION_FLAG = (byte) -1;
-    public static final byte MAX_PORT_NUMBER = (byte) 5;
-    public static final int MONITOR_LENGTH = 13;
-    public static final byte NUMBER_OF_PORTS = (byte) 6;
     public static final byte NXT_MODE_READ = -127;
-    public static final byte OFFSET_I2C_PORT_FLAG = (byte) 31;
+    public static final byte NXT_MODE_ANALOG = (byte) 0;
+    public static final byte NXT_MODE_I2C = (byte) 1;
+    public static final byte NXT_MODE_9V_ENABLED = (byte) 2;
+
+    public static final byte OFFSET_I2C_PORT_MODE = (byte) 0;
+    public static final byte OFFSET_I2C_PORT_I2C_ADDRESS = (byte) 1;
+    public static final byte OFFSET_I2C_PORT_MEMORY_ADDRESS = (byte) 2;
+    public static final byte OFFSET_I2C_PORT_MEMORY_LENGTH = (byte) 3;
     public static final byte OFFSET_I2C_PORT_MEMORY_BUFFER = (byte) 4;
-    public static final int[] PORT_9V_CAPABLE = new int[]{4, 5};
+    public static final byte OFFSET_I2C_PORT_FLAG = (byte) 31;
+
     public static final byte SIZE_I2C_BUFFER = (byte) 27;
     public static final byte SIZE_OF_PORT_BUFFER = (byte) 32;
 
+    public static final int START_ADDRESS = 3;
+    public static final int ADDRESS_BUFFER_STATUS = 3;
+    public static final int MONITOR_LENGTH = 13;
     public static final boolean DEBUG_LOGGING = false;
+
+    public static final int NUMBER_OF_PORTS = 6;
+
+    public static final byte I2C_ACTION_FLAG = (byte) -1;
+
+    public static final int[] PORT_9V_CAPABLE = new int[]{4, 5};
 
     private final ReadWriteRunnableSegment[] segments;
     private final I2cPortReadyCallback[] callbacks;
@@ -83,7 +79,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         try {
             lock.lock();
             byte[] writeBuffer = this.segments[physicalPort].getWriteBuffer();
-            writeBuffer[OFFSET_I2C_PORT_MODE] = (byte) NXT_MODE_READ;
+            writeBuffer[OFFSET_I2C_PORT_MODE] = NXT_MODE_READ;
             writeBuffer[OFFSET_I2C_PORT_I2C_ADDRESS] = (byte) i2cAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
@@ -262,7 +258,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         validatePort(physicalPort);
         try {
             this.segments[physicalPort].getReadLock().lock();
-            boolean isFlagSet = this.segments[physicalPort].getReadBuffer()[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG || DEBUG_LOGGING;
+            boolean isFlagSet = this.segments[physicalPort].getReadBuffer()[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG;
             this.segments[physicalPort].getReadLock().unlock();
             return isFlagSet;
         } catch (Throwable th) {
@@ -333,8 +329,8 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     private void validatePort(int port) {
-        if (port < 0 || port > MAX_PORT_NUMBER) {
-            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, MAX_PORT_NUMBER));
+        if (port < 0 || port >= NUMBER_OF_PORTS) {
+            throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are %d..%d", port, 0, NUMBER_OF_PORTS-1));
         }
     }
 
@@ -362,7 +358,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     private boolean checkPortData(int port, byte data) {
-        return ((1 << port) & data) == 0 || DEBUG_LOGGING;
+        return ((1 << port) & data) == 0;
     }
 
     public Lock getI2cReadCacheLock(int physicalPort) {
