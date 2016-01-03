@@ -22,7 +22,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public static final int ADDRESS_DIGITAL_INPUT_STATE = 20;
     public static final int ADDRESS_DIGITAL_IO_CONTROL = 21;
     public static final int ADDRESS_DIGITAL_OUTPUT_STATE = 22;
-
     public static final int ADDRESS_LED_SET = 23;
 
     public static final byte I2C_MODE_READ = Byte.MIN_VALUE;
@@ -260,14 +259,14 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         validateI2cPort(physicalPort);
         validateI2CBufferLength(length);
         try {
-            this.i2cSegments[physicalPort].getWriteLock().lock();
+            getI2cWriteCacheLock(physicalPort).lock();
             byte[] writeBuffer = this.i2cSegments[physicalPort].getWriteBuffer();
             writeBuffer[OFFSET_I2C_PORT_MODE] = I2C_MODE_READ;
             writeBuffer[OFFSET_I2C_PORT_I2C_ADDRESS] = (byte) i2cAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
         } finally {
-            this.i2cSegments[physicalPort].getWriteLock().unlock();
+            getI2cWriteCacheLock(physicalPort).unlock();
         }
     }
 
@@ -275,27 +274,27 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         validateI2cPort(physicalPort);
         validateI2CBufferLength(length);
         try {
-            this.i2cSegments[physicalPort].getWriteLock().lock();
+            getI2cWriteCacheLock(physicalPort).lock();
             byte[] writeBuffer = this.i2cSegments[physicalPort].getWriteBuffer();
             writeBuffer[OFFSET_I2C_PORT_MODE] = I2C_MODE_WRITE;
             writeBuffer[OFFSET_I2C_PORT_I2C_ADDRESS] = (byte) i2cAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
         } finally {
-            this.i2cSegments[physicalPort].getWriteLock().unlock();
+            getI2cWriteCacheLock(physicalPort).unlock();
         }
     }
 
     public byte[] getCopyOfReadBuffer(int physicalPort) {
         validateI2cPort(physicalPort);
         try {
-            this.i2cSegments[physicalPort].getReadLock().lock();
+            getI2cReadCacheLock(physicalPort).lock();
             byte[] readBuffer = this.i2cSegments[physicalPort].getReadBuffer();
             byte[] copyBuffer = new byte[readBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH]];
             System.arraycopy(readBuffer, OFFSET_I2C_PORT_MEMORY_BUFFER, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
-            Lock bArr = this.i2cSegments[physicalPort].getReadLock();
+            Lock bArr = getI2cReadCacheLock(physicalPort);
             bArr.unlock();
         }
     }
@@ -303,13 +302,13 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public byte[] getCopyOfWriteBuffer(int physicalPort) {
         validateI2cPort(physicalPort);
         try {
-            this.i2cSegments[physicalPort].getWriteLock().lock();
+            getI2cWriteCacheLock(physicalPort).lock();
             byte[] writeBuffer = this.i2cSegments[physicalPort].getWriteBuffer();
             byte[] copyBuffer = new byte[writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH]];
             System.arraycopy(writeBuffer, OFFSET_I2C_PORT_MEMORY_BUFFER, copyBuffer, 0, copyBuffer.length);
             return copyBuffer;
         } finally {
-            Lock bArr = this.i2cSegments[physicalPort].getWriteLock();
+            Lock bArr = getI2cWriteCacheLock(physicalPort);
             bArr.unlock();
         }
     }
@@ -318,32 +317,32 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         validateI2cPort(physicalPort);
         validateI2CBufferLength(buffer.length);
         try {
-            this.i2cSegments[physicalPort].getWriteLock().lock();
+            getI2cWriteCacheLock(physicalPort).lock();
             System.arraycopy(buffer, 0, this.i2cSegments[physicalPort].getWriteBuffer(), OFFSET_I2C_PORT_MEMORY_BUFFER, buffer.length);
         } finally {
-            this.i2cSegments[physicalPort].getWriteLock().unlock();
+            getI2cWriteCacheLock(physicalPort).unlock();
         }
     }
 
     public void setI2cPortActionFlag(int port) {
         validateI2cPort(port);
         try {
-            this.i2cSegments[port].getWriteLock().lock();
+            getI2cWriteCacheLock(port).lock();
             this.i2cSegments[port].getWriteBuffer()[OFFSET_I2C_PORT_FLAG] = I2C_ACTION_FLAG;
         } finally {
-            this.i2cSegments[port].getWriteLock().unlock();
+            getI2cWriteCacheLock(port).unlock();
         }
     }
 
     public boolean isI2cPortActionFlagSet(int port) {
         validateI2cPort(port);
         try {
-            this.i2cSegments[port].getReadLock().lock();
+            getI2cReadCacheLock(port).lock();
             boolean z = this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG;
-            this.i2cSegments[port].getReadLock().unlock();
+            getI2cReadCacheLock(port).unlock();
             return z;
         } catch (Throwable th) {
-            this.i2cSegments[port].getReadLock().unlock();
+            getI2cReadCacheLock(port).unlock();
         }
         return false; //TODO originally no return statement. why?
     }
@@ -377,14 +376,14 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         boolean z = DEBUG_LOGGING;
         validateI2cPort(port);
         try {
-            this.i2cSegments[port].getReadLock().lock();
+            getI2cReadCacheLock(port).lock();
             if (this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_MODE] == -128) {
                 z = true;
             }
-            this.i2cSegments[port].getReadLock().unlock();
+            getI2cReadCacheLock(port).unlock();
             return z;
         } catch (Throwable th) {
-            this.i2cSegments[port].getReadLock().unlock();
+            getI2cReadCacheLock(port).unlock();
         }
         return false; //TODO originally no return statement. why?
     }
@@ -393,14 +392,14 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         boolean z = DEBUG_LOGGING;
         validateI2cPort(port);
         try {
-            this.i2cSegments[port].getReadLock().lock();
+            getI2cReadCacheLock(port).lock();
             if (this.i2cSegments[port].getReadBuffer()[OFFSET_I2C_PORT_MODE] == I2C_MODE_WRITE) {
                 z = true;
             }
-            this.i2cSegments[port].getReadLock().unlock();
+            getI2cReadCacheLock(port).unlock();
             return z;
         } catch (Throwable th) {
-            this.i2cSegments[port].getReadLock().unlock();
+            getI2cReadCacheLock(port).unlock();
         }
         return false; //TODO originally no return statement. why?
     }
@@ -449,13 +448,13 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private void validateLedPort(int port) {
-        if (port != 0 && port != 1) {
+        if (port < 0 && port > 1) {
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are 0 and 1.", port));
         }
     }
 
     private void validateAnalogOutputPort(int port) {
-        if (port != 0 && port >= NUMBER_OF_ANALOG_OUTPUT_PORTS) {
+        if (port < 0 || port >= NUMBER_OF_ANALOG_OUTPUT_PORTS) {
             throw new IllegalArgumentException(String.format("port %d is invalid; valid ports are 0 and 1.", port));
         }
     }
@@ -490,35 +489,26 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public void readComplete() throws InterruptedException {
         if (this.callbacks != null) {
-            byte read = read(ADDRESS_BUFFER_STATUS);
-            int i = 0;
-            while (i < NUMBER_OF_I2C_PORTS) {
-                if (this.callbacks[i] != null && checkPortData(i, read)) {
-                    this.callbacks[i].portIsReady(i);
+            byte data = read(ADDRESS_BUFFER_STATUS);
+            for(int port = 0; port < NUMBER_OF_I2C_PORTS; port++) {
+                if (this.callbacks[port] != null && checkPortData(port, data)) {
+                    this.callbacks[port].portIsReady(port);
                 }
-                i ++;
             }
         }
     }
 
     private int getAnalogInputPortAddress(int port) {
-        return (2 * port) + 4;
+        return (ANALOG_INPUT_BUFFER_SIZE * port) + 4;
     }
 
     private int getAnalogOutputPortAddress(int port) {
-        return (6 * port) + 24;
-    }
-
-    private int getDigitalBitMask(int port) {
-        return 1 << port;
-    }
-
-    private int getLedBitMask(int port) {
-        return port+1;
+        //TODO this is 6 vs buffer of 5, why?
+        return ((ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE+1) * port) + 24;
     }
 
     private int getPulseOutputPortAddress(int port) {
-        return 36 + (4 * port);
+        return (PULSE_OUTPUT_BUFFER_SIZE * port) + 36;
     }
 
     private int getI2cPortAddress(int port) {
@@ -530,14 +520,22 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private int getPulseOutputKey(int port) {
-        return port + 2;
+        return port + NUMBER_OF_ANALOG_OUTPUT_PORTS;
     }
 
     private int getI2cKey(int port) {
-        return port + 4;
+        return port + NUMBER_OF_ANALOG_OUTPUT_PORTS + NUMBER_OF_I2C_PORTS;
     }
 
     private int getFlagKey(int port) {
-        return port + 10;
+        return port +  NUMBER_OF_ANALOG_OUTPUT_PORTS + NUMBER_OF_I2C_PORTS + NUMBER_OF_I2C_PORTS;
+    }
+
+    private int getDigitalBitMask(int port) {
+        return 1 << port;
+    }
+
+    private int getLedBitMask(int port) {
+        return port + 1;
     }
 }
