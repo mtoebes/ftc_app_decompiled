@@ -88,7 +88,7 @@ public class MatrixDcMotorController implements DcMotorController {
         MatrixI2cTransaction matrixI2cTransaction = new MatrixI2cTransaction((byte) motor, C0008a.PROPERTY_MODE);
         this.master.queueTransaction(matrixI2cTransaction);
         this.master.waitOnRead();
-        return (this.f90a[matrixI2cTransaction.motor].f85c & ModernRoboticsUsbDeviceInterfaceModule.D7_MASK) != 0;
+        return (this.f90a[matrixI2cTransaction.motor].f85c & 128) != 0;
     }
 
     public void setMotorControllerDeviceMode(DeviceMode mode) {

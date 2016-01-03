@@ -239,15 +239,15 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     public void writeI2cPortFlagOnlyToController(int physicalPort) {
         validatePort(physicalPort);
         ReadWriteRunnableSegment readWriteRunnableSegment = this.segments[physicalPort];
-        ReadWriteRunnableSegment readWriteRunnableSegment2 = this.segments[physicalPort + NUMBER_OF_PORTS];
+        ReadWriteRunnableSegment flagSegment = this.segments[physicalPort + NUMBER_OF_PORTS];
         try {
             readWriteRunnableSegment.getWriteLock().lock();
-            readWriteRunnableSegment2.getWriteLock().lock();
-            readWriteRunnableSegment2.getWriteBuffer()[0] = readWriteRunnableSegment.getWriteBuffer()[OFFSET_I2C_PORT_FLAG];
+            flagSegment.getWriteLock().lock();
+            flagSegment.getWriteBuffer()[0] = readWriteRunnableSegment.getWriteBuffer()[OFFSET_I2C_PORT_FLAG];
             this.readWriteRunnable.queueSegmentWrite(physicalPort + NUMBER_OF_PORTS);
         } finally {
             readWriteRunnableSegment.getWriteLock().unlock();
-            readWriteRunnableSegment2.getWriteLock().unlock();
+            flagSegment.getWriteLock().unlock();
         }
     }
 
