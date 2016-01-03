@@ -21,9 +21,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public static final int ADDRESS_ANALOG_PORT_A5 = 14;
     public static final int ADDRESS_ANALOG_PORT_A6 = 16;
     public static final int ADDRESS_ANALOG_PORT_A7 = 18;
-    public static final int[] ADDRESS_ANALOG_PORT_MAP;
     public static final int ADDRESS_BUFFER_STATUS = 3;
-    public static final int[] ADDRESS_DIGITAL_BIT_MASK;
     public static final int ADDRESS_DIGITAL_INPUT_STATE = 20;
     public static final int ADDRESS_DIGITAL_IO_CONTROL = 21;
     public static final int ADDRESS_DIGITAL_OUTPUT_STATE = 22;
@@ -33,14 +31,11 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public static final int ADDRESS_I2C3 = 144;
     public static final int ADDRESS_I2C4 = 176;
     public static final int ADDRESS_I2C5 = 208;
-    public static final int[] ADDRESS_I2C_PORT_MAP;
     public static final int ADDRESS_LED_SET = 23;
     public static final int ADDRESS_PULSE_OUTPUT_PORT_0 = 36;
     public static final int ADDRESS_PULSE_OUTPUT_PORT_1 = 40;
-    public static final int[] ADDRESS_PULSE_OUTPUT_PORT_MAP;
     public static final int ADDRESS_VOLTAGE_OUTPUT_PORT_0 = 24;
     public static final int ADDRESS_VOLTAGE_OUTPUT_PORT_1 = 30;
-    public static final int[] ADDRESS_VOLTAGE_OUTPUT_PORT_MAP;
     public static final int ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE = 5;
     public static final byte BUFFER_FLAG_I2C0 = (byte) 1;
     public static final byte BUFFER_FLAG_I2C1 = (byte) 2;
@@ -48,7 +43,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public static final byte BUFFER_FLAG_I2C3 = (byte) 8;
     public static final byte BUFFER_FLAG_I2C4 = (byte) 16;
     public static final byte BUFFER_FLAG_I2C5 = (byte) 32;
-    public static final int[] BUFFER_FLAG_MAP;
     public static final int D0_MASK = 1;
     public static final int D1_MASK = 2;
     public static final int D2_MASK = 4;
@@ -65,7 +59,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public static final int I2C_PORT_BUFFER_SIZE = 32;
     public static final int LED_0_BIT_MASK = 1;
     public static final int LED_1_BIT_MASK = 2;
-    public static final int[] LED_BIT_MASK_MAP;
     public static final int MAX_ANALOG_PORT_NUMBER = 7;
     public static final int MAX_I2C_PORT_NUMBER = 5;
     public static final int MIN_ANALOG_PORT_NUMBER = 0;
@@ -99,13 +92,6 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private ReadWriteRunnableSegment[] f186j;
 
     static {
-        LED_BIT_MASK_MAP = new int[]{OFFSET_I2C_PORT_I2C_ADDRESS, WORD_SIZE};
-        ADDRESS_DIGITAL_BIT_MASK = new int[]{OFFSET_I2C_PORT_I2C_ADDRESS, WORD_SIZE, PULSE_OUTPUT_BUFFER_SIZE, D3_MASK, D4_MASK, I2C_PORT_BUFFER_SIZE, D6_MASK, D7_MASK};
-        ADDRESS_ANALOG_PORT_MAP = new int[]{PULSE_OUTPUT_BUFFER_SIZE, NUMBER_OF_PORTS, D3_MASK, ADDRESS_ANALOG_PORT_A3, ADDRESS_ANALOG_PORT_A4, ADDRESS_ANALOG_PORT_A5, D4_MASK, ADDRESS_ANALOG_PORT_A7};
-        ADDRESS_VOLTAGE_OUTPUT_PORT_MAP = new int[]{ADDRESS_VOLTAGE_OUTPUT_PORT_0, ADDRESS_VOLTAGE_OUTPUT_PORT_1};
-        ADDRESS_PULSE_OUTPUT_PORT_MAP = new int[]{ADDRESS_PULSE_OUTPUT_PORT_0, ADDRESS_PULSE_OUTPUT_PORT_1};
-        ADDRESS_I2C_PORT_MAP = new int[]{ADDRESS_I2C0, ADDRESS_I2C1, ADDRESS_I2C2, ADDRESS_I2C3, ADDRESS_I2C4, ADDRESS_I2C5};
-        BUFFER_FLAG_MAP = new int[]{OFFSET_I2C_PORT_I2C_ADDRESS, WORD_SIZE, PULSE_OUTPUT_BUFFER_SIZE, D3_MASK, D4_MASK, I2C_PORT_BUFFER_SIZE};
         f177a = new int[]{OFFSET_PULSE_OUTPUT_TIME, OFFSET_I2C_PORT_I2C_ADDRESS};
         f178b = new int[]{WORD_SIZE, START_ADDRESS};
         f179c = new int[]{PULSE_OUTPUT_BUFFER_SIZE, MAX_I2C_PORT_NUMBER, NUMBER_OF_PORTS, MAX_ANALOG_PORT_NUMBER, D3_MASK, 9};
@@ -122,14 +108,14 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         this.f185i = new ReadWriteRunnableSegment[f179c.length];
         this.f186j = new ReadWriteRunnableSegment[f180d.length];
         for (i = OFFSET_PULSE_OUTPUT_TIME; i < f177a.length; i += OFFSET_I2C_PORT_I2C_ADDRESS) {
-            this.f183g[i] = this.readWriteRunnable.createSegment(f177a[i], ADDRESS_VOLTAGE_OUTPUT_PORT_MAP[i], MAX_I2C_PORT_NUMBER);
+            this.f183g[i] = this.readWriteRunnable.createSegment(f177a[i], getVoltageOutputPortAddress(i), MAX_I2C_PORT_NUMBER);
         }
         for (i = OFFSET_PULSE_OUTPUT_TIME; i < f178b.length; i += OFFSET_I2C_PORT_I2C_ADDRESS) {
-            this.f184h[i] = this.readWriteRunnable.createSegment(f178b[i], ADDRESS_PULSE_OUTPUT_PORT_MAP[i], PULSE_OUTPUT_BUFFER_SIZE);
+            this.f184h[i] = this.readWriteRunnable.createSegment(f178b[i], getPulseOutputPortAddress(i), PULSE_OUTPUT_BUFFER_SIZE);
         }
         while (i2 < f179c.length) {
-            this.f185i[i2] = this.readWriteRunnable.createSegment(f179c[i2], ADDRESS_I2C_PORT_MAP[i2], I2C_PORT_BUFFER_SIZE);
-            this.f186j[i2] = this.readWriteRunnable.createSegment(f180d[i2], ADDRESS_I2C_PORT_MAP[i2] + OFFSET_I2C_PORT_FLAG, OFFSET_I2C_PORT_I2C_ADDRESS);
+            this.f185i[i2] = this.readWriteRunnable.createSegment(f179c[i2], getI2cPortAddress(i2), I2C_PORT_BUFFER_SIZE);
+            this.f186j[i2] = this.readWriteRunnable.createSegment(f180d[i2], getI2cPortAddress(i2) + OFFSET_I2C_PORT_FLAG, OFFSET_I2C_PORT_I2C_ADDRESS);
             i2 += OFFSET_I2C_PORT_I2C_ADDRESS;
         }
     }
@@ -144,7 +130,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     public int getAnalogInputValue(int channel) {
         m65d(channel);
-        return TypeConversion.byteArrayToShort(read(ADDRESS_ANALOG_PORT_MAP[channel], WORD_SIZE), ByteOrder.LITTLE_ENDIAN);
+        return TypeConversion.byteArrayToShort(read(getAnalogPortAddress(channel), WORD_SIZE), ByteOrder.LITTLE_ENDIAN);
     }
 
     public Mode getDigitalChannelMode(int channel) {
@@ -169,7 +155,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         } else {
             digitalOutputStateByte = getDigitalInputStateByte();
         }
-        return (digitalOutputStateByte & ADDRESS_DIGITAL_BIT_MASK[channel]) > 0 || DEBUG_LOGGING;
+        return (digitalOutputStateByte & getDigitalBitMask(channel)) > 0 || DEBUG_LOGGING;
     }
 
     public void setDigitalChannelState(int channel, boolean state) {
@@ -177,9 +163,9 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
             int i;
             byte readFromWriteCache = readFromWriteCache(ADDRESS_DIGITAL_OUTPUT_STATE);
             if (state) {
-                i = readFromWriteCache | ADDRESS_DIGITAL_BIT_MASK[channel];
+                i = readFromWriteCache | getDigitalBitMask(channel);
             } else {
-                i = readFromWriteCache & (~ADDRESS_DIGITAL_BIT_MASK[channel]);
+                i = readFromWriteCache & (~getDigitalBitMask(channel));
             }
             setDigitalOutputByte((byte) i);
         }
@@ -207,21 +193,23 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
 
     private int m59a(int i, Mode mode) {
         if (mode == Mode.OUTPUT) {
-            return ADDRESS_DIGITAL_BIT_MASK[i];
+            return getDigitalBitMask(i);
+        } else {
+            return ~getDigitalBitMask(i);
         }
-        return ~ADDRESS_DIGITAL_BIT_MASK[i];
     }
 
     private Mode m60a(int i, int i2) {
-        if ((ADDRESS_DIGITAL_BIT_MASK[i] & i2) > 0) {
+        if ((getDigitalBitMask(i) & i2) > 0) {
             return Mode.OUTPUT;
+        } else {
+            return Mode.INPUT;
         }
-        return Mode.INPUT;
     }
 
     public boolean getLEDState(int channel) {
         m61a(channel);
-        return (read(ADDRESS_LED_SET) & LED_BIT_MASK_MAP[channel]) > 0 || DEBUG_LOGGING;
+        return (read(ADDRESS_LED_SET) & getLedBitMask(channel)) > 0 || DEBUG_LOGGING;
     }
 
     public void setLED(int channel, boolean set) {
@@ -229,9 +217,9 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         m61a(channel);
         byte readFromWriteCache = readFromWriteCache(ADDRESS_LED_SET);
         if (set) {
-            i = readFromWriteCache | LED_BIT_MASK_MAP[channel];
+            i = readFromWriteCache | getLedBitMask(channel);
         } else {
-            i = readFromWriteCache & (~LED_BIT_MASK_MAP[channel]);
+            i = readFromWriteCache & (~getLedBitMask(channel));
         }
         write(ADDRESS_LED_SET, i);
     }
@@ -559,7 +547,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private boolean m62a(int i, byte b) {
-        return (BUFFER_FLAG_MAP[i] & b) == 0 || DEBUG_LOGGING;
+        return ((1 << i) & b) == 0 || DEBUG_LOGGING;
     }
 
     public void readComplete() throws InterruptedException {
@@ -573,5 +561,29 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
                 i += OFFSET_I2C_PORT_I2C_ADDRESS;
             }
         }
+    }
+
+    private int getAnalogPortAddress(int port) {
+        return (2 * port) + 4;
+    }
+
+    private int getVoltageOutputPortAddress(int port) {
+        return (6 * port) + 24;
+    }
+
+    private int getDigitalBitMask(int port) {
+        return 1 << port;
+    }
+
+    private int getLedBitMask(int port) {
+        return port+1;
+    }
+
+    private int getPulseOutputPortAddress(int port) {
+        return 36 + (4 * port);
+    }
+
+    private int getI2cPortAddress(int port) {
+        return (I2C_PORT_BUFFER_SIZE * port) + 48;
     }
 }
