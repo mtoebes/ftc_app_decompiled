@@ -88,18 +88,18 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     public Mode getDigitalChannelMode(int channel) {
-        return m60a(channel, getDigitalIOControlByte());
+        return gitDigitalMode(channel, getDigitalIOControlByte());
     }
 
     public void setDigitalChannelMode(int channel, Mode mode) {
-        int a = m59a(channel, mode);
-        byte readFromWriteCache = readFromWriteCache(ADDRESS_DIGITAL_IO_CONTROL);
+        int mask = gitDigitalBitMask(channel, mode);
+        byte data = readFromWriteCache(ADDRESS_DIGITAL_IO_CONTROL);
         if (mode == Mode.OUTPUT) {
-            a |= readFromWriteCache;
+            data |= mask;
         } else {
-            a &= readFromWriteCache;
+            data &= mask;
         }
-        write(ADDRESS_DIGITAL_IO_CONTROL, a);
+        write(ADDRESS_DIGITAL_IO_CONTROL, data);
     }
 
     public boolean getDigitalChannelState(int channel) {
@@ -115,13 +115,14 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     public void setDigitalChannelState(int channel, boolean state) {
         if (Mode.OUTPUT == getDigitalChannelMode(channel)) {
             int i;
-            byte readFromWriteCache = readFromWriteCache(ADDRESS_DIGITAL_OUTPUT_STATE);
+            byte data = readFromWriteCache(ADDRESS_DIGITAL_OUTPUT_STATE);
+            int mask = getDigitalBitMask(channel);
             if (state) {
-                i = readFromWriteCache | getDigitalBitMask(channel);
+                data |= mask;
             } else {
-                i = readFromWriteCache & (~getDigitalBitMask(channel));
+                data &= ~mask;
             }
-            setDigitalOutputByte((byte) i);
+            setDigitalOutputByte(data);
         }
     }
 
@@ -145,16 +146,16 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
         write(ADDRESS_DIGITAL_OUTPUT_STATE, input);
     }
 
-    private int m59a(int i, Mode mode) {
+    private int gitDigitalBitMask(int port, Mode mode) {
         if (mode == Mode.OUTPUT) {
-            return getDigitalBitMask(i);
+            return getDigitalBitMask(port);
         } else {
-            return ~getDigitalBitMask(i);
+            return ~getDigitalBitMask(port);
         }
     }
 
-    private Mode m60a(int i, int i2) {
-        if ((getDigitalBitMask(i) & i2) > 0) {
+    private Mode gitDigitalMode(int port, int mask) {
+        if ((getDigitalBitMask(port) & mask) > 0) {
             return Mode.OUTPUT;
         } else {
             return Mode.INPUT;
@@ -167,15 +168,15 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     public void setLED(int channel, boolean set) {
-        int i;
         validateLedPort(channel);
-        byte readFromWriteCache = readFromWriteCache(ADDRESS_LED_SET);
+        byte data = readFromWriteCache(ADDRESS_LED_SET);
+        int mask = getLedBitMask(channel);
         if (set) {
-            i = readFromWriteCache | getLedBitMask(channel);
+            data |= mask;
         } else {
-            i = readFromWriteCache & (~getLedBitMask(channel));
+            data &= ~mask;
         }
-        write(ADDRESS_LED_SET, i);
+        write(ADDRESS_LED_SET, data);
     }
 
     public void setAnalogOutputVoltage(int port, int voltage) {
