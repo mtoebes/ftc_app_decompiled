@@ -73,34 +73,11 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public void enableI2cReadMode(int physicalPort, int i2cAddress, int memAddress, int length) {
-        validatePort(physicalPort);
-        validateLength(length);
-        getI2cWriteCacheLock(physicalPort).lock();
-        try {
-            getI2cWriteCacheLock(physicalPort).lock();
-            byte[] writeBuffer = getI2cWriteCache(physicalPort);
-            writeBuffer[OFFSET_I2C_PORT_MODE] = NXT_MODE_READ;
-            writeBuffer[OFFSET_I2C_PORT_I2C_ADDRESS] = (byte) i2cAddress;
-            writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
-            writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
-        } finally {
-            getI2cWriteCacheLock(physicalPort).unlock();
-        }
+        setPortMode(physicalPort, i2cAddress, memAddress, length, NXT_MODE_READ, true);
     }
 
     public void enableI2cWriteMode(int physicalPort, int i2cAddress, int memAddress, int length) {
-        validatePort(physicalPort);
-        validateLength(length);
-        try {
-            getI2cWriteCacheLock(physicalPort).lock();
-            byte[] writeBuffer = getI2cWriteCache(physicalPort);
-            writeBuffer[OFFSET_I2C_PORT_MODE] = NXT_MODE_I2C;
-            writeBuffer[OFFSET_I2C_PORT_I2C_ADDRESS] = (byte) i2cAddress;
-            writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
-            writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
-        } finally {
-            getI2cWriteCacheLock(physicalPort).unlock();
-        }
+        setPortMode(physicalPort, i2cAddress, memAddress, length, NXT_MODE_I2C, true);
     }
 
     public void enableAnalogReadMode(int physicalPort) {
@@ -134,27 +111,27 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public void setReadMode(int physicalPort, int i2cAddr, int memAddr, int memLen) {
-        validatePort(physicalPort);
-        try {
-            getI2cWriteCacheLock(physicalPort).lock();
-            byte[] writeBuffer = getI2cWriteCache(physicalPort);
-            writeBuffer[OFFSET_I2C_PORT_MODE] = NXT_MODE_READ;
-            writeBuffer[OFFSET_I2C_PORT_I2C_ADDRESS] = (byte) i2cAddr;
-            writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddr;
-            writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) memLen;
-        } finally {
-            getI2cWriteCacheLock(physicalPort).unlock();
-        }
+        setPortMode(physicalPort, i2cAddr, memAddr, memLen, NXT_MODE_READ, false);
     }
 
     public void setWriteMode(int physicalPort, int i2cAddress, int memAddress) {
+        setPortMode(physicalPort, i2cAddress, memAddress, -1, NXT_MODE_I2C, false);
+    }
+
+    private void setPortMode(int physicalPort, int i2cAddress, int memAddress, int length, byte portMode, boolean enable) {
         validatePort(physicalPort);
+        if(enable) {
+            validateLength(length);
+        }
         try {
             getI2cWriteCacheLock(physicalPort).lock();
             byte[] writeBuffer = getI2cWriteCache(physicalPort);
-            writeBuffer[OFFSET_I2C_PORT_MODE] = NXT_MODE_I2C;
+            writeBuffer[OFFSET_I2C_PORT_MODE] = portMode;
             writeBuffer[OFFSET_I2C_PORT_I2C_ADDRESS] = (byte) i2cAddress;
             writeBuffer[OFFSET_I2C_PORT_MEMORY_ADDRESS] = (byte) memAddress;
+            if(portMode == NXT_MODE_READ || enable) {
+                writeBuffer[OFFSET_I2C_PORT_MEMORY_LENGTH] = (byte) length;
+            }
         } finally {
             getI2cWriteCacheLock(physicalPort).unlock();
         }
@@ -223,14 +200,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public void copyBufferIntoWriteBuffer(int physicalPort, byte[] buffer) {
-        validatePort(physicalPort);
-        validateLength(buffer.length);
-        try {
-            getI2cWriteCacheLock(physicalPort).lock();
-            System.arraycopy(buffer, 0, getI2cWriteCache(physicalPort), OFFSET_I2C_PORT_MEMORY_BUFFER, buffer.length);
-        } finally {
-            getI2cWriteCacheLock(physicalPort).unlock();
-        }
+        setData(physicalPort, buffer, buffer.length);
     }
 
     public void setI2cPortActionFlag(int physicalPort) {
@@ -248,8 +218,7 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
         validatePort(physicalPort);
         try {
             getI2cReadCacheLock(physicalPort).lock();
-            isFlagSet = getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG;
-            getI2cReadCacheLock(physicalPort).unlock();
+            isFlagSet = (getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_FLAG] == I2C_ACTION_FLAG);
         } catch (Throwable ignored) {
         } finally {
             getI2cReadCacheLock(physicalPort).unlock();
@@ -283,33 +252,24 @@ public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice imple
     }
 
     public boolean isI2cPortInReadMode(int physicalPort) {
-        boolean isReadMode = false;
-        validatePort(physicalPort);
-        try {
-            getI2cReadCacheLock(physicalPort).lock();
-            if (getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_MODE] == NXT_MODE_READ) {
-                isReadMode = true;
-            }
-        } catch (Throwable ignored) {
-        } finally {
-            getI2cReadCacheLock(physicalPort).unlock();
-        }
-        return isReadMode;
+        return getI2cPortMode(physicalPort) == NXT_MODE_READ;
     }
 
     public boolean isI2cPortInWriteMode(int physicalPort) {
-        boolean isWriteMode = true;
+        return getI2cPortMode(physicalPort) == NXT_MODE_I2C;
+    }
+
+    private byte getI2cPortMode(int physicalPort) {
+        byte mode = -1;
         validatePort(physicalPort);
         try {
             getI2cReadCacheLock(physicalPort).lock();
-            if (getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_MODE] != NXT_MODE_I2C) {
-                isWriteMode = false;
-            }
+            mode = getI2cReadCache(physicalPort)[OFFSET_I2C_PORT_MODE];
         } catch (Throwable ignored) {
         } finally {
             getI2cReadCacheLock(physicalPort).unlock();
         }
-        return isWriteMode;
+        return mode;
     }
 
     public boolean isI2cPortReady(int physicalPort) {
