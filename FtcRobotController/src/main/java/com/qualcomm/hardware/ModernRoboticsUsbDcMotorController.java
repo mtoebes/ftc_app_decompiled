@@ -11,58 +11,58 @@ import com.qualcomm.robotcore.util.SerialNumber;
 import com.qualcomm.robotcore.util.TypeConversion;
 
 public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice implements DcMotorController, VoltageSensor {
-    public static final int ADDRESS_MOTOR1_CURRENT_ENCODER_VALUE = 76;
-    public static final int ADDRESS_MOTOR1_GEAR_RATIO = 86;
-    public static final int ADDRESS_MOTOR1_MODE = 68;
-    public static final int ADDRESS_MOTOR1_POWER = 69;
-    public static final int ADDRESS_MOTOR1_P_COEFFICIENT = 87;
-    public static final int ADDRESS_MOTOR1_TARGET_ENCODER_VALUE = 64;
+    private static final int ADDRESS_MOTOR1_CURRENT_ENCODER_VALUE = 76;
+    private static final int ADDRESS_MOTOR1_GEAR_RATIO = 86;
+    private static final int ADDRESS_MOTOR1_MODE = 68;
+    private static final int ADDRESS_MOTOR1_POWER = 69;
+    private static final int ADDRESS_MOTOR1_P_COEFFICIENT = 87;
+    private static final int ADDRESS_MOTOR1_TARGET_ENCODER_VALUE = 64;
 
-    public static final int ADDRESS_MOTOR2_CURRENT_ENCODER_VALUE = 80;
-    public static final int ADDRESS_MOTOR2_GEAR_RATIO = 90;
-    public static final int ADDRESS_MOTOR2_MODE = 71;
-    public static final int ADDRESS_MOTOR2_POWER = 70;
-    public static final int ADDRESS_MOTOR2_P_COEFFICIENT = 91;
-    public static final int ADDRESS_MOTOR2_TARGET_ENCODER_VALUE = 72;
+    private static final int ADDRESS_MOTOR2_CURRENT_ENCODER_VALUE = 80;
+    private static final int ADDRESS_MOTOR2_GEAR_RATIO = 90;
+    private static final int ADDRESS_MOTOR2_MODE = 71;
+    private static final int ADDRESS_MOTOR2_POWER = 70;
+    private static final int ADDRESS_MOTOR2_P_COEFFICIENT = 91;
+    private static final int ADDRESS_MOTOR2_TARGET_ENCODER_VALUE = 72;
 
-    public static final int[] ADDRESS_MOTOR_CURRENT_ENCODER_VALUE_MAP = new int[]{ADDRESS_MOTOR1_CURRENT_ENCODER_VALUE, ADDRESS_MOTOR2_CURRENT_ENCODER_VALUE};
-    public static final int[] ADDRESS_MOTOR_GEAR_RATIO_MAP = new int[]{ADDRESS_MOTOR1_GEAR_RATIO, ADDRESS_MOTOR2_GEAR_RATIO};
-    public static final int[] ADDRESS_MOTOR_MODE_MAP = new int[]{ADDRESS_MOTOR1_MODE, ADDRESS_MOTOR2_MODE};
-    public static final int[] ADDRESS_MOTOR_POWER_MAP = new int[]{ADDRESS_MOTOR1_POWER, ADDRESS_MOTOR2_POWER};
-    public static final int[] ADDRESS_MOTOR_TARGET_ENCODER_VALUE_MAP = new int[]{ADDRESS_MOTOR1_TARGET_ENCODER_VALUE, ADDRESS_MOTOR2_TARGET_ENCODER_VALUE};
-    public static final int[] ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP = new int[]{ADDRESS_MOTOR1_P_COEFFICIENT, ADDRESS_MOTOR2_P_COEFFICIENT};
+    private static final int[] ADDRESS_MOTOR_CURRENT_ENCODER_VALUE_MAP = new int[]{ADDRESS_MOTOR1_CURRENT_ENCODER_VALUE, ADDRESS_MOTOR2_CURRENT_ENCODER_VALUE};
+    private static final int[] ADDRESS_MOTOR_GEAR_RATIO_MAP = new int[]{ADDRESS_MOTOR1_GEAR_RATIO, ADDRESS_MOTOR2_GEAR_RATIO};
+    private static final int[] ADDRESS_MOTOR_MODE_MAP = new int[]{ADDRESS_MOTOR1_MODE, ADDRESS_MOTOR2_MODE};
+    private static final int[] ADDRESS_MOTOR_POWER_MAP = new int[]{ADDRESS_MOTOR1_POWER, ADDRESS_MOTOR2_POWER};
+    private static final int[] ADDRESS_MOTOR_TARGET_ENCODER_VALUE_MAP = new int[]{ADDRESS_MOTOR1_TARGET_ENCODER_VALUE, ADDRESS_MOTOR2_TARGET_ENCODER_VALUE};
+    private static final int[] ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP = new int[]{ADDRESS_MOTOR1_P_COEFFICIENT, ADDRESS_MOTOR2_P_COEFFICIENT};
 
-    public static final int ADDRESS_BATTERY_VOLTAGE = 84;
-    public static final double BATTERY_MAX_MEASURABLE_VOLTAGE = 20.4d;
-    public static final int BATTERY_MAX_MEASURABLE_VOLTAGE_INT = 1023;
+    private static final int ADDRESS_BATTERY_VOLTAGE = 84;
+    private static final double BATTERY_MAX_MEASURABLE_VOLTAGE = 20.4d;
+    private static final int BATTERY_MAX_MEASURABLE_VOLTAGE_INT = 1023;
 
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RESET = (byte) 3;
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED = (byte) 1;
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY = (byte) 0;
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION = (byte) 2;
-    public static final int CHANNEL_MODE_MASK_SELECTION = 3;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RESET = (byte) 3;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED = (byte) 1;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY = (byte) 0;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION = (byte) 2;
+    private static final int CHANNEL_MODE_MASK_SELECTION = 3;
 
 
-    public static final byte DEFAULT_D_COEFFICIENT = (byte) -72;
-    public static final byte DEFAULT_I_COEFFICIENT = (byte) 64;
-    public static final byte DEFAULT_P_COEFFICIENT = Byte.MIN_VALUE;
-    public static final int DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAX = 255;
+    private static final byte DEFAULT_D_COEFFICIENT = (byte) -72;
+    private static final byte DEFAULT_I_COEFFICIENT = (byte) 64;
+    private static final byte DEFAULT_P_COEFFICIENT = Byte.MIN_VALUE;
+    private static final int DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAX = 255;
 
-    public static final int NUM_OF_MOTORS = 2;
+    private static final int NUM_OF_MOTORS = 2;
 
-    public static final byte POWER_BREAK = (byte) 0;
-    public static final byte POWER_FLOAT = Byte.MIN_VALUE;
-    public static final byte POWER_MAX = (byte) 100;
+    private static final byte POWER_BREAK = (byte) 0;
+    private static final byte POWER_FLOAT = Byte.MIN_VALUE;
+    private static final byte POWER_MAX = (byte) 100;
 
-    public static final byte START_ADDRESS = (byte) 64;
-    public static final int MONITOR_LENGTH = 30;
-    public static final boolean DEBUG_LOGGING = false;
+    private static final byte START_ADDRESS = (byte) 64;
+    private static final int MONITOR_LENGTH = 30;
+    private static final boolean DEBUG_LOGGING = false;
 
     private motorPosition[] motorPositions;
 
     private static class motorPosition {
-        private int[] positions =  new int[3];
-        private int[] positionsDiff =  new int[3];
+        private final int[] positions =  new int[3];
+        private final int[] positionsDiff =  new int[3];
         private int index = 0;
 
         private motorPosition() {
@@ -209,7 +209,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
         return new DifferentialControlLoopCoefficients(read[0], read[1], read[2]);
     }
 
-    public static byte runModeToFlag(RunMode mode) {
+    private static byte runModeToFlag(RunMode mode) {
         switch (mode) {
             case RUN_USING_ENCODERS:
                 return CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED;
@@ -223,7 +223,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
         }
     }
 
-    public static RunMode flagToRunMode(byte flag) {
+    private static RunMode flagToRunMode(byte flag) {
         switch (flag & CHANNEL_MODE_MASK_SELECTION) {
             case CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY:
                 return RunMode.RUN_WITHOUT_ENCODERS;
