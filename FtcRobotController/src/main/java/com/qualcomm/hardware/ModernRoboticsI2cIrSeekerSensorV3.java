@@ -3,8 +3,6 @@ package com.qualcomm.hardware;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import com.qualcomm.robotcore.hardware.IrSeekerSensor;
-import com.qualcomm.robotcore.hardware.IrSeekerSensor.IrSeekerIndividualSensor;
-import com.qualcomm.robotcore.hardware.IrSeekerSensor.Mode;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteOrder;
@@ -26,88 +24,88 @@ public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements
     public static final int OFFSET_600HZ_SIGNAL_STRENGTH = 7;
     public static final byte SENSOR_COUNT = (byte) 2;
     public volatile int I2C_ADDRESS;
-    private final DeviceInterfaceModule f166a;
-    private final int f167b;
-    private Mode f168c;
-    private final byte[] f169d;
-    private final Lock f170e;
-    private double f171f;
+    private final DeviceInterfaceModule deviceInterfaceModule;
+    private final int physicalPort;
+    private Mode mode;
+    private final byte[] readCache;
+    private final Lock readCacheLock;
+    private double signalDetectedThreshold;
 
     public ModernRoboticsI2cIrSeekerSensorV3(DeviceInterfaceModule module, int physicalPort) {
         this.I2C_ADDRESS = 56;
-        this.f171f = DEFAULT_SIGNAL_DETECTED_THRESHOLD;
-        this.f166a = module;
-        this.f167b = physicalPort;
-        this.f168c = Mode.MODE_1200HZ;
-        this.f169d = this.f166a.getI2cReadCache(physicalPort);
-        this.f170e = this.f166a.getI2cReadCacheLock(physicalPort);
-        this.f166a.enableI2cReadMode(physicalPort, this.I2C_ADDRESS, OFFSET_1200HZ_HEADING_DATA, OFFSET_600HZ_LEFT_SIDE_RAW_DATA);
-        this.f166a.setI2cPortActionFlag(physicalPort);
-        this.f166a.writeI2cCacheToController(physicalPort);
-        this.f166a.registerForI2cPortReadyCallback(this, physicalPort);
+        this.signalDetectedThreshold = DEFAULT_SIGNAL_DETECTED_THRESHOLD;
+        this.deviceInterfaceModule = module;
+        this.physicalPort = physicalPort;
+        this.mode = Mode.MODE_1200HZ;
+        this.readCache = this.deviceInterfaceModule.getI2cReadCache(physicalPort);
+        this.readCacheLock = this.deviceInterfaceModule.getI2cReadCacheLock(physicalPort);
+        this.deviceInterfaceModule.enableI2cReadMode(physicalPort, this.I2C_ADDRESS, OFFSET_1200HZ_HEADING_DATA, OFFSET_600HZ_LEFT_SIDE_RAW_DATA);
+        this.deviceInterfaceModule.setI2cPortActionFlag(physicalPort);
+        this.deviceInterfaceModule.writeI2cCacheToController(physicalPort);
+        this.deviceInterfaceModule.registerForI2cPortReadyCallback(this, physicalPort);
     }
 
     public void setSignalDetectedThreshold(double threshold) {
-        this.f171f = threshold;
+        this.signalDetectedThreshold = threshold;
     }
 
     public double getSignalDetectedThreshold() {
-        return this.f171f;
+        return this.signalDetectedThreshold;
     }
 
     public void setMode(Mode mode) {
-        this.f168c = mode;
+        this.mode = mode;
     }
 
     public Mode getMode() {
-        return this.f168c;
+        return this.mode;
     }
 
     public boolean signalDetected() {
-        return getStrength() > this.f171f;
+        return getStrength() > this.signalDetectedThreshold;
     }
 
     public double getAngle() {
-        int i = this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_HEADING_DATA : OFFSET_600HZ_HEADING_DATA;
+        int offsetHeadingData = this.mode == Mode.MODE_1200HZ ? OFFSET_1200HZ_HEADING_DATA : OFFSET_600HZ_HEADING_DATA;
         try {
-            this.f170e.lock();
-            return (double) this.f169d[i];
+            this.readCacheLock.lock();
+            return (double) this.readCache[offsetHeadingData];
         } finally {
-            this.f170e.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
     public double getStrength() {
-        int i = this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_SIGNAL_STRENGTH : OFFSET_600HZ_SIGNAL_STRENGTH;
+        int offsetSignalStrength = this.mode == Mode.MODE_1200HZ ? OFFSET_1200HZ_SIGNAL_STRENGTH : OFFSET_600HZ_SIGNAL_STRENGTH;
         try {
-            this.f170e.lock();
-            return TypeConversion.unsignedByteToDouble(this.f169d[i]) / MAX_SENSOR_STRENGTH;
+            this.readCacheLock.lock();
+            return TypeConversion.unsignedByteToDouble(this.readCache[offsetSignalStrength]) / MAX_SENSOR_STRENGTH;
         } finally {
-            this.f170e.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
     public IrSeekerIndividualSensor[] getIndividualSensors() {
         IrSeekerIndividualSensor[] irSeekerIndividualSensorArr = new IrSeekerIndividualSensor[2];
         try {
-            this.f170e.lock();
-            byte[] r2 = new byte[2];
-            System.arraycopy(this.f169d, this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_LEFT_SIDE_RAW_DATA : OFFSET_600HZ_LEFT_SIDE_RAW_DATA, r2, 0, r2.length);
-            irSeekerIndividualSensorArr[0] = new IrSeekerIndividualSensor(HiTechnicNxtCompassSensor.INVALID_DIRECTION, ((double) TypeConversion.byteArrayToShort(r2, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
-            r2 = new byte[2];
-            System.arraycopy(this.f169d, this.f168c == Mode.MODE_1200HZ ? OFFSET_1200HZ_RIGHT_SIDE_RAW_DATA : OFFSET_600HZ_RIGHT_SIDE_RAW_DATA, r2, 0, r2.length);
-            irSeekerIndividualSensorArr[1] = new IrSeekerIndividualSensor(1.0d, ((double) TypeConversion.byteArrayToShort(r2, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
+            this.readCacheLock.lock();
+            byte[] rawData = new byte[2];
+            System.arraycopy(this.readCache, this.mode == Mode.MODE_1200HZ ? OFFSET_1200HZ_LEFT_SIDE_RAW_DATA : OFFSET_600HZ_LEFT_SIDE_RAW_DATA, rawData, 0, rawData.length);
+            irSeekerIndividualSensorArr[0] = new IrSeekerIndividualSensor(HiTechnicNxtCompassSensor.INVALID_DIRECTION, ((double) TypeConversion.byteArrayToShort(rawData, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
+            rawData = new byte[2];
+            System.arraycopy(this.readCache, this.mode == Mode.MODE_1200HZ ? OFFSET_1200HZ_RIGHT_SIDE_RAW_DATA : OFFSET_600HZ_RIGHT_SIDE_RAW_DATA, rawData, 0, rawData.length);
+            irSeekerIndividualSensorArr[1] = new IrSeekerIndividualSensor(1.0d, ((double) TypeConversion.byteArrayToShort(rawData, ByteOrder.LITTLE_ENDIAN)) / MAX_SENSOR_STRENGTH);
             return irSeekerIndividualSensorArr;
         } finally {
-            Lock lock = this.f170e;
+            Lock lock = this.readCacheLock;
             lock.unlock();
         }
     }
 
     public void portIsReady(int port) {
-        this.f166a.setI2cPortActionFlag(port);
-        this.f166a.readI2cCacheFromController(port);
-        this.f166a.writeI2cPortFlagOnlyToController(port);
+        this.deviceInterfaceModule.setI2cPortActionFlag(port);
+        this.deviceInterfaceModule.readI2cCacheFromController(port);
+        this.deviceInterfaceModule.writeI2cPortFlagOnlyToController(port);
     }
 
     public String getDeviceName() {
@@ -115,7 +113,7 @@ public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements
     }
 
     public String getConnectionInfo() {
-        return this.f166a.getConnectionInfo() + "; I2C port " + this.f167b;
+        return this.deviceInterfaceModule.getConnectionInfo() + "; I2C port " + this.physicalPort;
     }
 
     public int getVersion() {
@@ -129,10 +127,10 @@ public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements
         IrSeekerSensor.throwIfModernRoboticsI2cAddressIsInvalid(newAddress);
         RobotLog.i(getDeviceName() + ", just changed the I2C address. Original address: " + this.I2C_ADDRESS + ", new address: " + newAddress);
         this.I2C_ADDRESS = newAddress;
-        this.f166a.enableI2cReadMode(this.f167b, this.I2C_ADDRESS, OFFSET_1200HZ_HEADING_DATA, OFFSET_600HZ_LEFT_SIDE_RAW_DATA);
-        this.f166a.setI2cPortActionFlag(this.f167b);
-        this.f166a.writeI2cCacheToController(this.f167b);
-        this.f166a.registerForI2cPortReadyCallback(this, this.f167b);
+        this.deviceInterfaceModule.enableI2cReadMode(this.physicalPort, this.I2C_ADDRESS, OFFSET_1200HZ_HEADING_DATA, OFFSET_600HZ_LEFT_SIDE_RAW_DATA);
+        this.deviceInterfaceModule.setI2cPortActionFlag(this.physicalPort);
+        this.deviceInterfaceModule.writeI2cCacheToController(this.physicalPort);
+        this.deviceInterfaceModule.registerForI2cPortReadyCallback(this, this.physicalPort);
     }
 
     public int getI2cAddress() {
