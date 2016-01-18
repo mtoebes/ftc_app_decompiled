@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import com.qualcomm.robotcore.util.RobotLog;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -17,7 +18,8 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
     protected static final int VERSION = 1;
     protected static final int BUFFER_LENGTH = 18;
 
-    protected static final byte COMMAND_NULL = (byte) 78;
+    protected static final byte COMMAND_NORMAL = (byte) 0;
+    protected static final byte COMMAND_CALIBRATING = (byte) 78;
     protected static final byte COMMAND_RESET_Z_AXIS = (byte) 82;
 
     protected static final int OFFSET_COMMAND = 3;
@@ -42,7 +44,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         byte[] data = new byte[1];
         byte dataLength = BUFFER_LENGTH;
 
-        I2cTransactionState i2cTransactionState;
+        I2cTransactionState state;
         final ModernRoboticsI2cGyro modernRoboticsI2cGyro;
 
         public GyroI2cTransaction(ModernRoboticsI2cGyro modernRoboticsI2cGyro) {
@@ -133,7 +135,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
     }
 
     public void calibrate() {
-        queueTransaction(new GyroI2cTransaction(this, COMMAND_NULL));
+        queueTransaction(new GyroI2cTransaction(this, COMMAND_CALIBRATING));
     }
 
     public boolean isCalibrating() {
@@ -198,7 +200,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
     public String status() {
         return String.format("Modern Robotics Gyro, connected via device %s, port %d",
                 this.deviceInterfaceModule.getSerialNumber().toString(),
-                this.physicalPort) ;
+                this.physicalPort);
     }
 
     public int getVersion() {
@@ -233,50 +235,51 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
             createTransactionQueue();
             return;
         }
-        GyroI2cTransaction gyroI2cTransaction = this.transactionQueue.peek();
-        if (gyroI2cTransaction.i2cTransactionState == I2cTransactionState.PENDING_I2C_READ) {
+
+        GyroI2cTransaction transaction = this.transactionQueue.peek();
+        if (transaction.state == I2cTransactionState.PENDING_I2C_READ) {
             this.deviceInterfaceModule.readI2cCacheFromController(this.physicalPort);
-            gyroI2cTransaction.i2cTransactionState = I2cTransactionState.PENDING_READ_DONE;
-            return;
-        }
-        if (gyroI2cTransaction.i2cTransactionState == I2cTransactionState.PENDING_I2C_WRITE) {
-            this.transactionQueue.poll();
-            if (!this.transactionQueue.isEmpty()) {
-                gyroI2cTransaction = this.transactionQueue.peek();
-            } else {
-                return;
-            }
-        } else if (gyroI2cTransaction.i2cTransactionState == I2cTransactionState.PENDING_READ_DONE) {
-            readCache();
-            this.transactionQueue.poll();
-            if (!this.transactionQueue.isEmpty()) {
-                gyroI2cTransaction = this.transactionQueue.peek();
-            } else {
-                return;
-            }
-        }
-        try {
-            if (gyroI2cTransaction.writeMode) {
-                if (gyroI2cTransaction.memAddress == OFFSET_COMMAND) {
-                    this.gyroData.command = gyroI2cTransaction.data[0];
-                    this.measurementMode = MeasurementMode.GYRO_CALIBRATING;
+            transaction.state = I2cTransactionState.PENDING_READ_DONE;
+        } else {
+            if (transaction.state == I2cTransactionState.PENDING_I2C_WRITE ||
+                    transaction.state == I2cTransactionState.PENDING_READ_DONE) {
+                if (transaction.state == I2cTransactionState.PENDING_READ_DONE) {
+                    readCache();
                 }
-                this.deviceInterfaceModule.enableI2cWriteMode(port, ADDRESS_I2C, gyroI2cTransaction.memAddress, gyroI2cTransaction.dataLength);
-                this.deviceInterfaceModule.copyBufferIntoWriteBuffer(port, gyroI2cTransaction.data);
-                gyroI2cTransaction.i2cTransactionState = I2cTransactionState.PENDING_I2C_WRITE;
-            } else {
-                this.deviceInterfaceModule.enableI2cReadMode(port, ADDRESS_I2C, gyroI2cTransaction.memAddress, gyroI2cTransaction.dataLength);
-                gyroI2cTransaction.i2cTransactionState = I2cTransactionState.PENDING_I2C_READ;
+
+                this.transactionQueue.poll();
+                transaction = this.transactionQueue.peek();
             }
-            this.deviceInterfaceModule.writeI2cCacheToController(port);
-        } catch (IllegalArgumentException e) {
-            RobotLog.e(e.getMessage());
-        }
-        if (this.gyroData.command == 0) {
-            this.measurementMode = MeasurementMode.GYRO_NORMAL;
+
+            if(transaction == null) {
+                return;
+            }
+
+            try {
+                if (transaction.writeMode) {
+                    if (transaction.memAddress == OFFSET_COMMAND) {
+                        this.gyroData.command = transaction.data[0];
+                        this.measurementMode = MeasurementMode.GYRO_CALIBRATING;
+                    }
+                    this.deviceInterfaceModule.enableI2cWriteMode(port, ADDRESS_I2C, transaction.memAddress, transaction.dataLength);
+                    this.deviceInterfaceModule.copyBufferIntoWriteBuffer(port, transaction.data);
+                    transaction.state = I2cTransactionState.PENDING_I2C_WRITE;
+                } else { // readMode
+                    this.deviceInterfaceModule.enableI2cReadMode(port, ADDRESS_I2C, transaction.memAddress, transaction.dataLength);
+                    transaction.state = I2cTransactionState.PENDING_I2C_READ;
+                }
+                this.deviceInterfaceModule.writeI2cCacheToController(port);
+            } catch (IllegalArgumentException e) {
+                RobotLog.e(e.getMessage());
+            }
+
+            if (this.gyroData.command == COMMAND_NORMAL) {
+                this.measurementMode = MeasurementMode.GYRO_NORMAL;
+            }
         }
     }
 
     protected void buginf(String s) {
+        //TODO implement this?
     }
 }
