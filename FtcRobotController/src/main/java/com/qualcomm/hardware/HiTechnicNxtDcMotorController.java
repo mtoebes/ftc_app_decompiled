@@ -1,8 +1,6 @@
 package com.qualcomm.hardware;
 
 import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DcMotorController.DeviceMode;
-import com.qualcomm.robotcore.hardware.DcMotorController.RunMode;
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -44,15 +42,15 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     public static final byte POWER_FLOAT = Byte.MIN_VALUE;
     public static final byte POWER_MAX = (byte) 100;
     public static final byte POWER_MIN = (byte) -100;
-    private final ModernRoboticsUsbLegacyModule f45a;
-    private final byte[] f46b;
-    private final Lock f47c;
-    private final byte[] f48d;
-    private final Lock f49e;
-    private final int f50f;
-    private final ElapsedTime f51g;
-    private volatile DeviceMode f52h;
-    private volatile boolean f53i;
+    private final ModernRoboticsUsbLegacyModule legacyModule;
+    private final byte[] readCache;
+    private final Lock readCacheLock;
+    private final byte[] writeCache;
+    private final Lock writeCacheLock;
+    private final int controllerPort;
+    private final ElapsedTime elapsedTime;
+    private volatile DeviceMode controllerMode;
+    private volatile boolean unknownResetCheck;
 
     static {
         OFFSET_MAP_MOTOR_POWER = new byte[]{(byte) -1, (byte) 9, (byte) 10};
@@ -62,24 +60,24 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     }
 
     public HiTechnicNxtDcMotorController(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
-        this.f51g = new ElapsedTime(0);
-        this.f53i = true;
-        this.f45a = legacyModule;
-        this.f50f = physicalPort;
-        this.f46b = legacyModule.getI2cReadCache(physicalPort);
-        this.f47c = legacyModule.getI2cReadCacheLock(physicalPort);
-        this.f48d = legacyModule.getI2cWriteCache(physicalPort);
-        this.f49e = legacyModule.getI2cWriteCacheLock(physicalPort);
-        this.f52h = DeviceMode.WRITE_ONLY;
+        this.elapsedTime = new ElapsedTime(0);
+        this.unknownResetCheck = true;
+        this.legacyModule = legacyModule;
+        this.controllerPort = physicalPort;
+        this.readCache = legacyModule.getI2cReadCache(physicalPort);
+        this.readCacheLock = legacyModule.getI2cReadCacheLock(physicalPort);
+        this.writeCache = legacyModule.getI2cWriteCache(physicalPort);
+        this.writeCacheLock = legacyModule.getI2cWriteCacheLock(physicalPort);
+        this.controllerMode = DeviceMode.WRITE_ONLY;
         legacyModule.enableI2cWriteMode(physicalPort, MAX_MOTOR, MEM_START_ADDRESS, OFFSET_MOTOR2_CURRENT_ENCODER_VALUE);
         try {
-            this.f49e.lock();
-            this.f48d[OFFSET_MOTOR1_POWER] = POWER_FLOAT;
-            this.f48d[OFFSET_MOTOR2_POWER] = POWER_FLOAT;
+            this.writeCacheLock.lock();
+            this.writeCache[OFFSET_MOTOR1_POWER] = POWER_FLOAT;
+            this.writeCache[OFFSET_MOTOR2_POWER] = POWER_FLOAT;
             legacyModule.writeI2cCacheToController(physicalPort);
             legacyModule.registerForI2cPortReadyCallback(this, physicalPort);
         } finally {
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         }
     }
 
@@ -88,7 +86,7 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     }
 
     public String getConnectionInfo() {
-        return this.f45a.getConnectionInfo() + "; port " + this.f50f;
+        return this.legacyModule.getConnectionInfo() + "; port " + this.controllerPort;
     }
 
     public int getVersion() {
@@ -96,178 +94,178 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     }
 
     public void setMotorControllerDeviceMode(DeviceMode mode) {
-        if (this.f52h != mode) {
+        if (this.controllerMode != mode) {
             switch (mode) {
                 case READ_ONLY:
-                    this.f52h = DeviceMode.SWITCHING_TO_READ_MODE;
-                    this.f45a.enableI2cReadMode(this.f50f, MAX_MOTOR, MEM_START_ADDRESS, OFFSET_MOTOR2_CURRENT_ENCODER_VALUE);
+                    this.controllerMode = DeviceMode.SWITCHING_TO_READ_MODE;
+                    this.legacyModule.enableI2cReadMode(this.controllerPort, MAX_MOTOR, MEM_START_ADDRESS, OFFSET_MOTOR2_CURRENT_ENCODER_VALUE);
                     break;
                 case WRITE_ONLY :
-                    this.f52h = DeviceMode.SWITCHING_TO_WRITE_MODE;
-                    this.f45a.enableI2cWriteMode(this.f50f, MAX_MOTOR, MEM_START_ADDRESS, OFFSET_MOTOR2_CURRENT_ENCODER_VALUE);
+                    this.controllerMode = DeviceMode.SWITCHING_TO_WRITE_MODE;
+                    this.legacyModule.enableI2cWriteMode(this.controllerPort, MAX_MOTOR, MEM_START_ADDRESS, OFFSET_MOTOR2_CURRENT_ENCODER_VALUE);
                     break;
             }
-            this.f53i = true;
+            this.unknownResetCheck = true;
         }
     }
 
     public DeviceMode getMotorControllerDeviceMode() {
-        return this.f52h;
+        return this.controllerMode;
     }
 
     public void setMotorChannelMode(int motor, RunMode mode) {
-        m41a(motor);
-        m40a();
+        validateMotor(motor);
+        validateWriteMode();
         byte runModeToFlagNXT = runModeToFlagNXT(mode);
         try {
-            this.f49e.lock();
-            if (this.f48d[OFFSET_MAP_MOTOR_MODE[motor]] != runModeToFlagNXT) {
-                this.f48d[OFFSET_MAP_MOTOR_MODE[motor]] = runModeToFlagNXT;
-                this.f53i = true;
+            this.writeCacheLock.lock();
+            if (this.writeCache[OFFSET_MAP_MOTOR_MODE[motor]] != runModeToFlagNXT) {
+                this.writeCache[OFFSET_MAP_MOTOR_MODE[motor]] = runModeToFlagNXT;
+                this.unknownResetCheck = true;
             }
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         } catch (Throwable th) {
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         }
     }
 
     public RunMode getMotorChannelMode(int motor) {
-        m41a(motor);
-        m42b();
+        validateMotor(motor);
+        validateReadMode();
         try {
-            this.f47c.lock();
-            byte b = this.f46b[OFFSET_MAP_MOTOR_MODE[motor]];
+            this.readCacheLock.lock();
+            byte b = this.readCache[OFFSET_MAP_MOTOR_MODE[motor]];
             return flagToRunModeNXT(b);
         } finally {
-            this.f47c.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
     public void setMotorPower(int motor, double power) {
-        m41a(motor);
-        m40a();
+        validateMotor(motor);
+        validateWriteMode();
         Range.throwIfRangeIsInvalid(power, HiTechnicNxtCompassSensor.INVALID_DIRECTION, 1.0d);
         byte b = (byte) ((int) (100.0d * power));
         try {
-            this.f49e.lock();
-            if (b != this.f48d[OFFSET_MAP_MOTOR_POWER[motor]]) {
-                this.f48d[OFFSET_MAP_MOTOR_POWER[motor]] = b;
-                this.f53i = true;
+            this.writeCacheLock.lock();
+            if (b != this.writeCache[OFFSET_MAP_MOTOR_POWER[motor]]) {
+                this.writeCache[OFFSET_MAP_MOTOR_POWER[motor]] = b;
+                this.unknownResetCheck = true;
             }
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         } catch (Throwable th) {
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         }
     }
 
     public double getMotorPower(int motor) {
-        m41a(motor);
-        m42b();
+        validateMotor(motor);
+        validateReadMode();
         try {
-            this.f47c.lock();
-            int i = this.f46b[OFFSET_MAP_MOTOR_POWER[motor]];
+            this.readCacheLock.lock();
+            int i = this.readCache[OFFSET_MAP_MOTOR_POWER[motor]];
             if (i == -128) {
                 return 0.0d;
             }
             return ((double) i) / 100.0d;
         } finally {
-            this.f47c.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
     public boolean isBusy(int motor) {
-        m41a(motor);
-        m42b();
+        validateMotor(motor);
+        validateReadMode();
         try {
-            this.f47c.lock();
-            boolean z = (this.f46b[OFFSET_MAP_MOTOR_MODE[motor]] & CHANNEL_MODE_MASK_BUSY) == CHANNEL_MODE_MASK_BUSY;
-            this.f47c.unlock();
+            this.readCacheLock.lock();
+            boolean z = (this.readCache[OFFSET_MAP_MOTOR_MODE[motor]] & CHANNEL_MODE_MASK_BUSY) == CHANNEL_MODE_MASK_BUSY;
+            this.readCacheLock.unlock();
             return z;
         } catch (Throwable th) {
-            this.f47c.unlock();
+            this.readCacheLock.unlock();
         }
         return false; //TOOD originally had no return statement. why?
     }
 
     public void setMotorPowerFloat(int motor) {
-        m41a(motor);
-        m40a();
+        validateMotor(motor);
+        validateWriteMode();
         try {
-            this.f49e.lock();
-            if (-128 != this.f48d[OFFSET_MAP_MOTOR_POWER[motor]]) {
-                this.f48d[OFFSET_MAP_MOTOR_POWER[motor]] = POWER_FLOAT;
-                this.f53i = true;
+            this.writeCacheLock.lock();
+            if (-128 != this.writeCache[OFFSET_MAP_MOTOR_POWER[motor]]) {
+                this.writeCache[OFFSET_MAP_MOTOR_POWER[motor]] = POWER_FLOAT;
+                this.unknownResetCheck = true;
             }
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         } catch (Throwable th) {
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         }
     }
 
     public boolean getMotorPowerFloat(int motor) {
-        m41a(motor);
-        m42b();
+        validateMotor(motor);
+        validateReadMode();
         try {
-            this.f47c.lock();
-            boolean z = this.f46b[OFFSET_MAP_MOTOR_POWER[motor]] == -128;
-            this.f47c.unlock();
+            this.readCacheLock.lock();
+            boolean z = this.readCache[OFFSET_MAP_MOTOR_POWER[motor]] == -128;
+            this.readCacheLock.unlock();
             return z;
         } catch (Throwable th) {
-            this.f47c.unlock();
+            this.readCacheLock.unlock();
         }
         return false; //TODO originally had no return statement. why?
     }
 
     public void setMotorTargetPosition(int motor, int position) {
-        m41a(motor);
-        m40a();
+        validateMotor(motor);
+        validateWriteMode();
         byte[] intToByteArray = TypeConversion.intToByteArray(position);
         try {
-            this.f49e.lock();
-            System.arraycopy(intToByteArray, 0, this.f48d, OFFSET_MAP_MOTOR_TARGET_ENCODER_VALUE[motor], intToByteArray.length);
-            this.f53i = true;
+            this.writeCacheLock.lock();
+            System.arraycopy(intToByteArray, 0, this.writeCache, OFFSET_MAP_MOTOR_TARGET_ENCODER_VALUE[motor], intToByteArray.length);
+            this.unknownResetCheck = true;
         } finally {
-            this.f49e.unlock();
+            this.writeCacheLock.unlock();
         }
     }
 
     public int getMotorTargetPosition(int motor) {
-        m41a(motor);
-        m42b();
+        validateMotor(motor);
+        validateReadMode();
         byte[] bArr = new byte[OFFSET_MOTOR1_TARGET_ENCODER_VALUE];
         try {
-            this.f47c.lock();
-            System.arraycopy(this.f46b, OFFSET_MAP_MOTOR_TARGET_ENCODER_VALUE[motor], bArr, 0, bArr.length);
+            this.readCacheLock.lock();
+            System.arraycopy(this.readCache, OFFSET_MAP_MOTOR_TARGET_ENCODER_VALUE[motor], bArr, 0, bArr.length);
             return TypeConversion.byteArrayToInt(bArr);
         } finally {
-            this.f47c.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
     public int getMotorCurrentPosition(int motor) {
-        m41a(motor);
-        m42b();
+        validateMotor(motor);
+        validateReadMode();
         byte[] bArr = new byte[OFFSET_MOTOR1_TARGET_ENCODER_VALUE];
         try {
-            this.f47c.lock();
-            System.arraycopy(this.f46b, OFFSET_MAP_MOTOR_CURRENT_ENCODER_VALUE[motor], bArr, 0, bArr.length);
+            this.readCacheLock.lock();
+            System.arraycopy(this.readCache, OFFSET_MAP_MOTOR_CURRENT_ENCODER_VALUE[motor], bArr, 0, bArr.length);
             return TypeConversion.byteArrayToInt(bArr);
         } finally {
-            this.f47c.unlock();
+            this.readCacheLock.unlock();
         }
     }
 
     public void close() {
-        if (this.f52h == DeviceMode.WRITE_ONLY) {
+        if (this.controllerMode == DeviceMode.WRITE_ONLY) {
             setMotorPowerFloat(MIN_MOTOR);
             setMotorPowerFloat(MAX_MOTOR);
         }
     }
 
-    private void m40a() {
-        if (this.f52h != DeviceMode.SWITCHING_TO_WRITE_MODE) {
-            if (this.f52h == DeviceMode.READ_ONLY || this.f52h == DeviceMode.SWITCHING_TO_READ_MODE) {
-                String str = "Cannot write while in this mode: " + this.f52h;
+    private void validateWriteMode() {
+        if (this.controllerMode != DeviceMode.SWITCHING_TO_WRITE_MODE) {
+            if (this.controllerMode == DeviceMode.READ_ONLY || this.controllerMode == DeviceMode.SWITCHING_TO_READ_MODE) {
+                String str = "Cannot write while in this mode: " + this.controllerMode;
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 if (stackTrace != null && stackTrace.length > CHANNEL_MODE_MASK_SELECTION) {
                     str = str + "\n from method: " + stackTrace[CHANNEL_MODE_MASK_SELECTION].getMethodName();
@@ -277,10 +275,10 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         }
     }
 
-    private void m42b() {
-        if (this.f52h != DeviceMode.SWITCHING_TO_READ_MODE) {
-            if (this.f52h == DeviceMode.WRITE_ONLY || this.f52h == DeviceMode.SWITCHING_TO_WRITE_MODE) {
-                String str = "Cannot read while in this mode: " + this.f52h;
+    private void validateReadMode() {
+        if (this.controllerMode != DeviceMode.SWITCHING_TO_READ_MODE) {
+            if (this.controllerMode == DeviceMode.WRITE_ONLY || this.controllerMode == DeviceMode.SWITCHING_TO_WRITE_MODE) {
+                String str = "Cannot read while in this mode: " + this.controllerMode;
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 if (stackTrace != null && stackTrace.length > CHANNEL_MODE_MASK_SELECTION) {
                     str = str + "\n from method: " + stackTrace[CHANNEL_MODE_MASK_SELECTION].getMethodName();
@@ -290,10 +288,10 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         }
     }
 
-    private void m41a(int i) {
-        if (i < MIN_MOTOR || i > MAX_MOTOR) {
+    private void validateMotor(int motor) {
+        if (motor < MIN_MOTOR || motor > MAX_MOTOR) {
             Object[] objArr = new Object[MAX_MOTOR];
-            objArr[0] = i;
+            objArr[0] = motor;
             objArr[MIN_MOTOR] = MAX_MOTOR;
             throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are 1..%d", objArr));
         }
@@ -329,31 +327,31 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
     }
 
     public void portIsReady(int port) {
-        switch (this.f52h) {
+        switch (this.controllerMode) {
             case SWITCHING_TO_READ_MODE :
-                if (this.f45a.isI2cPortInReadMode(port)) {
-                    this.f52h = DeviceMode.READ_ONLY;
+                if (this.legacyModule.isI2cPortInReadMode(port)) {
+                    this.controllerMode = DeviceMode.READ_ONLY;
                     break;
                 }
                 break;
             case SWITCHING_TO_WRITE_MODE :
-                if (this.f45a.isI2cPortInWriteMode(port)) {
-                    this.f52h = DeviceMode.WRITE_ONLY;
+                if (this.legacyModule.isI2cPortInWriteMode(port)) {
+                    this.controllerMode = DeviceMode.WRITE_ONLY;
                     break;
                 }
                 break;
         }
-        if (this.f52h == DeviceMode.READ_ONLY) {
-            this.f45a.setI2cPortActionFlag(this.f50f);
-            this.f45a.writeI2cPortFlagOnlyToController(this.f50f);
+        if (this.controllerMode == DeviceMode.READ_ONLY) {
+            this.legacyModule.setI2cPortActionFlag(this.controllerPort);
+            this.legacyModule.writeI2cPortFlagOnlyToController(this.controllerPort);
         } else {
-            if (this.f53i || this.f51g.time() > 2.0d) {
-                this.f45a.setI2cPortActionFlag(this.f50f);
-                this.f45a.writeI2cCacheToController(this.f50f);
-                this.f51g.reset();
+            if (this.unknownResetCheck || this.elapsedTime.time() > 2.0d) {
+                this.legacyModule.setI2cPortActionFlag(this.controllerPort);
+                this.legacyModule.writeI2cCacheToController(this.controllerPort);
+                this.elapsedTime.reset();
             }
-            this.f53i = false;
+            this.unknownResetCheck = false;
         }
-        this.f45a.readI2cCacheFromController(this.f50f);
+        this.legacyModule.readI2cCacheFromController(this.controllerPort);
     }
 }
