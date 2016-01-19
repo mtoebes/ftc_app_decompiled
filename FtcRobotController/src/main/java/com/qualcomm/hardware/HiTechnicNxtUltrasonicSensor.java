@@ -6,22 +6,26 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.concurrent.locks.Lock;
 
 public class HiTechnicNxtUltrasonicSensor extends UltrasonicSensor implements I2cPortReadyCallback {
-    public static final int ADDRESS_DISTANCE = 66;
+    public static final int START_ADDRESS = 66;
+    public static final int BUFFER_LENGTH = 1;
+    private static final int VERSION = 1;
     public static final int I2C_ADDRESS = 2;
     public static final int MAX_PORT = 5;
     public static final int MIN_PORT = 4;
-    Lock f78a;
-    byte[] f79b;
-    private final ModernRoboticsUsbLegacyModule f80c;
-    private final int f81d;
+    public static final int OFFSET_ULTRASONIC_LEVEL = 4;
+    Lock readCacheLock;
+    byte[] readCache;
+    private final ModernRoboticsUsbLegacyModule legacyModule;
+    private final int physicalPort;
 
     HiTechnicNxtUltrasonicSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
-        m48a(physicalPort);
-        this.f80c = legacyModule;
-        this.f81d = physicalPort;
-        this.f78a = legacyModule.getI2cReadCacheLock(physicalPort);
-        this.f79b = legacyModule.getI2cReadCache(physicalPort);
-        legacyModule.enableI2cReadMode(physicalPort, I2C_ADDRESS, ADDRESS_DISTANCE, 1);
+        validatePort(physicalPort);
+        this.legacyModule = legacyModule;
+        this.physicalPort = physicalPort;
+        this.readCache = legacyModule.getI2cReadCache(physicalPort);
+        this.readCacheLock = legacyModule.getI2cReadCacheLock(physicalPort);
+
+        legacyModule.enableI2cReadMode(physicalPort, I2C_ADDRESS, START_ADDRESS, BUFFER_LENGTH);
         legacyModule.enable9v(physicalPort, true);
         legacyModule.setI2cPortActionFlag(physicalPort);
         legacyModule.readI2cCacheFromController(physicalPort);
@@ -29,26 +33,24 @@ public class HiTechnicNxtUltrasonicSensor extends UltrasonicSensor implements I2
     }
 
     public double getUltrasonicLevel() {
+        byte ultrasonicLevel;
         try {
-            this.f78a.lock();
-            byte b = this.f79b[MIN_PORT];
-            return TypeConversion.unsignedByteToDouble(b);
+            this.readCacheLock.lock();
+            ultrasonicLevel =  this.readCache[OFFSET_ULTRASONIC_LEVEL];
         } finally {
-            this.f78a.unlock();
+            this.readCacheLock.unlock();
         }
+        return  TypeConversion.unsignedByteToDouble(ultrasonicLevel);
     }
 
     public void portIsReady(int port) {
-        this.f80c.setI2cPortActionFlag(this.f81d);
-        this.f80c.writeI2cCacheToController(this.f81d);
-        this.f80c.readI2cCacheFromController(this.f81d);
+        this.legacyModule.setI2cPortActionFlag(this.physicalPort);
+        this.legacyModule.writeI2cCacheToController(this.physicalPort);
+        this.legacyModule.readI2cCacheFromController(this.physicalPort);
     }
 
     public String status() {
-        Object[] objArr = new Object[I2C_ADDRESS];
-        objArr[0] = this.f80c.getSerialNumber().toString();
-        objArr[1] = this.f81d;
-        return String.format("NXT Ultrasonic Sensor, connected via device %s, port %d", objArr);
+        return String.format("NXT Ultrasonic Sensor, connected via device %s, port %d", this.legacyModule.getSerialNumber().toString(), this.physicalPort);
     }
 
     public String getDeviceName() {
@@ -56,19 +58,19 @@ public class HiTechnicNxtUltrasonicSensor extends UltrasonicSensor implements I2
     }
 
     public String getConnectionInfo() {
-        return this.f80c.getConnectionInfo() + "; port " + this.f81d;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {
     }
 
-    private void m48a(int i) {
-        if (i < MIN_PORT || i > MAX_PORT) {
-            throw new IllegalArgumentException(String.format("Port %d is invalid for " + getDeviceName() + "; valid ports are %d or %d", new Object[]{i, MIN_PORT, MAX_PORT}));
+    private void validatePort(int port) {
+        if (port < MIN_PORT || port > MAX_PORT) {
+            throw new IllegalArgumentException(String.format("Port %d is invalid for " + getDeviceName() + "; valid ports are %d or %d", new Object[]{port, MIN_PORT, MAX_PORT}));
         }
     }
 }
