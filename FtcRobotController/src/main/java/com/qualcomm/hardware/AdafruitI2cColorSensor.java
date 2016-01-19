@@ -7,44 +7,43 @@ import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import java.util.concurrent.locks.Lock;
 
 public class AdafruitI2cColorSensor extends ColorSensor implements I2cPortReadyCallback {
-    public static final int ADDRESS_TCS34725_ENABLE = 0;
+    public static final int VERSION = 1;
+
     public static final int I2C_ADDRESS = 82;
-    public static final int OFFSET_ALPHA_HIGH_BYTE = 5;
+    public static final int WRITE_ACTION_ADDRESS = 128;
+    public static final int WRITE_ACTION_BUFFER_SIZE = 1;
+    public static final int READ_ACTION_ADDRESS = 148;
+    public static final int READ_ACTION_BUFFER_SIZE = 8;
+
     public static final int OFFSET_ALPHA_LOW_BYTE = 4;
-    public static final int OFFSET_BLUE_HIGH_BYTE = 11;
-    public static final int OFFSET_BLUE_LOW_BYTE = 10;
-    public static final int OFFSET_GREEN_HIGH_BYTE = 9;
-    public static final int OFFSET_GREEN_LOW_BYTE = 8;
-    public static final int OFFSET_RED_HIGH_BYTE = 7;
+    public static final int OFFSET_ALPHA_HIGH_BYTE = 5;
     public static final int OFFSET_RED_LOW_BYTE = 6;
-    public static final int TCS34725_BDATAL = 26;
-    public static final int TCS34725_CDATAL = 20;
-    public static final int COMMAND_BIT = 128;
-    public static final int TCS34725_ENABLE_AEN = 2;
-    public static final int TCS34725_ENABLE_AIEN = 16;
-    public static final int ENABLE_PON = 1;
-    public static final int TCS34725_GDATAL = 24;
-    public static final int TCS34725_ID = 18;
-    public static final int TCS34725_RDATAL = 22;
+    public static final int OFFSET_RED_HIGH_BYTE = 7;
+    public static final int OFFSET_GREEN_LOW_BYTE = 8;
+    public static final int OFFSET_GREEN_HIGH_BYTE = 9;
+    public static final int OFFSET_BLUE_LOW_BYTE = 10;
+    public static final int OFFSET_BLUE_HIGH_BYTE = 11;
+
+    private boolean performWrite = true;
+    private boolean performRead = false;
+
     private final DeviceInterfaceModule deviceInterfaceModule;
+    private final int pyhsicalPort;
+
     private final byte[] readCache;
     private final Lock readCacheLock;
     private final byte[] writeCache;
     private final Lock writeCacheLock;
-    private final int pyhsicalPort;
-    private boolean performWrite;
-    private boolean performRead;
 
     public AdafruitI2cColorSensor(DeviceInterfaceModule deviceInterfaceModule, int physicalPort) {
-        this.performWrite = false;
-        this.performRead = false;
         this.pyhsicalPort = physicalPort;
         this.deviceInterfaceModule = deviceInterfaceModule;
+
         this.readCache = deviceInterfaceModule.getI2cReadCache(physicalPort);
         this.readCacheLock = deviceInterfaceModule.getI2cReadCacheLock(physicalPort);
         this.writeCache = deviceInterfaceModule.getI2cWriteCache(physicalPort);
         this.writeCacheLock = deviceInterfaceModule.getI2cWriteCacheLock(physicalPort);
-        this.performWrite = true;
+
         deviceInterfaceModule.registerForI2cPortReadyCallback(this, physicalPort);
     }
 
@@ -90,14 +89,13 @@ public class AdafruitI2cColorSensor extends ColorSensor implements I2cPortReadyC
     }
 
     public int getVersion() {
-        return ENABLE_PON;
+        return VERSION;
     }
 
     public void close() {
     }
 
     public void portIsReady(int port) {
-        //TODO investigate parameters and purpose
         if (this.performWrite) {
             writeAction();
             this.performWrite = false;
@@ -112,12 +110,12 @@ public class AdafruitI2cColorSensor extends ColorSensor implements I2cPortReadyC
     }
 
     private void readAction() {
-        this.deviceInterfaceModule.enableI2cReadMode(this.pyhsicalPort, I2C_ADDRESS, 148, 8);
+        this.deviceInterfaceModule.enableI2cReadMode(this.pyhsicalPort, I2C_ADDRESS, READ_ACTION_ADDRESS, READ_ACTION_BUFFER_SIZE);
         this.deviceInterfaceModule.writeI2cCacheToController(this.pyhsicalPort);
     }
 
     private void writeAction() {
-        this.deviceInterfaceModule.enableI2cWriteMode(this.pyhsicalPort, I2C_ADDRESS, COMMAND_BIT, ENABLE_PON);
+        this.deviceInterfaceModule.enableI2cWriteMode(this.pyhsicalPort, I2C_ADDRESS, WRITE_ACTION_ADDRESS, WRITE_ACTION_BUFFER_SIZE);
         try {
             this.writeCacheLock.lock();
             this.writeCache[4] = (byte) 3;

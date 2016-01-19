@@ -5,9 +5,12 @@ import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import java.util.concurrent.locks.Lock;
 
 public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implements I2cPortReadyCallback {
-    public static final int ACCEL_LENGTH = 6;
-    public static final int ADDRESS_ACCEL_START = 66;
+    private static final int VERSION = 1;
+
     public static final byte I2C_ADDRESS = (byte) 2;
+    public static final int START_ADDRESS = 66;
+    public static final int BUFFER_LENGTH = 6;
+
 
     private static final byte ACCEL_X = 4;
     private static final byte ACCEL_Y = 5;
@@ -20,7 +23,7 @@ public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implement
     private final int physicalPort;
 
     public HiTechnicNxtAccelerationSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
-        legacyModule.enableI2cReadMode(physicalPort, I2C_ADDRESS, ADDRESS_ACCEL_START, ACCEL_LENGTH);
+        legacyModule.enableI2cReadMode(physicalPort, I2C_ADDRESS, START_ADDRESS, BUFFER_LENGTH);
         this.legacyModule = legacyModule;
         this.readCache = legacyModule.getI2cReadCache(physicalPort);
         this.readCacheLock = legacyModule.getI2cReadCacheLock(physicalPort);
@@ -45,8 +48,8 @@ public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implement
         return String.format("NXT Acceleration Sensor, connected via device %s, port %d", this.legacyModule.getSerialNumber().toString(), this.physicalPort);
     }
 
-    private double readCoord(byte b1, byte b2) {
-        return ((4.0d * ((double) b1)) + ((double) b2)) / 200.0d;
+    private double readCoord(byte lowByte, byte highByte) {
+        return ((4.0d * ((double) lowByte)) + ((double) highByte)) / 200.0d; //TODO understand this logic
     }
 
     public void portIsReady(int port) {
@@ -60,11 +63,11 @@ public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implement
     }
 
     public String getConnectionInfo() {
-        return this.legacyModule.getConnectionInfo() + "; port " + this.physicalPort;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

@@ -8,27 +8,30 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.concurrent.locks.Lock;
 
 public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReadyCallback {
-    public static final int ADDRESS_COLOR_NUMBER = 66;
-    public static final int ADDRESS_COMMAND = 65;
+    private static final int VERSION = 2;
+
     public static final int ADDRESS_I2C = 2;
     public static final int BUFFER_LENGTH = 5;
+    public static final int START_ADDRESS = 65;
+
     public static final int COMMAND_ACTIVE_LED = 0;
     public static final int COMMAND_PASSIVE_LED = 1;
-    public static final int OFFSET_COMMAND = 4;
 
-    public static final int OFFSET_COLOR_NUMBER = 5;
+    public static final int OFFSET_LED_MODE = 4;
     public static final int OFFSET_RED_READING = 6;
     public static final int OFFSET_GREEN_READING = 7;
     public static final int OFFSET_BLUE_READING = 8;
 
+    private ColorSensorMode mode = ColorSensorMode.READING_ONLY;
+    private volatile int ledMode = COMMAND_ACTIVE_LED;
+
     private final LegacyModule legacyModule;
+    private final int physicalPort;
+
     private final byte[] readCache;
     private final Lock readCacheLock;
     private final byte[] writeCache;
     private final Lock writeCacheLock;
-    private ColorSensorMode mode = ColorSensorMode.READING_ONLY;
-    private volatile int ledMode = COMMAND_ACTIVE_LED;
-    private final int physicalPort;
 
     private enum ColorSensorMode {
         READING_ONLY,
@@ -39,11 +42,13 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     HiTechnicNxtColorSensor(LegacyModule legacyModule, int physicalPort) {
         this.legacyModule = legacyModule;
         this.physicalPort = physicalPort;
+
         this.readCache = legacyModule.getI2cReadCache(physicalPort);
         this.readCacheLock = legacyModule.getI2cReadCacheLock(physicalPort);
         this.writeCache = legacyModule.getI2cWriteCache(physicalPort);
         this.writeCacheLock = legacyModule.getI2cWriteCacheLock(physicalPort);
-        legacyModule.enableI2cReadMode(physicalPort, ADDRESS_I2C, ADDRESS_COMMAND, BUFFER_LENGTH);
+
+        legacyModule.enableI2cReadMode(physicalPort, ADDRESS_I2C, START_ADDRESS, BUFFER_LENGTH);
         legacyModule.setI2cPortActionFlag(physicalPort);
         legacyModule.writeI2cCacheToController(physicalPort);
         legacyModule.registerForI2cPortReadyCallback(this, physicalPort);
@@ -70,14 +75,14 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     }
 
     public void enableLed(boolean enable) {
-        byte newLEDMode = (byte) (enable ? COMMAND_ACTIVE_LED : COMMAND_PASSIVE_LED);
+        int newMode = enable ? COMMAND_ACTIVE_LED : COMMAND_PASSIVE_LED;
 
-        if (this.ledMode != newLEDMode) {
-            this.ledMode = newLEDMode;
+        if (this.ledMode != newMode) {
+            this.ledMode = newMode;
             this.mode = ColorSensorMode.PERFORMING_WRITE;
             try {
                 this.writeCacheLock.lock();
-                this.writeCache[OFFSET_COMMAND] = newLEDMode;
+                this.writeCache[OFFSET_LED_MODE] = (byte) newMode;
             } finally {
                 this.writeCacheLock.unlock();
             }
@@ -93,13 +98,15 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     }
 
     private int getChannel(int channelIndex) {
+        byte colorByte;
         try {
             this.readCacheLock.lock();
-            byte colorByte = this.readCache[channelIndex];
-            return TypeConversion.unsignedByteToInt(colorByte);
+            colorByte = this.readCache[channelIndex];
         } finally {
             this.readCacheLock.unlock();
         }
+        return TypeConversion.unsignedByteToInt(colorByte);
+
     }
 
     public String getDeviceName() {
@@ -107,11 +114,11 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
     }
 
     public String getConnectionInfo() {
-        return this.legacyModule.getConnectionInfo() + "; I2C port: " + this.physicalPort;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
     public int getVersion() {
-        return ADDRESS_I2C;
+        return VERSION;
     }
 
     public void close() {
@@ -121,11 +128,11 @@ public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReady
         this.legacyModule.setI2cPortActionFlag(this.physicalPort);
         this.legacyModule.readI2cCacheFromController(this.physicalPort);
         if (this.mode == ColorSensorMode.PERFORMING_WRITE) {
-            this.legacyModule.enableI2cWriteMode(this.physicalPort, ADDRESS_I2C, ADDRESS_COMMAND, BUFFER_LENGTH);
+            this.legacyModule.enableI2cWriteMode(this.physicalPort, ADDRESS_I2C, START_ADDRESS, BUFFER_LENGTH);
             this.legacyModule.writeI2cCacheToController(this.physicalPort);
             this.mode = ColorSensorMode.SWITCHING_TO_READ;
         } else if (this.mode == ColorSensorMode.SWITCHING_TO_READ) {
-            this.legacyModule.enableI2cReadMode(this.physicalPort, ADDRESS_I2C, ADDRESS_COMMAND, BUFFER_LENGTH);
+            this.legacyModule.enableI2cReadMode(this.physicalPort, ADDRESS_I2C, START_ADDRESS, BUFFER_LENGTH);
             this.legacyModule.writeI2cCacheToController(this.physicalPort);
             this.mode = ColorSensorMode.READING_ONLY;
         } else {

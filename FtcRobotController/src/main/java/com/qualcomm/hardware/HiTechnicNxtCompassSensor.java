@@ -8,21 +8,20 @@ import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 
 public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortReadyCallback {
+    private static final int VERSION = 1;
+    public static final byte I2C_ADDRESS = (byte) 2;
+    public static final int START_ADDRESS = 65;
+    public static final int BUFFER_SIZE = 5;
+
+    public static final byte MEASUREMENT = (byte) 0;
     public static final byte CALIBRATION = (byte) 67;
     public static final byte CALIBRATION_FAILURE = (byte) 70;
-    public static final int COMPASS_BUFFER = 65;
-    public static final int COMPASS_BUFFER_SIZE = 5;
-    public static final byte DIRECTION_END = (byte) 9;
-    public static final byte DIRECTION_START = (byte) 7;
-    public static final byte HEADING_IN_TWO_DEGREE_INCREMENTS = (byte) 66;
-    public static final int HEADING_WORD_LENGTH = 2;
-    public static final byte I2C_ADDRESS = (byte) 2;
-    public static final double INVALID_DIRECTION = -1.0d;
-    public static final byte MEASUREMENT = (byte) 0;
-    public static final byte MODE_CONTROL_ADDRESS = (byte) 65;
-    public static final byte ONE_DEGREE_HEADING_ADDER = (byte) 67;
 
-    private static final byte OFFSET_COMMAND = 3;
+    private static final byte OFFSET_COMPASS_MODE = 3;
+    private static final byte OFFSET_DIRECTION_START = (byte) 7;
+    private static final byte OFFSET_DIRECTION_END = (byte) 9;
+
+    public static final double INVALID_DIRECTION = -1.0d;
 
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final byte[] readCache;
@@ -34,7 +33,7 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
     private boolean settingMode;
 
     public HiTechnicNxtCompassSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
-        legacyModule.enableI2cReadMode(physicalPort, I2C_ADDRESS, COMPASS_BUFFER, COMPASS_BUFFER_SIZE);
+        legacyModule.enableI2cReadMode(physicalPort, I2C_ADDRESS, START_ADDRESS, BUFFER_SIZE);
         this.legacyModule = legacyModule;
         this.readCache = legacyModule.getI2cReadCache(physicalPort);
         this.readCacheLock = legacyModule.getI2cReadCacheLock(physicalPort);
@@ -50,7 +49,7 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
         }
         try {
             this.readCacheLock.lock();
-            byte[] copyOfRange = Arrays.copyOfRange(this.readCache, DIRECTION_START, DIRECTION_END);
+            byte[] copyOfRange = Arrays.copyOfRange(this.readCache, OFFSET_DIRECTION_START, OFFSET_DIRECTION_END);
             return (double) TypeConversion.byteArrayToShort(copyOfRange, ByteOrder.LITTLE_ENDIAN);
         } finally {
             this.readCacheLock.unlock();
@@ -58,10 +57,7 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
     }
 
     public String status() {
-        Object[] stateBuffer = new Object[HEADING_WORD_LENGTH];
-        stateBuffer[0] = this.legacyModule.getSerialNumber().toString();
-        stateBuffer[1] = this.physicalPort;
-        return String.format("NXT Compass Sensor, connected via device %s, port %d", stateBuffer);
+        return String.format("NXT Compass Sensor, connected via device %s, port %d", this.legacyModule.getSerialNumber().toString(), this.physicalPort);
     }
 
     public void setMode(CompassMode mode) {
@@ -70,10 +66,10 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
             this.settingMode = true;
 
             byte compassModeByte = (this.compassMode == CompassMode.CALIBRATION_MODE ? CALIBRATION : MEASUREMENT);
-            this.legacyModule.enableI2cWriteMode(this.physicalPort, I2C_ADDRESS, COMPASS_BUFFER, 1);
+            this.legacyModule.enableI2cWriteMode(this.physicalPort, I2C_ADDRESS, START_ADDRESS, 1);
             try {
                 this.writeCacheLock.lock();
-                this.writeCache[OFFSET_COMMAND] = compassModeByte;
+                this.writeCache[OFFSET_COMPASS_MODE] = compassModeByte;
             } finally {
                 this.writeCacheLock.unlock();
             }
@@ -82,14 +78,13 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
 
     public boolean calibrationFailed() {
         boolean calibrationFailed = false;
-        if (!(this.compassMode == CompassMode.CALIBRATION_MODE || this.settingMode)) {
+        if (this.compassMode == CompassMode.MEASUREMENT_MODE && !this.settingMode) {
             try {
                 this.readCacheLock.lock();
-                if (this.readCache[OFFSET_COMMAND] == CALIBRATION_FAILURE) {
+                if (this.readCache[OFFSET_COMPASS_MODE] == CALIBRATION_FAILURE) {
                     calibrationFailed = true;
                 }
-                this.readCacheLock.unlock();
-            } catch (Throwable th) {
+            } finally {
                 this.readCacheLock.unlock();
             }
         }
@@ -101,13 +96,13 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
         this.legacyModule.readI2cCacheFromController(this.physicalPort);
         if (this.settingMode) {
             if (this.compassMode == CompassMode.MEASUREMENT_MODE) {
-                this.legacyModule.enableI2cReadMode(this.physicalPort, I2C_ADDRESS, COMPASS_BUFFER, COMPASS_BUFFER_SIZE);
+                this.legacyModule.enableI2cReadMode(this.physicalPort, I2C_ADDRESS, START_ADDRESS, BUFFER_SIZE);
             }
             this.settingMode = false;
             this.legacyModule.writeI2cCacheToController(this.physicalPort);
-            return;
+        } else {
+            this.legacyModule.writeI2cPortFlagOnlyToController(this.physicalPort);
         }
-        this.legacyModule.writeI2cPortFlagOnlyToController(this.physicalPort);
     }
 
     public String getDeviceName() {
@@ -115,11 +110,11 @@ public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortR
     }
 
     public String getConnectionInfo() {
-        return this.legacyModule.getConnectionInfo() + "; port " + this.physicalPort;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {
