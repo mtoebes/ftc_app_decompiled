@@ -10,11 +10,23 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class MatrixMasterController implements I2cPortReadyCallback {
-    private static final byte[] ADDRESS_SERVO_MAP = new byte[]{(byte) 0, (byte) 70, (byte) 72, (byte) 74, (byte) 76};
-    private static final byte[] ADDRESS_MOTOR_BATCH_MAP = new byte[]{(byte) 0, (byte) 78, (byte) 88, (byte) 98, (byte) 108};
-    private static final byte[] ADDRESS_MOTOR_TARGET_MAP = new byte[]{(byte) 0, (byte) 82, (byte) 92, (byte) 102, (byte) 112};
-    private static final byte[] ADDRESs_MOTOR_SPEED_MAP = new byte[]{(byte) 0, (byte) 86, (byte) 96, (byte) 106, (byte) 116};
-    private static final byte[] ADDRESS_MOTOR_MODE_MAP = new byte[]{(byte) 0, (byte) 87, (byte) 97, (byte) 107, (byte) 117};
+
+    private static final int ADDRESS_TIMEOUT = 66;
+    private static final int ADDRESS_BATTERY = 67;
+    private static final int ADDRESS_START = 68;
+    private static final int ADDRESS_SERVO_ENABLE = 69;
+
+    private static final int ADDRESS_SERVO_START = 70;
+    private static final int ADDRESS_SERVO_LENGTH = 2;
+
+    private static final int ADDRESS_MOTOR_START = 78;
+    private static final int ADDRESS_MOTOR_LENGTH = 10;
+
+    private static final int OFFSET_MOTOR_BATCH = 0;
+    private static final int OFFSET_MOTOR_TARGET = 4;
+    private static final int OFFSET_MOTOR_SPEED = 8;
+    private static final int OFFSET_MOTOR_MODE = 9;
+
     private static final double ELAPSED_TIME_MAX = 2.0;
 
     private volatile boolean isReading = false;
@@ -188,28 +200,51 @@ public class MatrixMasterController implements I2cPortReadyCallback {
     private int getMemAddress(MatrixI2cTransaction transaction) {
         switch (transaction.property) {
             case PROPERTY_POSITION:
-                return ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
+                return getMotorBatchAddress(transaction.motor);
             case PROPERTY_TARGET:
-                return ADDRESS_MOTOR_TARGET_MAP[transaction.motor];
+                return getMotorTargetAddress(transaction.motor);
             case PROPERTY_MODE:
-                return ADDRESS_MOTOR_MODE_MAP[transaction.motor];
+                return getMotorModeAddress(transaction.motor);
             case PROPERTY_SERVO:
-                return ADDRESS_SERVO_MAP[transaction.servo];
+                return getServoAddress(transaction.servo);
             case PROPERTY_SPEED:
-                return ADDRESs_MOTOR_SPEED_MAP[transaction.motor];
+                return getMotorSpeedAddress(transaction.motor);
             case PROPERTY_MOTOR_BATCH:
-                return ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
+                return getMotorBatchAddress(transaction.motor);
             case PROPERTY_TIMEOUT:
-                return 66;
+                return ADDRESS_TIMEOUT;
             case PROPERTY_BATTERY:
-                return 67;
+                return ADDRESS_BATTERY;
             case PROPERTY_START:
-                return 68;
+                return ADDRESS_START;
             case PROPERTY_SERVO_ENABLE:
-                return 69;
+                return ADDRESS_SERVO_ENABLE;
             default:
                 return 0;
         }
+    }
+
+    private static int getServoAddress(int servo) {
+        return ADDRESS_SERVO_START + (servo * ADDRESS_SERVO_LENGTH);
+    }
+
+    private static int getMotorAddress(int motor) {
+        return ADDRESS_MOTOR_START + (motor * ADDRESS_MOTOR_LENGTH);
+    }
+
+    private static int getMotorBatchAddress(int motor) {
+        return getMotorAddress(motor) + OFFSET_MOTOR_BATCH;
+    }
+
+    private static int getMotorTargetAddress(int motor) {
+        return getMotorAddress(motor) + OFFSET_MOTOR_TARGET;
+    }
+
+    private static int getMotorSpeedAddress(int motor) {
+        return getMotorAddress(motor) + OFFSET_MOTOR_SPEED;
+    }
+    private static int getMotorModeAddress(int motor) {
+        return getMotorAddress(motor) + OFFSET_MOTOR_MODE;
     }
 
     protected void buginf(String s) {
