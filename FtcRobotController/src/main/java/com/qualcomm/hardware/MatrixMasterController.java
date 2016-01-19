@@ -1,7 +1,7 @@
 package com.qualcomm.hardware;
 
 import com.qualcomm.hardware.MatrixI2cTransaction.MatrixI2cProperties;
-import com.qualcomm.hardware.MatrixI2cTransaction.C0009b;
+import com.qualcomm.hardware.MatrixI2cTransaction.MatrixI2cTransactionState;
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -10,11 +10,13 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class MatrixMasterController implements I2cPortReadyCallback {
-    private static final byte[] f111a = new byte[]{(byte) 0, (byte) 70, (byte) 72, (byte) 74, (byte) 76};
-    private static final byte[] f112b = new byte[]{(byte) 0, (byte) 78, (byte) 88, (byte) 98, (byte) 108};
-    private static final byte[] f113c = new byte[]{(byte) 0, (byte) 82, (byte) 92, (byte) 102, (byte) 112};
-    private static final byte[] f114d = new byte[]{(byte) 0, (byte) 86, (byte) 96, (byte) 106, (byte) 116};
-    private static final byte[] f115e = new byte[]{(byte) 0, (byte) 87, (byte) 97, (byte) 107, (byte) 117};
+    private static final byte[] ADDRESS_SERVO_MAP = new byte[]{(byte) 0, (byte) 70, (byte) 72, (byte) 74, (byte) 76};
+    private static final byte[] ADDRESS_MOTOR_BATCH_MAP = new byte[]{(byte) 0, (byte) 78, (byte) 88, (byte) 98, (byte) 108};
+    private static final byte[] ADDRESS_MOTOR_TARGET_MAP = new byte[]{(byte) 0, (byte) 82, (byte) 92, (byte) 102, (byte) 112};
+    private static final byte[] ADDRESs_MOTOR_SPEED_MAP = new byte[]{(byte) 0, (byte) 86, (byte) 96, (byte) 106, (byte) 116};
+    private static final byte[] ADDRESS_MOTOR_MODE_MAP = new byte[]{(byte) 0, (byte) 87, (byte) 97, (byte) 107, (byte) 117};
+    private static final double ELAPSED_TIME_MAX = 2.0;
+
     private volatile boolean isReading = false;
     private final ElapsedTime elapsedTime =  new ElapsedTime(0);
     protected ModernRoboticsUsbLegacyModule legacyModule;
@@ -111,111 +113,98 @@ public class MatrixMasterController implements I2cPortReadyCallback {
     }
 
     public void portIsReady(int port) {
-        int i = 4;
         if (!this.transactionQueue.isEmpty()) {
-            MatrixI2cTransaction matrixI2cTransaction = this.transactionQueue.peek();
-            if (matrixI2cTransaction.state == C0009b.PENDING_I2C_READ) {
+            MatrixI2cTransaction transaction = this.transactionQueue.peek();
+
+            if (transaction.state == MatrixI2cTransactionState.PENDING_I2C_READ) {
                 this.legacyModule.readI2cCacheFromController(this.physicalPort);
-                matrixI2cTransaction.state = C0009b.PENDING_READ_DONE;
-                return;
-            }
-            byte[] bArr;
-            int i2 = 0;
-            if (matrixI2cTransaction.state == C0009b.PENDING_I2C_WRITE) {
-                matrixI2cTransaction = this.transactionQueue.poll();
-                if (!this.transactionQueue.isEmpty()) {
-                    matrixI2cTransaction = this.transactionQueue.peek();
-                } else {
+                transaction.state = MatrixI2cTransactionState.PENDING_READ_DONE;
+            } else {
+                if (transaction.state == MatrixI2cTransactionState.PENDING_I2C_WRITE ||
+                        transaction.state == MatrixI2cTransactionState.PENDING_READ_DONE) {
+                    if (transaction.state == MatrixI2cTransactionState.PENDING_READ_DONE) {
+                        handleReadDone(transaction);
+                    }
+
+                    this.transactionQueue.poll();
+                    transaction = this.transactionQueue.peek();
+                }
+
+                if(transaction == null) {
                     return;
                 }
-            } else if (matrixI2cTransaction.state == C0009b.PENDING_READ_DONE) {
-                handleReadDone(matrixI2cTransaction);
-                matrixI2cTransaction = this.transactionQueue.poll();
-                if (!this.transactionQueue.isEmpty()) {
-                    matrixI2cTransaction = this.transactionQueue.peek();
-                } else {
-                    return;
+                byte[] data;
+                int memAddress;
+
+                switch (transaction.property) {
+                    case PROPERTY_BATTERY:
+                        data = new byte[]{(byte) 0};
+                        memAddress = 67;
+                        break;
+                    case PROPERTY_POSITION:
+                        memAddress = ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
+                        data = new byte[]{(byte) 0};
+                        break;
+                    case PROPERTY_TARGET:
+                        memAddress = ADDRESS_MOTOR_TARGET_MAP[transaction.motor];
+                        data = TypeConversion.intToByteArray(transaction.value);
+                        break;
+                    case PROPERTY_MODE:
+                        data = new byte[]{(byte) transaction.value};
+                        memAddress = ADDRESS_MOTOR_MODE_MAP[transaction.motor];
+                        break;
+                    case PROPERTY_SERVO:
+                        data = new byte[]{transaction.speed, (byte) transaction.target};
+                        memAddress = ADDRESS_SERVO_MAP[transaction.servo];
+                        break;
+                    case PROPERTY_TIMEOUT:
+                        data = new byte[]{(byte) transaction.value};
+                        memAddress = 66;
+                        break;
+                    case PROPERTY_START:
+                        data = new byte[]{(byte) transaction.value};
+                        memAddress = 68;
+                        break;
+                    case PROPERTY_SPEED:
+                        data = new byte[]{(byte) transaction.value};
+                        memAddress = ADDRESs_MOTOR_SPEED_MAP[transaction.motor];
+                        break;
+                    case PROPERTY_MOTOR_BATCH:
+                        memAddress = ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
+                        ByteBuffer allocate = ByteBuffer.allocate(10);
+                        allocate.put(TypeConversion.intToByteArray(0));
+                        allocate.put(TypeConversion.intToByteArray(transaction.target));
+                        allocate.put(transaction.speed);
+                        allocate.put(transaction.mode);
+                        data = allocate.array();
+                        break;
+                    case PROPERTY_SERVO_ENABLE:
+                        data = new byte[]{(byte) transaction.value};
+                        memAddress = 69;
+                        break;
+                    default:
+                        data = new byte[]{(byte) transaction.value};
+                        memAddress = 0;
+                        break;
                 }
-            }
-            byte b;
-            switch (matrixI2cTransaction.property) {
-                case  PROPERTY_BATTERY :
-                    bArr = new byte[]{(byte) 0};
-                    i2 = 67;
-                    i = 1;
-                    break;
-                case PROPERTY_POSITION :
-                    byte b2 = f112b[matrixI2cTransaction.motor];
-                    bArr = new byte[]{(byte) 0};
-                    b = b2;
-                    break;
-                case PROPERTY_TARGET :
-                    i2 = f113c[matrixI2cTransaction.motor];
-                    bArr = TypeConversion.intToByteArray(matrixI2cTransaction.value);
-                    break;
-                case PROPERTY_MODE :
-                    bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    b = f115e[matrixI2cTransaction.motor];
-                    i = 1;
-                    break;
-                case PROPERTY_SERVO :
-                    bArr = new byte[]{matrixI2cTransaction.speed, (byte) matrixI2cTransaction.target};
-                    b = f111a[matrixI2cTransaction.servo];
-                    i = 2;
-                    break;
-                case PROPERTY_TIMEOUT :
-                    bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    i2 = 66;
-                    i = 1;
-                    break;
-                case PROPERTY_START :
-                    bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    i2 = 68;
-                    i = 1;
-                    break;
-                case PROPERTY_SPEED :
-                    bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    b = f114d[matrixI2cTransaction.motor];
-                    i = 1;
-                    break;
-                case PROPERTY_MOTOR_BATCH :
-                    byte b3 = f112b[matrixI2cTransaction.motor];
-                    ByteBuffer allocate = ByteBuffer.allocate(10);
-                    allocate.put(TypeConversion.intToByteArray(0));
-                    allocate.put(TypeConversion.intToByteArray(matrixI2cTransaction.target));
-                    allocate.put(matrixI2cTransaction.speed);
-                    allocate.put(matrixI2cTransaction.mode);
-                    bArr = allocate.array();
-                    b = b3;
-                    i = 10;
-                    break;
-                case PROPERTY_SERVO_ENABLE :
-                    bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    i2 = 69;
-                    i = 1;
-                    break;
-                default:
-                    bArr = new byte[]{(byte) matrixI2cTransaction.value};
-                    i = 1;
-                    i2 = 0;
-                    break;
-            }
-            try {
-                if (matrixI2cTransaction.write) {
-                    this.legacyModule.setWriteMode(this.physicalPort, 16, i2);
-                    this.legacyModule.setData(this.physicalPort, bArr, i);
-                    matrixI2cTransaction.state = C0009b.PENDING_I2C_WRITE;
-                } else {
-                    this.legacyModule.setReadMode(this.physicalPort, 16, i2, i);
-                    matrixI2cTransaction.state = C0009b.PENDING_I2C_READ;
+
+                try {
+                    if (transaction.write) {
+                        this.legacyModule.setWriteMode(this.physicalPort, 16, memAddress);
+                        this.legacyModule.setData(this.physicalPort, data, data.length);
+                        transaction.state = MatrixI2cTransactionState.PENDING_I2C_WRITE;
+                    } else { // read
+                        this.legacyModule.setReadMode(this.physicalPort, 16, memAddress, data.length);
+                        transaction.state = MatrixI2cTransactionState.PENDING_I2C_READ;
+                    }
+                    this.legacyModule.setI2cPortActionFlag(this.physicalPort);
+                    this.legacyModule.writeI2cCacheToController(this.physicalPort);
+                } catch (IllegalArgumentException e) {
+                    RobotLog.e(e.getMessage());
                 }
-                this.legacyModule.setI2cPortActionFlag(this.physicalPort);
-                this.legacyModule.writeI2cCacheToController(this.physicalPort);
-            } catch (IllegalArgumentException e) {
-                RobotLog.e(e.getMessage());
+                buginf(transaction.toString());
             }
-            buginf(matrixI2cTransaction.toString());
-        } else if (this.elapsedTime.time() > 2.0d) {
+        } else if (this.elapsedTime.time() > ELAPSED_TIME_MAX) {
             sendHeartbeat();
             this.elapsedTime.reset();
         }

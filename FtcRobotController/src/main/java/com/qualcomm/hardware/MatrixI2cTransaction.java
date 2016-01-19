@@ -8,7 +8,7 @@ public class MatrixI2cTransaction {
     public MatrixI2cProperties property;
     public byte servo;
     public byte speed;
-    public C0009b state;
+    public MatrixI2cTransactionState state;
     public int target;
     public int value;
     public boolean write;
@@ -28,7 +28,7 @@ public class MatrixI2cTransaction {
     }
 
     /* renamed from: com.qualcomm.hardware.MatrixI2cTransaction.b */
-    enum C0009b {
+    enum MatrixI2cTransactionState {
         QUEUED,
         PENDING_I2C_READ,
         PENDING_I2C_WRITE,
@@ -39,7 +39,7 @@ public class MatrixI2cTransaction {
     MatrixI2cTransaction(byte motor, MatrixI2cProperties property) {
         this.motor = motor;
         this.property = property;
-        this.state = C0009b.QUEUED;
+        this.state = MatrixI2cTransactionState.QUEUED;
         this.write = false;
     }
 
@@ -47,7 +47,7 @@ public class MatrixI2cTransaction {
         this.motor = motor;
         this.value = value;
         this.property = property;
-        this.state = C0009b.QUEUED;
+        this.state = MatrixI2cTransactionState.QUEUED;
         this.write = true;
     }
 
@@ -57,7 +57,7 @@ public class MatrixI2cTransaction {
         this.target = target;
         this.mode = mode;
         this.property = MatrixI2cProperties.PROPERTY_MOTOR_BATCH;
-        this.state = C0009b.QUEUED;
+        this.state = MatrixI2cTransactionState.QUEUED;
         this.write = true;
     }
 
@@ -66,7 +66,7 @@ public class MatrixI2cTransaction {
         this.speed = speed;
         this.target = target;
         this.property = MatrixI2cProperties.PROPERTY_SERVO;
-        this.state = C0009b.QUEUED;
+        this.state = MatrixI2cTransactionState.QUEUED;
         this.write = true;
     }
 
