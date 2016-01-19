@@ -30,10 +30,12 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_FREQ = 2;
     private static final int OFFSET_ANALOG_VOLTAGE_OUTPUT_MODE = 4;
     private static final int ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE = 5;
+    private static final int ANALOG_VOLTAGE_OUTPUT_PORT_ADDRESS = 24;
 
     private static final int OFFSET_PULSE_OUTPUT_TIME = 0;
     private static final int OFFSET_PULSE_OUTPUT_PERIOD = 2;
     private static final int PULSE_OUTPUT_BUFFER_SIZE = 4;
+    private static final int PULSE_OUTPUT_PORT_ADDRESS = 36;
 
     private static final int OFFSET_I2C_PORT_MODE = 0;
     private static final int OFFSET_I2C_PORT_I2C_ADDRESS = 1;
@@ -41,11 +43,13 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private static final int OFFSET_I2C_PORT_MEMORY_LENGTH = 3;
     private static final int OFFSET_I2C_PORT_MEMORY_BUFFER = 4;
     private static final int I2C_PORT_BUFFER_SIZE = 32;
+    private static final int I2C_PORT_PORT_ADDRESS = 48;
 
     private static final int OFFSET_I2C_PORT_FLAG = 31;
     private static final byte I2C_ACTION_FLAG = (byte) -1;
 
     private static final int ANALOG_INPUT_BUFFER_SIZE = 2;
+    private static final int ANALOG_INPUT_PORT_ADDRESS = 4;
 
     private static final int NUMBER_OF_ANALOG_OUTPUT_PORTS = 2;
     private static final int NUMBER_OF_PULSE_OUTPUT_PORTS = 2;
@@ -490,20 +494,20 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private int getAnalogInputPortAddress(int port) {
-        return (ANALOG_INPUT_BUFFER_SIZE * port) + 4;
+        return (ANALOG_INPUT_BUFFER_SIZE * port) + ANALOG_INPUT_PORT_ADDRESS;
     }
 
     private int getAnalogOutputPortAddress(int port) {
         //TODO this is 6 vs buffer of 5, why?
-        return ((ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE+1) * port) + 24;
+        return ((ANALOG_VOLTAGE_OUTPUT_BUFFER_SIZE+1) * port) + ANALOG_VOLTAGE_OUTPUT_PORT_ADDRESS;
     }
 
     private int getPulseOutputPortAddress(int port) {
-        return (PULSE_OUTPUT_BUFFER_SIZE * port) + 36;
+        return (PULSE_OUTPUT_BUFFER_SIZE * port) + PULSE_OUTPUT_PORT_ADDRESS;
     }
 
     private int getI2cPortAddress(int port) {
-        return (I2C_PORT_BUFFER_SIZE * port) + 48;
+        return (I2C_PORT_BUFFER_SIZE * port) + I2C_PORT_PORT_ADDRESS;
     }
 
     private int getAnalogOutputKey(int port) {
@@ -511,15 +515,15 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     }
 
     private int getPulseOutputKey(int port) {
-        return port + NUMBER_OF_ANALOG_OUTPUT_PORTS;
+        return getAnalogOutputKey(port) + 2;
     }
 
     private int getI2cKey(int port) {
-        return port + NUMBER_OF_ANALOG_OUTPUT_PORTS + NUMBER_OF_I2C_PORTS;
+        return getPulseOutputKey(port) + 4;
     }
 
     private int getFlagKey(int port) {
-        return port +  NUMBER_OF_ANALOG_OUTPUT_PORTS + NUMBER_OF_I2C_PORTS + NUMBER_OF_I2C_PORTS;
+        return getI2cKey(port) + 6;
     }
 
     private int getDigitalBitMask(int port) {
