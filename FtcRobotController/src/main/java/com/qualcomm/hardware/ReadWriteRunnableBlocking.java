@@ -1,6 +1,5 @@
 package com.qualcomm.hardware;
 
-import com.qualcomm.hardware.ReadWriteRunnable.BlockingState;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -11,21 +10,18 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ReadWriteRunnableBlocking extends ReadWriteRunnableStandard {
-    private volatile boolean f191a;
-    protected final Condition blockingCondition;
-    protected final Lock blockingLock;
-    protected BlockingState blockingState;
-    protected final Condition waitingCondition;
-    protected final Lock waitingLock;
+    private volatile boolean writeNeeded = false;
+
+    protected final Lock blockingLock = new ReentrantLock();
+    protected final Condition blockingCondition = blockingLock.newCondition();
+
+    protected final Lock waitingLock = new ReentrantLock();
+    protected final Condition waitingCondition = waitingLock.newCondition();;
+
+    protected BlockingState blockingState = BlockingState.BLOCKING;
 
     public ReadWriteRunnableBlocking(SerialNumber serialNumber, RobotUsbDevice device, int monitorLength, int startAddress, boolean debug) {
         super(serialNumber, device, monitorLength, startAddress, debug);
-        this.blockingLock = new ReentrantLock();
-        this.waitingLock = new ReentrantLock();
-        this.blockingCondition = this.blockingLock.newCondition();
-        this.waitingCondition = this.waitingLock.newCondition();
-        this.blockingState = BlockingState.BLOCKING;
-        this.f191a = false;
     }
 
     public void blockUntilReady() throws RobotCoreException, InterruptedException {
@@ -57,16 +53,16 @@ public class ReadWriteRunnableBlocking extends ReadWriteRunnableStandard {
     public void write(int address, byte[] data) {
         synchronized (this.localDeviceWriteCache) {
             System.arraycopy(data, 0, this.localDeviceWriteCache, address, data.length);
-            this.f191a = true;
+            this.writeNeeded = true;
         }
     }
 
     public boolean writeNeeded() {
-        return this.f191a;
+        return this.writeNeeded;
     }
 
     public void setWriteNeeded(boolean set) {
-        this.f191a = set;
+        this.writeNeeded = set;
     }
 
     protected void waitForSyncdEvents() throws RobotCoreException, InterruptedException {

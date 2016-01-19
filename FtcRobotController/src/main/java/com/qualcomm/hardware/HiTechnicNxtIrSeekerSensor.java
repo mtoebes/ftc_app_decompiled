@@ -33,7 +33,7 @@ public class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPor
     private final int physicalPort;
     private Mode mode = Mode.MODE_1200HZ;
     private double signalDetectedThreshold = DEFAULT_SIGNAL_DETECTED_THRESHOLD;
-    private volatile boolean isUnknown = true;
+    private volatile boolean isUnknown = true; //TODO identify this
 
     public HiTechnicNxtIrSeekerSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
         this.legacyModule = legacyModule;

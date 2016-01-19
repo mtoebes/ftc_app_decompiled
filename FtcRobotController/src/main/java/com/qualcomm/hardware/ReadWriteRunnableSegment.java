@@ -4,45 +4,45 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ReadWriteRunnableSegment {
-    final Lock f192a;
-    final Lock f193b;
-    private int f194c;
-    private final byte[] f195d;
-    private final byte[] f196e;
+    final Lock readLock;
+    final Lock writeLock;
+    private int address;
+    private final byte[] readBuffer;
+    private final byte[] writeBuffer;
 
     public ReadWriteRunnableSegment(int address, int size) {
-        this.f194c = address;
-        this.f192a = new ReentrantLock();
-        this.f195d = new byte[size];
-        this.f193b = new ReentrantLock();
-        this.f196e = new byte[size];
+        this.address = address;
+        this.readLock = new ReentrantLock();
+        this.readBuffer = new byte[size];
+        this.writeLock = new ReentrantLock();
+        this.writeBuffer = new byte[size];
     }
 
     public int getAddress() {
-        return this.f194c;
+        return this.address;
     }
 
     public void setAddress(int address) {
-        this.f194c = address;
+        this.address = address;
     }
 
     public Lock getReadLock() {
-        return this.f192a;
+        return this.readLock;
     }
 
     public byte[] getReadBuffer() {
-        return this.f195d;
+        return this.readBuffer;
     }
 
     public Lock getWriteLock() {
-        return this.f193b;
+        return this.writeLock;
     }
 
     public byte[] getWriteBuffer() {
-        return this.f196e;
+        return this.writeBuffer;
     }
 
     public String toString() {
-        return String.format("Segment - address:%d read:%d write:%d", this.f194c, this.f195d.length, this.f196e.length);
+        return String.format("Segment - address:%d read:%d write:%d", this.address, this.readBuffer.length, this.writeBuffer.length);
     }
 }

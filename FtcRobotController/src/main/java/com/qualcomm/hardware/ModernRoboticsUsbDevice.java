@@ -9,11 +9,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class ModernRoboticsUsbDevice implements Callback {
-    public static final int DEVICE_ID_DC_MOTOR_CONTROLLER = 77;
-    public static final int DEVICE_ID_DEVICE_INTERFACE_MODULE = 65;
-    public static final int DEVICE_ID_LEGACY_MODULE = 73;
-    public static final int DEVICE_ID_SERVO_CONTROLLER = 83;
-    public static final int MFG_CODE_MODERN_ROBOTICS = 77;
     protected ReadWriteRunnable readWriteRunnable;
     protected ExecutorService readWriteService;
     protected SerialNumber serialNumber;
