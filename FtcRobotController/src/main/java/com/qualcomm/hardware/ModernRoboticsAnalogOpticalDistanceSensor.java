@@ -3,27 +3,29 @@ package com.qualcomm.hardware;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 public class ModernRoboticsAnalogOpticalDistanceSensor extends OpticalDistanceSensor {
-    private final ModernRoboticsUsbDeviceInterfaceModule f119a;
-    private final int f120b;
+    private final static double LIGHT_VALUE_MAX = 1023.0d;
+    private final static int VERSION = 0;
+    private final ModernRoboticsUsbDeviceInterfaceModule deviceInterfaceModule;
+    private final int physicalPort;
 
     public ModernRoboticsAnalogOpticalDistanceSensor(ModernRoboticsUsbDeviceInterfaceModule deviceInterfaceModule, int physicalPort) {
-        this.f119a = deviceInterfaceModule;
-        this.f120b = physicalPort;
+        this.deviceInterfaceModule = deviceInterfaceModule;
+        this.physicalPort = physicalPort;
     }
 
     public double getLightDetected() {
-        return ((double) this.f119a.getAnalogInputValue(this.f120b)) / 1023.0d;
+        return getLightDetectedRaw()/ LIGHT_VALUE_MAX;
     }
 
     public int getLightDetectedRaw() {
-        return this.f119a.getAnalogInputValue(this.f120b);
+        return this.deviceInterfaceModule.getAnalogInputValue(this.physicalPort);
     }
 
     public void enableLed(boolean enable) {
     }
 
     public String status() {
-        return String.format("Optical Distance Sensor, connected via device %s, port %d", this.f119a.getSerialNumber().toString(), this.f120b);
+        return String.format("Optical Distance Sensor, connected via device %s, port %d", this.deviceInterfaceModule.getSerialNumber().toString(), this.physicalPort);
     }
 
     public String getDeviceName() {
@@ -31,11 +33,11 @@ public class ModernRoboticsAnalogOpticalDistanceSensor extends OpticalDistanceSe
     }
 
     public String getConnectionInfo() {
-        return this.f119a.getConnectionInfo() + "; analog port " + this.f120b;
+        return String.format("%s; analog port %d", this.deviceInterfaceModule.getConnectionInfo(), this.physicalPort);
     }
 
     public int getVersion() {
-        return 0;
+        return VERSION;
     }
 
     public void close() {

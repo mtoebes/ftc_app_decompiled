@@ -4,14 +4,13 @@ import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 public class ModernRoboticsDigitalTouchSensor extends TouchSensor {
-    private DeviceInterfaceModule f121a;
-    private int f122b;
+    public static final int VERSION = 1;
+    private DeviceInterfaceModule deviceInterfaceModule;
+    private int physicalPort;
 
     public ModernRoboticsDigitalTouchSensor(DeviceInterfaceModule module, int physicalPort) {
-        this.f121a = null;
-        this.f122b = -1;
-        this.f121a = module;
-        this.f122b = physicalPort;
+        this.deviceInterfaceModule = module;
+        this.physicalPort = physicalPort;
     }
 
     public double getValue() {
@@ -19,7 +18,7 @@ public class ModernRoboticsDigitalTouchSensor extends TouchSensor {
     }
 
     public boolean isPressed() {
-        return this.f121a.getDigitalChannelState(this.f122b);
+        return this.deviceInterfaceModule.getDigitalChannelState(this.physicalPort);
     }
 
     public String getDeviceName() {
@@ -27,11 +26,11 @@ public class ModernRoboticsDigitalTouchSensor extends TouchSensor {
     }
 
     public String getConnectionInfo() {
-        return this.f121a.getConnectionInfo() + "; digital port " + this.f122b;
+        return this.deviceInterfaceModule.getConnectionInfo() + "; digital port: " + this.physicalPort;
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

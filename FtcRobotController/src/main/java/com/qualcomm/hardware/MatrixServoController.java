@@ -4,29 +4,27 @@ import com.qualcomm.hardware.MatrixI2cTransaction.MatrixI2cProperties;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.TypeConversion;
-import java.util.Arrays;
 
 public class MatrixServoController implements ServoController {
+    private static final int VERSION = 1;
+
     public static final int SERVO_POSITION_MAX = 240;
-    private MatrixMasterController f118a;
-    protected PwmStatus pwmStatus;
-    protected double[] servoCache;
+    private MatrixMasterController masterController;
+    protected PwmStatus pwmStatus = PwmStatus.DISABLED;
+    protected double[] servoCache = new double[4];
 
     public MatrixServoController(MatrixMasterController master) {
-        this.servoCache = new double[4];
-        this.f118a = master;
-        this.pwmStatus = PwmStatus.DISABLED;
-        Arrays.fill(this.servoCache, 0.0d);
+        this.masterController = master;
         master.registerServoController(this);
     }
 
     public void pwmEnable() {
-        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_SERVO_ENABLE, 15));
+        this.masterController.queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_SERVO_ENABLE, 15));
         this.pwmStatus = PwmStatus.ENABLED;
     }
 
     public void pwmDisable() {
-        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_SERVO_ENABLE, 0));
+        this.masterController.queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_SERVO_ENABLE, 0));
         this.pwmStatus = PwmStatus.DISABLED;
     }
 
@@ -35,22 +33,22 @@ public class MatrixServoController implements ServoController {
     }
 
     public void setServoPosition(int channel, double position) {
-        m50a(channel);
+        validateChannel(channel);
         Range.throwIfRangeIsInvalid(position, 0.0d, 1.0d);
-        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) channel, (byte) ((int) (240.0d * position)), (byte) 0));
+        this.masterController.queueTransaction(new MatrixI2cTransaction((byte) channel, (byte) ((int) (SERVO_POSITION_MAX * position)), (byte) 0));
     }
 
     public void setServoPosition(int channel, double position, byte speed) {
-        m50a(channel);
+        validateChannel(channel);
         Range.throwIfRangeIsInvalid(position, 0.0d, 1.0d);
-        this.f118a.queueTransaction(new MatrixI2cTransaction((byte) channel, (byte) ((int) (240.0d * position)), speed));
+        this.masterController.queueTransaction(new MatrixI2cTransaction((byte) channel, (byte) ((int) (SERVO_POSITION_MAX * position)), speed));
     }
 
     public double getServoPosition(int channel) {
-        if (this.f118a.queueTransaction(new MatrixI2cTransaction((byte) channel, MatrixI2cProperties.PROPERTY_SERVO))) {
-            this.f118a.waitOnRead();
+        if (this.masterController.queueTransaction(new MatrixI2cTransaction((byte) channel, MatrixI2cProperties.PROPERTY_SERVO))) {
+            this.masterController.waitOnRead();
         }
-        return this.servoCache[channel] / 240.0d;
+        return this.servoCache[channel] / SERVO_POSITION_MAX;
     }
 
     public String getDeviceName() {
@@ -58,20 +56,20 @@ public class MatrixServoController implements ServoController {
     }
 
     public String getConnectionInfo() {
-        return this.f118a.getConnectionInfo();
+        return this.masterController.getConnectionInfo();
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {
         pwmDisable();
     }
 
-    private void m50a(int i) {
-        if (i < 1 || i > 4) {
-            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", new Object[]{i, (byte) 4}));
+    private void validateChannel(int channel) {
+        if (channel < 1 || channel > 4) {
+            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", channel, (byte) 4));
         }
     }
 

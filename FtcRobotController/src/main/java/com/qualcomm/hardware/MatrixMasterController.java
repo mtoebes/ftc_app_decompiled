@@ -10,42 +10,31 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class MatrixMasterController implements I2cPortReadyCallback {
-    private static final byte[] f111a;
-    private static final byte[] f112b;
-    private static final byte[] f113c;
-    private static final byte[] f114d;
-    private static final byte[] f115e;
-    private volatile boolean f116f;
-    private final ElapsedTime f117g;
+    private static final byte[] f111a = new byte[]{(byte) 0, (byte) 70, (byte) 72, (byte) 74, (byte) 76};
+    private static final byte[] f112b = new byte[]{(byte) 0, (byte) 78, (byte) 88, (byte) 98, (byte) 108};
+    private static final byte[] f113c = new byte[]{(byte) 0, (byte) 82, (byte) 92, (byte) 102, (byte) 112};
+    private static final byte[] f114d = new byte[]{(byte) 0, (byte) 86, (byte) 96, (byte) 106, (byte) 116};
+    private static final byte[] f115e = new byte[]{(byte) 0, (byte) 87, (byte) 97, (byte) 107, (byte) 117};
+    private volatile boolean isReading = false;
+    private final ElapsedTime elapsedTime =  new ElapsedTime(0);
     protected ModernRoboticsUsbLegacyModule legacyModule;
     protected MatrixDcMotorController motorController;
     protected int physicalPort;
     protected MatrixServoController servoController;
-    protected ConcurrentLinkedQueue<MatrixI2cTransaction> transactionQueue;
-
-    static {
-        f111a = new byte[]{(byte) 0, HiTechnicNxtCompassSensor.CALIBRATION_FAILURE, (byte) 72, (byte) 74, (byte) 76};
-        f112b = new byte[]{(byte) 0, (byte) 78, (byte) 88, (byte) 98, (byte) 108};
-        f113c = new byte[]{(byte) 0, (byte) 82, (byte) 92, (byte) 102, (byte) 112};
-        f114d = new byte[]{(byte) 0, (byte) 86, (byte) 96, (byte) 106, (byte) 116};
-        f115e = new byte[]{(byte) 0, (byte) 87, (byte) 97, (byte) 107, (byte) 117};
-    }
+    protected ConcurrentLinkedQueue<MatrixI2cTransaction> transactionQueue = new ConcurrentLinkedQueue<MatrixI2cTransaction>();
 
     public MatrixMasterController(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
-        this.f116f = false;
-        this.f117g = new ElapsedTime(0);
         this.legacyModule = legacyModule;
         this.physicalPort = physicalPort;
-        this.transactionQueue = new ConcurrentLinkedQueue<MatrixI2cTransaction>();
         legacyModule.registerForI2cPortReadyCallback(this, physicalPort);
     }
 
-    public void registerMotorController(MatrixDcMotorController mc) {
-        this.motorController = mc;
+    public void registerMotorController(MatrixDcMotorController motorController) {
+        this.motorController = motorController;
     }
 
-    public void registerServoController(MatrixServoController sc) {
-        this.servoController = sc;
+    public void registerServoController(MatrixServoController servoController) {
+        this.servoController = servoController;
     }
 
     public int getPort() {
@@ -53,7 +42,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
     }
 
     public String getConnectionInfo() {
-        return this.legacyModule.getConnectionInfo() + "; port " + this.physicalPort;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
     public boolean queueTransaction(MatrixI2cTransaction transaction, boolean force) {
@@ -76,8 +65,8 @@ public class MatrixMasterController implements I2cPortReadyCallback {
 
     public void waitOnRead() {
         synchronized (this) {
-            this.f116f = true;
-            while (this.f116f) {
+            this.isReading = true;
+            while (this.isReading) {
                 try {
                     wait(0);
                 } catch (InterruptedException e) {
@@ -110,8 +99,8 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                 break;
         }
         synchronized (this) {
-            if (this.f116f) {
-                this.f116f = false;
+            if (this.isReading) {
+                this.isReading = false;
                 notify();
             }
         }
@@ -226,9 +215,9 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                 RobotLog.e(e.getMessage());
             }
             buginf(matrixI2cTransaction.toString());
-        } else if (this.f117g.time() > 2.0d) {
+        } else if (this.elapsedTime.time() > 2.0d) {
             sendHeartbeat();
-            this.f117g.reset();
+            this.elapsedTime.reset();
         }
     }
 
