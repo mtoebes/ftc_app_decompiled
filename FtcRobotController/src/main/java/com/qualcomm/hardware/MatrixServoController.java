@@ -8,10 +8,10 @@ import com.qualcomm.robotcore.util.TypeConversion;
 public class MatrixServoController implements ServoController {
     private static final int VERSION = 1;
 
-    public static final int SERVO_POSITION_MAX = 240;
-    private MatrixMasterController masterController;
-    protected PwmStatus pwmStatus = PwmStatus.DISABLED;
-    protected double[] servoCache = new double[4];
+    private static final int SERVO_POSITION_MAX = 240;
+    private final MatrixMasterController masterController;
+    private PwmStatus pwmStatus = PwmStatus.DISABLED;
+    private final double[] servoCache = new double[4];
 
     public MatrixServoController(MatrixMasterController master) {
         this.masterController = master;

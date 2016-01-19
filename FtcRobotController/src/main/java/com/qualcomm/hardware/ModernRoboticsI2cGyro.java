@@ -13,21 +13,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice, I2cPortReadyCallback {
-    public static final int ADDRESS_I2C = 32;
+    private static final int ADDRESS_I2C = 32;
 
-    protected static final int VERSION = 1;
-    protected static final int BUFFER_LENGTH = 18;
+    private static final int VERSION = 1;
+    private static final int BUFFER_LENGTH = 18;
 
-    protected static final byte COMMAND_NORMAL = (byte) 0;
-    protected static final byte COMMAND_CALIBRATING = (byte) 78;
-    protected static final byte COMMAND_RESET_Z_AXIS = (byte) 82;
+    private static final byte COMMAND_NORMAL = (byte) 0;
+    private static final byte COMMAND_CALIBRATING = (byte) 78;
+    private static final byte COMMAND_RESET_Z_AXIS = (byte) 82;
 
-    protected static final int OFFSET_COMMAND = 3;
-    protected static final int OFFSET_HEADING_DATA = 8;
-    protected static final int OFFSET_INTEGRATED_Z_VAL = 10;
-    protected static final int OFFSET_RAW_X_VAL = 12;
-    protected static final int OFFSET_RAW_Y_VAL = 14;
-    protected static final int OFFSET_RAW_Z_VAL = 16;
+    private static final int OFFSET_COMMAND = 3;
+    private static final int OFFSET_HEADING_DATA = 8;
+    private static final int OFFSET_INTEGRATED_Z_VAL = 10;
+    private static final int OFFSET_RAW_X_VAL = 12;
+    private static final int OFFSET_RAW_Y_VAL = 14;
+    private static final int OFFSET_RAW_Z_VAL = 16;
 
     private final DeviceInterfaceModule deviceInterfaceModule;
     private final byte[] readCache;
@@ -35,13 +35,13 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
     private final int physicalPort;
     private HeadingMode headingMode = HeadingMode.HEADING_CARDINAL;
     private MeasurementMode measurementMode = MeasurementMode.GYRO_NORMAL;
-    private GyroData gyroData = new GyroData();
-    protected ConcurrentLinkedQueue<GyroI2cTransaction> transactionQueue = new ConcurrentLinkedQueue<GyroI2cTransaction>();
+    private final GyroData gyroData = new GyroData();
+    private final ConcurrentLinkedQueue<GyroI2cTransaction> transactionQueue = new ConcurrentLinkedQueue<GyroI2cTransaction>();
 
     public class GyroI2cTransaction {
         byte memAddress = 0;
         boolean writeMode = false;
-        byte[] data = new byte[1];
+        final byte[] data = new byte[1];
         byte dataLength = BUFFER_LENGTH;
 
         I2cTransactionState state;
@@ -116,7 +116,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         deviceInterfaceModule.registerForI2cPortReadyCallback(this, physicalPort);
     }
 
-    public boolean queueTransaction(GyroI2cTransaction transaction, boolean force) {
+    private boolean queueTransaction(GyroI2cTransaction transaction, boolean force) {
         if (!force) {
             for (GyroI2cTransaction aTransactionQueue : this.transactionQueue) {
                 if ((aTransactionQueue).isEqual(transaction)) {
@@ -130,7 +130,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         return true;
     }
 
-    public boolean queueTransaction(GyroI2cTransaction transaction) {
+    private boolean queueTransaction(GyroI2cTransaction transaction) {
         return queueTransaction(transaction, false);
     }
 
@@ -279,7 +279,7 @@ public class ModernRoboticsI2cGyro extends GyroSensor implements HardwareDevice,
         }
     }
 
-    protected void buginf(String s) {
+    private void buginf(String s) {
         //TODO implement this?
     }
 }

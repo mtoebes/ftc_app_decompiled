@@ -82,7 +82,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
         }
     }
 
-    protected ModernRoboticsUsbDcMotorController(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
+    ModernRoboticsUsbDcMotorController(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableBlocking(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
         this.motorPositions = new motorPosition[NUM_OF_MOTORS];
         this.readWriteRunnable.setCallback(this);

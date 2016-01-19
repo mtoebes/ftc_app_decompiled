@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteOrder;
 
-public class HiTechnicNxtTouchSensor extends TouchSensor {
-    public static final int VERSION = 1;
+class HiTechnicNxtTouchSensor extends TouchSensor {
+    private static final int VERSION = 1;
     private static final double TOUCH_SENSOR_PRESSED_THRESHOLD = 675.0d;
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final int physicalPort;

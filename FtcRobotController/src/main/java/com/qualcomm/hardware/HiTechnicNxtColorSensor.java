@@ -10,17 +10,17 @@ import java.util.concurrent.locks.Lock;
 public class HiTechnicNxtColorSensor extends ColorSensor implements I2cPortReadyCallback {
     private static final int VERSION = 2;
 
-    public static final int ADDRESS_I2C = 2;
-    public static final int BUFFER_LENGTH = 5;
-    public static final int START_ADDRESS = 65;
+    private static final int ADDRESS_I2C = 2;
+    private static final int BUFFER_LENGTH = 5;
+    private static final int START_ADDRESS = 65;
 
-    public static final int COMMAND_ACTIVE_LED = 0;
-    public static final int COMMAND_PASSIVE_LED = 1;
+    private static final int COMMAND_ACTIVE_LED = 0;
+    private static final int COMMAND_PASSIVE_LED = 1;
 
-    public static final int OFFSET_LED_MODE = 4;
-    public static final int OFFSET_RED_READING = 6;
-    public static final int OFFSET_GREEN_READING = 7;
-    public static final int OFFSET_BLUE_READING = 8;
+    private static final int OFFSET_LED_MODE = 4;
+    private static final int OFFSET_RED_READING = 6;
+    private static final int OFFSET_GREEN_READING = 7;
+    private static final int OFFSET_BLUE_READING = 8;
 
     private ColorSensorMode mode = ColorSensorMode.READING_ONLY;
     private volatile int ledMode = COMMAND_ACTIVE_LED;

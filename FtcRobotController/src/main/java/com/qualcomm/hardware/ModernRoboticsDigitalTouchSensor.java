@@ -3,10 +3,10 @@ package com.qualcomm.hardware;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
-public class ModernRoboticsDigitalTouchSensor extends TouchSensor {
-    public static final int VERSION = 1;
-    private DeviceInterfaceModule deviceInterfaceModule;
-    private int physicalPort;
+class ModernRoboticsDigitalTouchSensor extends TouchSensor {
+    private static final int VERSION = 1;
+    private final DeviceInterfaceModule deviceInterfaceModule;
+    private final int physicalPort;
 
     public ModernRoboticsDigitalTouchSensor(DeviceInterfaceModule module, int physicalPort) {
         this.deviceInterfaceModule = module;

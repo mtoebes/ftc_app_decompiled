@@ -9,13 +9,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class ModernRoboticsUsbDevice implements Callback {
-    protected ReadWriteRunnable readWriteRunnable;
-    protected ExecutorService readWriteService;
-    protected SerialNumber serialNumber;
+    final ReadWriteRunnable readWriteRunnable;
+    private final ExecutorService readWriteService;
+    private final SerialNumber serialNumber;
 
     public abstract String getDeviceName();
 
-    public ModernRoboticsUsbDevice(SerialNumber serialNumber, EventLoopManager manager, ReadWriteRunnable readWriteRunnable) throws RobotCoreException, InterruptedException {
+    ModernRoboticsUsbDevice(SerialNumber serialNumber, EventLoopManager manager, ReadWriteRunnable readWriteRunnable) throws RobotCoreException, InterruptedException {
         this.readWriteService = Executors.newSingleThreadExecutor();
         this.serialNumber = serialNumber;
         this.readWriteRunnable = readWriteRunnable;
@@ -34,13 +34,13 @@ public abstract class ModernRoboticsUsbDevice implements Callback {
         return read(0);
     }
 
-    public void close() {
+    void close() {
         RobotLog.v("Shutting down device " + this.serialNumber.toString());
         this.readWriteService.shutdown();
         this.readWriteRunnable.close();
     }
 
-    public void write(int address, byte data) {
+    void write(int address, byte data) {
         write(address, new byte[]{data});
     }
 
@@ -48,27 +48,27 @@ public abstract class ModernRoboticsUsbDevice implements Callback {
         write(address, new byte[]{(byte) data});
     }
 
-    public void write(int address, double data) {
+    void write(int address, double data) {
         write(address, new byte[]{(byte) ((int) data)});
     }
 
-    public void write(int address, byte[] data) {
+    void write(int address, byte[] data) {
         this.readWriteRunnable.write(address, data);
     }
 
-    public byte readFromWriteCache(int address) {
+    byte readFromWriteCache(int address) {
         return readFromWriteCache(address, 1)[0];
     }
 
-    public byte[] readFromWriteCache(int address, int size) {
+    private byte[] readFromWriteCache(int address, int size) {
         return this.readWriteRunnable.readFromWriteCache(address, size);
     }
 
-    public byte read(int address) {
+    byte read(int address) {
         return read(address, 1)[0];
     }
 
-    public byte[] read(int address, int size) {
+    byte[] read(int address, int size) {
         return this.readWriteRunnable.read(address, size);
     }
 

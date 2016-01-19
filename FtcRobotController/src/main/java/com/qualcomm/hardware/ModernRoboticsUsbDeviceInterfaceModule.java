@@ -62,7 +62,7 @@ public class ModernRoboticsUsbDeviceInterfaceModule extends ModernRoboticsUsbDev
     private final ReadWriteRunnableSegment[] i2cSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
     private final ReadWriteRunnableSegment[] flagSegments = new ReadWriteRunnableSegment[NUMBER_OF_I2C_PORTS];
 
-    protected ModernRoboticsUsbDeviceInterfaceModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
+    ModernRoboticsUsbDeviceInterfaceModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
 
         for (int analogPort = 0; analogPort < NUMBER_OF_ANALOG_OUTPUT_PORTS; analogPort++) {

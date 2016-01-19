@@ -4,12 +4,12 @@ import com.qualcomm.robotcore.hardware.AccelerationSensor;
 import com.qualcomm.robotcore.hardware.I2cController.I2cPortReadyCallback;
 import java.util.concurrent.locks.Lock;
 
-public class HiTechnicNxtAccelerationSensor extends AccelerationSensor implements I2cPortReadyCallback {
+class HiTechnicNxtAccelerationSensor extends AccelerationSensor implements I2cPortReadyCallback {
     private static final int VERSION = 1;
 
-    public static final byte I2C_ADDRESS = (byte) 2;
-    public static final int START_ADDRESS = 66;
-    public static final int BUFFER_LENGTH = 6;
+    private static final byte I2C_ADDRESS = (byte) 2;
+    private static final int START_ADDRESS = 66;
+    private static final int BUFFER_LENGTH = 6;
 
 
     private static final byte ACCEL_X = 4;

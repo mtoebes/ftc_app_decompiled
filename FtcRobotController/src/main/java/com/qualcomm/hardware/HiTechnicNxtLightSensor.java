@@ -4,9 +4,9 @@ import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.TypeConversion;
 
-public class HiTechnicNxtLightSensor extends LightSensor {
+class HiTechnicNxtLightSensor extends LightSensor {
     private static final int VERSION = 1;
-    public static final byte LED_DIGITAL_LINE_NUMBER = (byte) 0;
+    private static final byte LED_DIGITAL_LINE_NUMBER = (byte) 0;
     private static final double LIGHT_DETECTED_RAW_MAX = 127.0;
     private static final double LIGHT_DETECTED_RAW_MIN = -128.0;
 

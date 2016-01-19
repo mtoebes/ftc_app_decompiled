@@ -5,26 +5,26 @@ import com.qualcomm.robotcore.hardware.IrSeekerSensor;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.concurrent.locks.Lock;
 
-public class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPortReadyCallback {
+class HiTechnicNxtIrSeekerSensor extends IrSeekerSensor implements I2cPortReadyCallback {
     private static final int VERSION = 2;
 
-    public static final double DEFAULT_SIGNAL_DETECTED_THRESHOLD = 0.00390625d;
-    public static final byte OFFSET_DIRECTION = (byte) 4;
-    public static final int I2C_ADDRESS = 16;
+    private static final double DEFAULT_SIGNAL_DETECTED_THRESHOLD = 0.00390625d;
+    private static final byte OFFSET_DIRECTION = (byte) 4;
+    private static final int I2C_ADDRESS = 16;
 
-    public static final byte INVALID_ANGLE = (byte) 0;
-    public static final byte MIN_ANGLE = (byte) 1;
-    public static final byte MAX_ANGLE = (byte) 9;
+    private static final byte INVALID_ANGLE = (byte) 0;
+    private static final byte MIN_ANGLE = (byte) 1;
+    private static final byte MAX_ANGLE = (byte) 9;
 
-    public static final double MAX_SENSOR_STRENGTH = 256.0d;
-    public static final int MEM_AC_START_ADDRESS = 73;
-    public static final int MEM_DC_START_ADDRESS = 66;
-    public static final int MEM_MODE_ADDRESS = 65;
-    public static final int BUFFER_SIZE = 6;
-    public static final byte MODE_AC = (byte) 0;
-    public static final byte MODE_DC = (byte) 2;
-    public static final byte SENSOR_COUNT = (byte) 9;
-    public static final byte SENSOR_FIRST = (byte) 5;
+    private static final double MAX_SENSOR_STRENGTH = 256.0d;
+    private static final int MEM_AC_START_ADDRESS = 73;
+    private static final int MEM_DC_START_ADDRESS = 66;
+    private static final int MEM_MODE_ADDRESS = 65;
+    private static final int BUFFER_SIZE = 6;
+    private static final byte MODE_AC = (byte) 0;
+    private static final byte MODE_DC = (byte) 2;
+    private static final byte SENSOR_COUNT = (byte) 9;
+    private static final byte SENSOR_FIRST = (byte) 5;
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final byte[] readCache;
     private final Lock readCacheLock;

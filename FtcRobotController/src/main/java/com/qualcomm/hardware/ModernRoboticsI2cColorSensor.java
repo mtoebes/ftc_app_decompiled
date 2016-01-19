@@ -10,25 +10,25 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsI2cColorSensor extends ColorSensor implements I2cPortReadyCallback {
-    public static final int DEFAULT_I2C_ADDRESS = 60;
-    public static final int VERSION = 1;
+    private static final int DEFAULT_I2C_ADDRESS = 60;
+    private static final int VERSION = 1;
 
-    public static final int BUFFER_LENGTH = 6;
-    public static final int START_ADDRESS = 3;
+    private static final int BUFFER_LENGTH = 6;
+    private static final int START_ADDRESS = 3;
 
-    public static final int COMMAND_ACTIVE_LED = 0;
-    public static final int COMMAND_PASSIVE_LED = 1;
+    private static final int COMMAND_ACTIVE_LED = 0;
+    private static final int COMMAND_PASSIVE_LED = 1;
 
-    public static final int OFFSET_COMMAND = 4;
+    private static final int OFFSET_COMMAND = 4;
     public static final int OFFSET_COLOR_NUMBER = 5;
-    public static final int OFFSET_RED_READING = 6;
-    public static final int OFFSET_GREEN_READING = 7;
-    public static final int OFFSET_BLUE_READING = 8;
-    public static final int OFFSET_ALPHA_READING = 9;
+    private static final int OFFSET_RED_READING = 6;
+    private static final int OFFSET_GREEN_READING = 7;
+    private static final int OFFSET_BLUE_READING = 8;
+    private static final int OFFSET_ALPHA_READING = 9;
 
-    public volatile int i2cAddress = DEFAULT_I2C_ADDRESS;
+    private volatile int i2cAddress = DEFAULT_I2C_ADDRESS;
     private SensorMode mode = SensorMode.READING_ONLY;
-    private volatile int command = COMMAND_ACTIVE_LED;;
+    private volatile int command = COMMAND_ACTIVE_LED;
 
     private final DeviceInterfaceModule deviceInterfaceModule;
     private final int physicalPort;

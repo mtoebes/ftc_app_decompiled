@@ -4,8 +4,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ReadWriteRunnableSegment {
-    final Lock readLock;
-    final Lock writeLock;
+    private final Lock readLock;
+    private final Lock writeLock;
     private int address;
     private final byte[] readBuffer;
     private final byte[] writeBuffer;

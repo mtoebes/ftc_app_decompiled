@@ -12,13 +12,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ReadWriteRunnableBlocking extends ReadWriteRunnableStandard {
     private volatile boolean writeNeeded = false;
 
-    protected final Lock blockingLock = new ReentrantLock();
-    protected final Condition blockingCondition = blockingLock.newCondition();
+    private final Lock blockingLock = new ReentrantLock();
+    private final Condition blockingCondition = blockingLock.newCondition();
 
-    protected final Lock waitingLock = new ReentrantLock();
-    protected final Condition waitingCondition = waitingLock.newCondition();;
+    private final Lock waitingLock = new ReentrantLock();
+    private final Condition waitingCondition = waitingLock.newCondition();
 
-    protected BlockingState blockingState = BlockingState.BLOCKING;
+    private BlockingState blockingState = BlockingState.BLOCKING;
 
     public ReadWriteRunnableBlocking(SerialNumber serialNumber, RobotUsbDevice device, int monitorLength, int startAddress, boolean debug) {
         super(serialNumber, device, monitorLength, startAddress, debug);

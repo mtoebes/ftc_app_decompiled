@@ -8,33 +8,33 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteOrder;
 import java.util.concurrent.locks.Lock;
 
-public class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements I2cPortReadyCallback {
-    public static final int ADDRESS_MEM_START = 4;
-    public static final int MEM_LENGTH = 12;
+class ModernRoboticsI2cIrSeekerSensorV3 extends IrSeekerSensor implements I2cPortReadyCallback {
+    private static final int ADDRESS_MEM_START = 4;
+    private static final int MEM_LENGTH = 12;
 
-    public static final int DEFAULT_I2C_ADDRESS = 56;
+    private static final int DEFAULT_I2C_ADDRESS = 56;
 
-    public static final double DEFAULT_SIGNAL_DETECTED_THRESHOLD = 0.00390625d;
+    private static final double DEFAULT_SIGNAL_DETECTED_THRESHOLD = 0.00390625d;
 
-    public static final byte INVALID_ANGLE = (byte) 0;
-    public static final byte INVALID_STRENGTH = (byte) 0;
+    private static final byte INVALID_ANGLE = (byte) 0;
+    private static final byte INVALID_STRENGTH = (byte) 0;
 
-    public static final double MAX_SENSOR_STRENGTH = 256.0d;
+    private static final double MAX_SENSOR_STRENGTH = 256.0d;
 
-    public static final int OFFSET_1200HZ_HEADING_DATA = 4;
-    public static final int OFFSET_1200HZ_LEFT_SIDE_RAW_DATA = 8;
-    public static final int OFFSET_1200HZ_RIGHT_SIDE_RAW_DATA = 10;
-    public static final int OFFSET_1200HZ_SIGNAL_STRENGTH = 5;
+    private static final int OFFSET_1200HZ_HEADING_DATA = 4;
+    private static final int OFFSET_1200HZ_LEFT_SIDE_RAW_DATA = 8;
+    private static final int OFFSET_1200HZ_RIGHT_SIDE_RAW_DATA = 10;
+    private static final int OFFSET_1200HZ_SIGNAL_STRENGTH = 5;
 
-    public static final int OFFSET_600HZ_HEADING_DATA = 6;
-    public static final int OFFSET_600HZ_LEFT_SIDE_RAW_DATA = 12;
-    public static final int OFFSET_600HZ_RIGHT_SIDE_RAW_DATA = 14;
-    public static final int OFFSET_600HZ_SIGNAL_STRENGTH = 7;
+    private static final int OFFSET_600HZ_HEADING_DATA = 6;
+    private static final int OFFSET_600HZ_LEFT_SIDE_RAW_DATA = 12;
+    private static final int OFFSET_600HZ_RIGHT_SIDE_RAW_DATA = 14;
+    private static final int OFFSET_600HZ_SIGNAL_STRENGTH = 7;
 
     private final static int VERSION = 3;
-    public static final byte SENSOR_COUNT = (byte) 2;
+    private static final byte SENSOR_COUNT = (byte) 2;
 
-    public volatile int i2cAddress = DEFAULT_I2C_ADDRESS;
+    private volatile int i2cAddress = DEFAULT_I2C_ADDRESS;
     private Mode mode = Mode.MODE_1200HZ;
     private double signalDetectedThreshold = DEFAULT_SIGNAL_DETECTED_THRESHOLD;
 

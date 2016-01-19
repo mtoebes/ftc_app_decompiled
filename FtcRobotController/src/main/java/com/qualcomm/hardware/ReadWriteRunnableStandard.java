@@ -14,20 +14,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice.Channel;
 
 public class ReadWriteRunnableStandard implements ReadWriteRunnable {
-    protected final boolean DEBUG_LOGGING;
+    private final boolean DEBUG_LOGGING;
     private volatile boolean writeNeeded = false;
-    protected Callback callback = new EmptyCallback();
-    protected final byte[] localDeviceReadCache = new byte[256];
-    protected final byte[] localDeviceWriteCache = new byte[256];
-    protected int monitorLength;
-    protected volatile boolean running = false;
-    protected ConcurrentLinkedQueue<Integer> segmentReadQueue = new ConcurrentLinkedQueue<Integer>();
-    protected ConcurrentLinkedQueue<Integer> segmentWriteQueue = new ConcurrentLinkedQueue<Integer>();
-    protected Map<Integer, ReadWriteRunnableSegment> segments =  new HashMap<Integer, ReadWriteRunnableSegment>();
-    protected final SerialNumber serialNumber;
-    protected volatile boolean shutdownComplete = false;
-    protected int startAddress;
-    protected final ReadWriteRunnableUsbHandler usbHandler;
+    private Callback callback = new EmptyCallback();
+    private final byte[] localDeviceReadCache = new byte[256];
+    final byte[] localDeviceWriteCache = new byte[256];
+    private final int monitorLength;
+    private volatile boolean running = false;
+    private final ConcurrentLinkedQueue<Integer> segmentReadQueue = new ConcurrentLinkedQueue<Integer>();
+    private final ConcurrentLinkedQueue<Integer> segmentWriteQueue = new ConcurrentLinkedQueue<Integer>();
+    private final Map<Integer, ReadWriteRunnableSegment> segments =  new HashMap<Integer, ReadWriteRunnableSegment>();
+    final SerialNumber serialNumber;
+    volatile boolean shutdownComplete = false;
+    private final int startAddress;
+    private final ReadWriteRunnableUsbHandler usbHandler;
 
     public void close() {
         try {
@@ -68,11 +68,11 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
     public void startBlockingWork() {
     }
 
-    public boolean writeNeeded() {
+    boolean writeNeeded() {
         return this.writeNeeded;
     }
 
-    public void setWriteNeeded(boolean set) {
+    void setWriteNeeded(boolean set) {
         this.writeNeeded = set;
     }
 
@@ -146,7 +146,7 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
                     this.usbHandler.read(tempStartAddress, tempBuffer);
 
                     while(!this.segmentReadQueue.isEmpty()) {
-                        var6 = (ReadWriteRunnableSegment)this.segments.get(this.segmentReadQueue.remove());
+                        var6 = this.segments.get(this.segmentReadQueue.remove());
                         var7 = new byte[var6.getReadBuffer().length];
                         this.usbHandler.read(var6.getAddress(), var7);
 
@@ -158,10 +158,9 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
                         }
                     }
                 } catch (RobotCoreException var47) {
-                    RobotLog.w(String.format("could not read from device %s: %s", new Object[]{this.serialNumber, var47.getMessage()}));
+                    RobotLog.w(String.format("could not read from device %s: %s", this.serialNumber, var47.getMessage()));
                 }
 
-                byte[] var53 = this.localDeviceReadCache;
                 synchronized(this.localDeviceReadCache) {
                     System.arraycopy(tempBuffer, 0, this.localDeviceReadCache, tempStartAddress, tempBuffer.length);
                 }
@@ -178,7 +177,6 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
                     var1 = false;
                 }
 
-                var53 = this.localDeviceWriteCache;
                 synchronized(this.localDeviceWriteCache) {
                     System.arraycopy(this.localDeviceWriteCache, tempStartAddress, tempBuffer, 0, tempBuffer.length);
                 }
@@ -190,7 +188,7 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
                     }
 
                     for(; !this.segmentWriteQueue.isEmpty(); this.usbHandler.write(var6.getAddress(), var7)) {
-                        var6 = (ReadWriteRunnableSegment)this.segments.get(this.segmentWriteQueue.remove());
+                        var6 = this.segments.get(this.segmentWriteQueue.remove());
 
                         try {
                             var6.getWriteLock().lock();
@@ -228,14 +226,14 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
         RobotLog.v(String.format("stopped read/write loop for device %s", this.serialNumber));
     }
 
-    protected void waitForSyncdEvents() throws RobotCoreException, InterruptedException {
+    void waitForSyncdEvents() throws RobotCoreException, InterruptedException {
     }
 
-    protected void dumpBuffers(String name, byte[] byteArray) {
+    private void dumpBuffers(String name, byte[] byteArray) {
         RobotLog.v("Dumping " + name + " buffers for " + this.serialNumber);
         StringBuilder stringBuilder = new StringBuilder(1024);
         for (int i = 0; i < this.startAddress + this.monitorLength; i++) {
-            stringBuilder.append(String.format(" %02x", new Object[]{TypeConversion.unsignedByteToInt(byteArray[i])}));
+            stringBuilder.append(String.format(" %02x", TypeConversion.unsignedByteToInt(byteArray[i])));
             if ((i + 1) % 16 == 0) {
                 stringBuilder.append("\n");
             }
@@ -243,7 +241,7 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
         RobotLog.v(stringBuilder.toString());
     }
 
-    protected void queueIfNotAlreadyQueued(int key, ConcurrentLinkedQueue<Integer> queue) {
+    private void queueIfNotAlreadyQueued(int key, ConcurrentLinkedQueue<Integer> queue) {
         if (!queue.contains(Integer.valueOf(key))) {
             queue.add(key);
         }

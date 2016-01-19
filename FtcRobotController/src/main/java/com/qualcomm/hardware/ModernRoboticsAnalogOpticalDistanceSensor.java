@@ -2,7 +2,7 @@ package com.qualcomm.hardware;
 
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
-public class ModernRoboticsAnalogOpticalDistanceSensor extends OpticalDistanceSensor {
+class ModernRoboticsAnalogOpticalDistanceSensor extends OpticalDistanceSensor {
     private final static double LIGHT_VALUE_MAX = 1023.0d;
     private final static int VERSION = 0;
     private final ModernRoboticsUsbDeviceInterfaceModule deviceInterfaceModule;

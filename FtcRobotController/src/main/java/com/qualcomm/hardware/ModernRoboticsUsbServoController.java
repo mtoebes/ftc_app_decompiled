@@ -10,19 +10,19 @@ import com.qualcomm.robotcore.util.TypeConversion;
 
 public class ModernRoboticsUsbServoController extends ModernRoboticsUsbDevice implements ServoController {
 
-    public static final int ADDRESS_PWM = 72;
-    public static final int ADDRESS_UNUSED = -1;
-    public static final boolean DEBUG_LOGGING = false;
-    public static final int NUMBER_OF_SERVOS = 6;
-    public static final int MONITOR_LENGTH = 9;
+    private static final int ADDRESS_PWM = 72;
+    private static final int ADDRESS_UNUSED = -1;
+    private static final boolean DEBUG_LOGGING = false;
+    private static final int NUMBER_OF_SERVOS = 6;
+    private static final int MONITOR_LENGTH = 9;
 
-    public static final byte PWM_DISABLE = (byte) -1;
-    public static final byte PWM_ENABLE = (byte) 0;
+    private static final byte PWM_DISABLE = (byte) -1;
+    private static final byte PWM_ENABLE = (byte) 0;
 
-    public static final int SERVO_POSITION_MAX = 255;
-    public static final byte START_ADDRESS = (byte) 64;
+    private static final int SERVO_POSITION_MAX = 255;
+    private static final byte START_ADDRESS = (byte) 64;
 
-    protected ModernRoboticsUsbServoController(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
+    ModernRoboticsUsbServoController(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableBlocking(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
         pwmDisable();
     }

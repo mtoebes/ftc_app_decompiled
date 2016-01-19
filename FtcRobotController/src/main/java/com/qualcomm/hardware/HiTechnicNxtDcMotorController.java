@@ -7,41 +7,41 @@ import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.concurrent.locks.Lock;
 
-public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPortReadyCallback {
-    public static final int VERSION = 1;
+class HiTechnicNxtDcMotorController implements DcMotorController, I2cPortReadyCallback {
+    private static final int VERSION = 1;
 
-    public static final int I2C_ADDRESS = 2;
-    public static final int START_ADDRESS = 64;
-    public static final int BUFFER_SIZE = 20;
+    private static final int I2C_ADDRESS = 2;
+    private static final int START_ADDRESS = 64;
+    private static final int BUFFER_SIZE = 20;
 
-    public static final int MAX_MOTOR = 2;
-    public static final int MIN_MOTOR = 1;
-    public static final int POSITION_BUFFER_SIZE = 4;
+    private static final int MAX_MOTOR = 2;
+    private static final int MIN_MOTOR = 1;
+    private static final int POSITION_BUFFER_SIZE = 4;
 
-    public static final int POWER_FLOAT_VALUE = -128;
+    private static final int POWER_FLOAT_VALUE = -128;
 
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY_NXT = (byte) 0;
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED_NXT = (byte) 1;
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION = (byte) 2;
-    public static final byte CHANNEL_MODE_FLAG_SELECT_RESET = (byte) 3;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY_NXT = (byte) 0;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED_NXT = (byte) 1;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RUN_TO_POSITION = (byte) 2;
+    private static final byte CHANNEL_MODE_FLAG_SELECT_RESET = (byte) 3;
 
-    public static final int CHANNEL_MODE_MASK_BUSY = 128;
-    public static final int CHANNEL_MODE_MASK_SELECTION = 3;
+    private static final int CHANNEL_MODE_MASK_BUSY = 128;
+    private static final int CHANNEL_MODE_MASK_SELECTION = 3;
 
-    public static final int OFFSET_MOTOR1_CURRENT_ENCODER_VALUE = 16;
-    public static final int OFFSET_MOTOR1_MODE = 8;
-    public static final int OFFSET_MOTOR1_POWER = 9;
-    public static final int OFFSET_MOTOR1_TARGET_ENCODER_VALUE = 4;
-    public static final int OFFSET_MOTOR2_CURRENT_ENCODER_VALUE = 20;
-    public static final int OFFSET_MOTOR2_MODE = 11;
-    public static final int OFFSET_MOTOR2_POWER = 10;
-    public static final int OFFSET_MOTOR2_TARGET_ENCODER_VALUE = 12;
+    private static final int OFFSET_MOTOR1_CURRENT_ENCODER_VALUE = 16;
+    private static final int OFFSET_MOTOR1_MODE = 8;
+    private static final int OFFSET_MOTOR1_POWER = 9;
+    private static final int OFFSET_MOTOR1_TARGET_ENCODER_VALUE = 4;
+    private static final int OFFSET_MOTOR2_CURRENT_ENCODER_VALUE = 20;
+    private static final int OFFSET_MOTOR2_MODE = 11;
+    private static final int OFFSET_MOTOR2_POWER = 10;
+    private static final int OFFSET_MOTOR2_TARGET_ENCODER_VALUE = 12;
 
-    public static final byte POWER_BREAK = (byte) 0;
-    public static final byte POWER_FLOAT = Byte.MIN_VALUE;
-    public static final byte POWER_MAX = (byte) 100;
+    private static final byte POWER_BREAK = (byte) 0;
+    private static final byte POWER_FLOAT = Byte.MIN_VALUE;
+    private static final byte POWER_MAX = (byte) 100;
 
-    public static final double ELAPSED_TIME_MAX = 2.0;
+    private static final double ELAPSED_TIME_MAX = 2.0;
 
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final byte[] readCache;
@@ -283,7 +283,7 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         }
     }
 
-    public static RunMode flagToRunModeNXT(byte flag) {
+    private static RunMode flagToRunModeNXT(byte flag) {
         switch (flag & CHANNEL_MODE_MASK_SELECTION) {
             case CHANNEL_MODE_FLAG_SELECT_RUN_POWER_CONTROL_ONLY_NXT :
                 return RunMode.RUN_WITHOUT_ENCODERS;
@@ -298,7 +298,7 @@ public class HiTechnicNxtDcMotorController implements DcMotorController, I2cPort
         }
     }
 
-    public static byte runModeToFlagNXT(RunMode mode) {
+    private static byte runModeToFlagNXT(RunMode mode) {
         switch (mode) {
             case RUN_USING_ENCODERS :
                 return CHANNEL_MODE_FLAG_SELECT_RUN_CONSTANT_SPEED_NXT;

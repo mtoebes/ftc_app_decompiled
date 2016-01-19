@@ -5,16 +5,16 @@ import com.qualcomm.robotcore.hardware.UltrasonicSensor;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.concurrent.locks.Lock;
 
-public class HiTechnicNxtUltrasonicSensor extends UltrasonicSensor implements I2cPortReadyCallback {
-    public static final int START_ADDRESS = 66;
-    public static final int BUFFER_LENGTH = 1;
+class HiTechnicNxtUltrasonicSensor extends UltrasonicSensor implements I2cPortReadyCallback {
+    private static final int START_ADDRESS = 66;
+    private static final int BUFFER_LENGTH = 1;
     private static final int VERSION = 1;
-    public static final int I2C_ADDRESS = 2;
-    public static final int MAX_PORT = 5;
-    public static final int MIN_PORT = 4;
-    public static final int OFFSET_ULTRASONIC_LEVEL = 4;
-    Lock readCacheLock;
-    byte[] readCache;
+    private static final int I2C_ADDRESS = 2;
+    private static final int MAX_PORT = 5;
+    private static final int MIN_PORT = 4;
+    private static final int OFFSET_ULTRASONIC_LEVEL = 4;
+    private final Lock readCacheLock;
+    private final byte[] readCache;
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final int physicalPort;
 

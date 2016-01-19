@@ -5,13 +5,13 @@ import com.qualcomm.robotcore.util.RobotLog;
 public class MatrixI2cTransaction {
     public byte mode;
     public byte motor;
-    public MatrixI2cProperties property;
+    public final MatrixI2cProperties property;
     public byte servo;
     public byte speed;
     public MatrixI2cTransactionState state;
     public int target;
     public int value;
-    public boolean write;
+    public final boolean write;
 
     enum MatrixI2cProperties {
         PROPERTY_MODE,

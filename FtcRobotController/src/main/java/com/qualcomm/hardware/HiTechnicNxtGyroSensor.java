@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteOrder;
 
-public class HiTechnicNxtGyroSensor extends GyroSensor {
+class HiTechnicNxtGyroSensor extends GyroSensor {
     private static final int VERSION = 1;
 
     private final ModernRoboticsUsbLegacyModule legacyModule;

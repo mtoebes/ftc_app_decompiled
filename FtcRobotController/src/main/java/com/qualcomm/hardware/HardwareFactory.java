@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HardwareFactory {
-    private Context context;
+    private final Context context;
     private InputStream inputStream;
 
     public HardwareFactory(Context context) {

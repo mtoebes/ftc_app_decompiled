@@ -4,10 +4,10 @@ import com.qualcomm.robotcore.hardware.TouchSensorMultiplexer;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteOrder;
 
-public class HiTechnicNxtTouchSensorMultiplexer extends TouchSensorMultiplexer {
-    public static final int VERSION = 1;
+class HiTechnicNxtTouchSensorMultiplexer extends TouchSensorMultiplexer {
+    private static final int VERSION = 1;
 
-    public static final int MAX_CHANNEL = 4;
+    private static final int MAX_CHANNEL = 4;
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final int physicalPort;
 

@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class MatrixMasterController implements I2cPortReadyCallback {
+class MatrixMasterController implements I2cPortReadyCallback {
 
     private static final int ADDRESS_TIMEOUT = 66;
     private static final int ADDRESS_BATTERY = 67;
@@ -31,11 +31,11 @@ public class MatrixMasterController implements I2cPortReadyCallback {
 
     private volatile boolean isReading = false;
     private final ElapsedTime elapsedTime =  new ElapsedTime(0);
-    protected ModernRoboticsUsbLegacyModule legacyModule;
-    protected MatrixDcMotorController motorController;
-    protected int physicalPort;
-    protected MatrixServoController servoController;
-    protected ConcurrentLinkedQueue<MatrixI2cTransaction> transactionQueue = new ConcurrentLinkedQueue<MatrixI2cTransaction>();
+    private final ModernRoboticsUsbLegacyModule legacyModule;
+    private MatrixDcMotorController motorController;
+    private final int physicalPort;
+    private MatrixServoController servoController;
+    private final ConcurrentLinkedQueue<MatrixI2cTransaction> transactionQueue = new ConcurrentLinkedQueue<MatrixI2cTransaction>();
 
     public MatrixMasterController(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
         this.legacyModule = legacyModule;
@@ -59,7 +59,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
         return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
-    public boolean queueTransaction(MatrixI2cTransaction transaction, boolean force) {
+    private boolean queueTransaction(MatrixI2cTransaction transaction, boolean force) {
         if (!force) {
             for (MatrixI2cTransaction aTransactionQueue : this.transactionQueue) {
                 if ((aTransactionQueue).isEqual(transaction)) {
@@ -90,7 +90,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
         }
     }
 
-    protected void handleReadDone(MatrixI2cTransaction transaction) {
+    private void handleReadDone(MatrixI2cTransaction transaction) {
         byte[] i2cReadCache = this.legacyModule.getI2cReadCache(this.physicalPort);
         switch (transaction.property) {
             case PROPERTY_BATTERY:
@@ -120,7 +120,7 @@ public class MatrixMasterController implements I2cPortReadyCallback {
         }
     }
 
-    protected void sendHeartbeat() {
+    private void sendHeartbeat() {
         queueTransaction(new MatrixI2cTransaction((byte) 0, MatrixI2cProperties.PROPERTY_TIMEOUT, 3));
     }
 
@@ -247,6 +247,6 @@ public class MatrixMasterController implements I2cPortReadyCallback {
         return getMotorAddress(motor) + OFFSET_MOTOR_MODE;
     }
 
-    protected void buginf(String s) {
+    private void buginf(String s) {
     }
 }

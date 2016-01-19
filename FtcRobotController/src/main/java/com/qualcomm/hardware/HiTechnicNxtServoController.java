@@ -6,23 +6,23 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import java.util.concurrent.locks.Lock;
 
-public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoController {
-    public static final int VERSION = 1;
+class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoController {
+    private static final int VERSION = 1;
 
-    public static final int I2C_ADDRESS = 2;
-    public static final int MAX_SERVOS = 6;
-    public static final int BUFFER_LENGTH = 7;
-    public static final int START_ADDRESS = 66;
-    public static final int OFFSET_PWM = 10;
-    public static final int OFFSET_SERVO_POSITION = 4;
-    public static final double ELAPSED_TIME_MAX = 5.0;
+    private static final int I2C_ADDRESS = 2;
+    private static final int MAX_SERVOS = 6;
+    private static final int BUFFER_LENGTH = 7;
+    private static final int START_ADDRESS = 66;
+    private static final int OFFSET_PWM = 10;
+    private static final int OFFSET_SERVO_POSITION = 4;
+    private static final double ELAPSED_TIME_MAX = 5.0;
 
-    public static final byte PWM_DISABLE = (byte) -1;
-    public static final byte PWM_ENABLE = (byte) 0;
+    private static final byte PWM_DISABLE = (byte) -1;
+    private static final byte PWM_ENABLE = (byte) 0;
 
-    public static final int SERVO_POSITION_MAX = 255;
+    private static final int SERVO_POSITION_MAX = 255;
 
-    private ElapsedTime elapsedTime = new ElapsedTime(0);
+    private final ElapsedTime elapsedTime = new ElapsedTime(0);
     private volatile boolean unknownResetCheck = true;
 
     private final ModernRoboticsUsbLegacyModule legacyModule;

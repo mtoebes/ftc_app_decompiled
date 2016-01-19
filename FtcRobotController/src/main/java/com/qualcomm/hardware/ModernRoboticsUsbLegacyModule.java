@@ -10,36 +10,36 @@ import java.util.concurrent.locks.Lock;
 
 public class ModernRoboticsUsbLegacyModule extends ModernRoboticsUsbDevice implements LegacyModule {
 
-    public static final byte NXT_MODE_READ = -127;
-    public static final byte NXT_MODE_ANALOG = (byte) 0;
-    public static final byte NXT_MODE_I2C = (byte) 1;
-    public static final byte NXT_MODE_9V_ENABLED = (byte) 2;
+    private static final byte NXT_MODE_READ = -127;
+    private static final byte NXT_MODE_ANALOG = (byte) 0;
+    private static final byte NXT_MODE_I2C = (byte) 1;
+    private static final byte NXT_MODE_9V_ENABLED = (byte) 2;
 
-    public static final byte OFFSET_I2C_PORT_MODE = (byte) 0;
-    public static final byte OFFSET_I2C_PORT_I2C_ADDRESS = (byte) 1;
-    public static final byte OFFSET_I2C_PORT_MEMORY_ADDRESS = (byte) 2;
-    public static final byte OFFSET_I2C_PORT_MEMORY_LENGTH = (byte) 3;
-    public static final byte OFFSET_I2C_PORT_MEMORY_BUFFER = (byte) 4;
-    public static final byte OFFSET_I2C_PORT_FLAG = (byte) 31;
+    private static final byte OFFSET_I2C_PORT_MODE = (byte) 0;
+    private static final byte OFFSET_I2C_PORT_I2C_ADDRESS = (byte) 1;
+    private static final byte OFFSET_I2C_PORT_MEMORY_ADDRESS = (byte) 2;
+    private static final byte OFFSET_I2C_PORT_MEMORY_LENGTH = (byte) 3;
+    private static final byte OFFSET_I2C_PORT_MEMORY_BUFFER = (byte) 4;
+    private static final byte OFFSET_I2C_PORT_FLAG = (byte) 31;
 
-    public static final byte SIZE_I2C_BUFFER = (byte) 27;
-    public static final byte SIZE_OF_PORT_BUFFER = (byte) 32;
+    private static final byte SIZE_I2C_BUFFER = (byte) 27;
+    private static final byte SIZE_OF_PORT_BUFFER = (byte) 32;
 
-    public static final int START_ADDRESS = 3;
-    public static final int ADDRESS_BUFFER_STATUS = 3;
-    public static final int MONITOR_LENGTH = 13;
-    public static final boolean DEBUG_LOGGING = false;
+    private static final int START_ADDRESS = 3;
+    private static final int ADDRESS_BUFFER_STATUS = 3;
+    private static final int MONITOR_LENGTH = 13;
+    private static final boolean DEBUG_LOGGING = false;
 
-    public static final int NUMBER_OF_PORTS = 6;
+    private static final int NUMBER_OF_PORTS = 6;
 
-    public static final byte I2C_ACTION_FLAG = (byte) -1;
+    private static final byte I2C_ACTION_FLAG = (byte) -1;
 
-    public static final int[] PORT_9V_CAPABLE = new int[]{4, 5};
+    private static final int[] PORT_9V_CAPABLE = new int[]{4, 5};
 
     private final ReadWriteRunnableSegment[] segments;
     private final I2cPortReadyCallback[] callbacks;
 
-    protected ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
+    ModernRoboticsUsbLegacyModule(SerialNumber serialNumber, RobotUsbDevice device, EventLoopManager manager) throws RobotCoreException, InterruptedException {
         super(serialNumber, manager, new ReadWriteRunnableStandard(serialNumber, device, MONITOR_LENGTH, START_ADDRESS, DEBUG_LOGGING));
         this.segments = new ReadWriteRunnableSegment[2*NUMBER_OF_PORTS];
         this.callbacks = new I2cPortReadyCallback[NUMBER_OF_PORTS];

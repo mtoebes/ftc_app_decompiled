@@ -7,21 +7,21 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 
-public class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortReadyCallback {
+class HiTechnicNxtCompassSensor extends CompassSensor implements I2cPortReadyCallback {
     private static final int VERSION = 1;
-    public static final byte I2C_ADDRESS = (byte) 2;
-    public static final int START_ADDRESS = 65;
-    public static final int BUFFER_SIZE = 5;
+    private static final byte I2C_ADDRESS = (byte) 2;
+    private static final int START_ADDRESS = 65;
+    private static final int BUFFER_SIZE = 5;
 
-    public static final byte MEASUREMENT = (byte) 0;
-    public static final byte CALIBRATION = (byte) 67;
-    public static final byte CALIBRATION_FAILURE = (byte) 70;
+    private static final byte MEASUREMENT = (byte) 0;
+    private static final byte CALIBRATION = (byte) 67;
+    private static final byte CALIBRATION_FAILURE = (byte) 70;
 
     private static final byte OFFSET_COMPASS_MODE = 3;
     private static final byte OFFSET_DIRECTION_START = (byte) 7;
     private static final byte OFFSET_DIRECTION_END = (byte) 9;
 
-    public static final double INVALID_DIRECTION = -1.0d;
+    private static final double INVALID_DIRECTION = -1.0d;
 
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final byte[] readCache;
