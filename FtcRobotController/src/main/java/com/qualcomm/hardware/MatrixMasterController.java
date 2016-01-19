@@ -133,62 +133,11 @@ public class MatrixMasterController implements I2cPortReadyCallback {
                 if(transaction == null) {
                     return;
                 }
-                byte[] data;
-                int memAddress;
-
-                switch (transaction.property) {
-                    case PROPERTY_BATTERY:
-                        data = new byte[]{(byte) 0};
-                        memAddress = 67;
-                        break;
-                    case PROPERTY_POSITION:
-                        memAddress = ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
-                        data = new byte[]{(byte) 0};
-                        break;
-                    case PROPERTY_TARGET:
-                        memAddress = ADDRESS_MOTOR_TARGET_MAP[transaction.motor];
-                        data = TypeConversion.intToByteArray(transaction.value);
-                        break;
-                    case PROPERTY_MODE:
-                        data = new byte[]{(byte) transaction.value};
-                        memAddress = ADDRESS_MOTOR_MODE_MAP[transaction.motor];
-                        break;
-                    case PROPERTY_SERVO:
-                        data = new byte[]{transaction.speed, (byte) transaction.target};
-                        memAddress = ADDRESS_SERVO_MAP[transaction.servo];
-                        break;
-                    case PROPERTY_TIMEOUT:
-                        data = new byte[]{(byte) transaction.value};
-                        memAddress = 66;
-                        break;
-                    case PROPERTY_START:
-                        data = new byte[]{(byte) transaction.value};
-                        memAddress = 68;
-                        break;
-                    case PROPERTY_SPEED:
-                        data = new byte[]{(byte) transaction.value};
-                        memAddress = ADDRESs_MOTOR_SPEED_MAP[transaction.motor];
-                        break;
-                    case PROPERTY_MOTOR_BATCH:
-                        memAddress = ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
-                        ByteBuffer allocate = ByteBuffer.allocate(10);
-                        allocate.put(TypeConversion.intToByteArray(0));
-                        allocate.put(TypeConversion.intToByteArray(transaction.target));
-                        allocate.put(transaction.speed);
-                        allocate.put(transaction.mode);
-                        data = allocate.array();
-                        break;
-                    case PROPERTY_SERVO_ENABLE:
-                        data = new byte[]{(byte) transaction.value};
-                        memAddress = 69;
-                        break;
-                    default:
-                        data = new byte[]{(byte) transaction.value};
-                        memAddress = 0;
-                        break;
-                }
 
                 try {
+                    byte[] data = getData(transaction);
+                    int memAddress = getMemAddress(transaction);
+
                     if (transaction.write) {
                         this.legacyModule.setWriteMode(this.physicalPort, 16, memAddress);
                         this.legacyModule.setData(this.physicalPort, data, data.length);
@@ -207,6 +156,59 @@ public class MatrixMasterController implements I2cPortReadyCallback {
         } else if (this.elapsedTime.time() > ELAPSED_TIME_MAX) {
             sendHeartbeat();
             this.elapsedTime.reset();
+        }
+    }
+
+    private byte[] getData(MatrixI2cTransaction transaction) {
+        switch (transaction.property) {
+            case PROPERTY_BATTERY:
+            case PROPERTY_POSITION:
+                return new byte[]{(byte) 0};
+            case PROPERTY_TARGET:
+                return  TypeConversion.intToByteArray(transaction.value);
+            case PROPERTY_SERVO:
+                return new byte[]{transaction.speed, (byte) transaction.target};
+            case PROPERTY_MOTOR_BATCH:
+                ByteBuffer allocate = ByteBuffer.allocate(10);
+                allocate.put(TypeConversion.intToByteArray(0));
+                allocate.put(TypeConversion.intToByteArray(transaction.target));
+                allocate.put(transaction.speed);
+                allocate.put(transaction.mode);
+                return allocate.array();
+            case PROPERTY_MODE:
+            case PROPERTY_TIMEOUT:
+            case PROPERTY_START:
+            case PROPERTY_SPEED:
+            case PROPERTY_SERVO_ENABLE:
+            default:
+                return new byte[]{(byte) transaction.value};
+        }
+    }
+
+    private int getMemAddress(MatrixI2cTransaction transaction) {
+        switch (transaction.property) {
+            case PROPERTY_POSITION:
+                return ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
+            case PROPERTY_TARGET:
+                return ADDRESS_MOTOR_TARGET_MAP[transaction.motor];
+            case PROPERTY_MODE:
+                return ADDRESS_MOTOR_MODE_MAP[transaction.motor];
+            case PROPERTY_SERVO:
+                return ADDRESS_SERVO_MAP[transaction.servo];
+            case PROPERTY_SPEED:
+                return ADDRESs_MOTOR_SPEED_MAP[transaction.motor];
+            case PROPERTY_MOTOR_BATCH:
+                return ADDRESS_MOTOR_BATCH_MAP[transaction.motor];
+            case PROPERTY_TIMEOUT:
+                return 66;
+            case PROPERTY_BATTERY:
+                return 67;
+            case PROPERTY_START:
+                return 68;
+            case PROPERTY_SERVO_ENABLE:
+                return 69;
+            default:
+                return 0;
         }
     }
 
