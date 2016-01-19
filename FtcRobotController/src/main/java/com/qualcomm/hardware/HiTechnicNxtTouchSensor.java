@@ -5,25 +5,28 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteOrder;
 
 public class HiTechnicNxtTouchSensor extends TouchSensor {
-    private final ModernRoboticsUsbLegacyModule f73a;
-    private final int f74b;
+    public static final int VERSION = 1;
+    private static final double TOUCH_SENSOR_PRESSED_THRESHOLD = 675.0d;
+    private final ModernRoboticsUsbLegacyModule legacyModule;
+    private final int physicalPort;
 
     public HiTechnicNxtTouchSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
         legacyModule.enableAnalogReadMode(physicalPort);
-        this.f73a = legacyModule;
-        this.f74b = physicalPort;
+        this.legacyModule = legacyModule;
+        this.physicalPort = physicalPort;
     }
 
     public String status() {
-        return String.format("NXT Touch Sensor, connected via device %s, port %d", this.f73a.getSerialNumber().toString(), this.f74b);
+        return String.format("NXT Touch Sensor, connected via device %s, port %d", this.legacyModule.getSerialNumber().toString(), this.physicalPort);
     }
 
     public double getValue() {
-        return ((double) TypeConversion.byteArrayToShort(this.f73a.readAnalog(this.f74b), ByteOrder.LITTLE_ENDIAN)) > 675.0d ? 0.0d : 1.0d;
+        double analogValue = TypeConversion.byteArrayToShort(this.legacyModule.readAnalog(this.physicalPort), ByteOrder.LITTLE_ENDIAN);
+        return (analogValue > TOUCH_SENSOR_PRESSED_THRESHOLD) ? 0 : 1;
     }
 
     public boolean isPressed() {
-        return getValue() > 0.0d;
+        return getValue() == 1;
     }
 
     public String getDeviceName() {
@@ -31,11 +34,11 @@ public class HiTechnicNxtTouchSensor extends TouchSensor {
     }
 
     public String getConnectionInfo() {
-        return this.f73a.getConnectionInfo() + "; port " + this.f74b;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

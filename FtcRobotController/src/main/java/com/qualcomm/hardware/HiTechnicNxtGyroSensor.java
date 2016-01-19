@@ -5,13 +5,15 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import java.nio.ByteOrder;
 
 public class HiTechnicNxtGyroSensor extends GyroSensor {
-    private final ModernRoboticsUsbLegacyModule f54a;
-    private final int f55b;
+    private static final int VERSION = 1;
+
+    private final ModernRoboticsUsbLegacyModule legacyModule;
+    private final int physicalPort;
 
     HiTechnicNxtGyroSensor(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
         legacyModule.enableAnalogReadMode(physicalPort);
-        this.f54a = legacyModule;
-        this.f55b = physicalPort;
+        this.legacyModule = legacyModule;
+        this.physicalPort = physicalPort;
     }
 
     public void calibrate() {
@@ -29,7 +31,7 @@ public class HiTechnicNxtGyroSensor extends GyroSensor {
     }
 
     public double getRotation() {
-        return (double) TypeConversion.byteArrayToShort(this.f54a.readAnalog(this.f55b), ByteOrder.LITTLE_ENDIAN);
+        return (double) TypeConversion.byteArrayToShort(this.legacyModule.readAnalog(this.physicalPort), ByteOrder.LITTLE_ENDIAN);
     }
 
     public int rawX() {
@@ -52,7 +54,7 @@ public class HiTechnicNxtGyroSensor extends GyroSensor {
     }
 
     public String status() {
-        return String.format("NXT Gyro Sensor, connected via device %s, port %d", this.f54a.getSerialNumber().toString(), this.f55b);
+        return String.format("NXT Gyro Sensor, connected via device %s, port %d", this.legacyModule.getSerialNumber().toString(), this.physicalPort);
     }
 
     public String getDeviceName() {
@@ -60,11 +62,11 @@ public class HiTechnicNxtGyroSensor extends GyroSensor {
     }
 
     public String getConnectionInfo() {
-        return this.f54a.getConnectionInfo() + "; port " + this.f55b;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.physicalPort);
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {

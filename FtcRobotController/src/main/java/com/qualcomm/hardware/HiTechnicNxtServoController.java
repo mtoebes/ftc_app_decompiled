@@ -7,42 +7,36 @@ import com.qualcomm.robotcore.util.Range;
 import java.util.concurrent.locks.Lock;
 
 public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoController {
+    public static final int VERSION = 1;
+
     public static final int I2C_ADDRESS = 2;
     public static final int MAX_SERVOS = 6;
-    public static final int MEM_READ_LENGTH = 7;
-    public static final int MEM_START_ADDRESS = 66;
+    public static final int BUFFER_LENGTH = 7;
+    public static final int START_ADDRESS = 66;
     public static final int OFFSET_PWM = 10;
-    public static final int OFFSET_SERVO1_POSITION = 4;
-    public static final int OFFSET_SERVO2_POSITION = 5;
-    public static final int OFFSET_SERVO3_POSITION = 6;
-    public static final int OFFSET_SERVO4_POSITION = 7;
-    public static final int OFFSET_SERVO5_POSITION = 8;
-    public static final int OFFSET_SERVO6_POSITION = 9;
-    public static final byte[] OFFSET_SERVO_MAP;
-    public static final int OFFSET_UNUSED = -1;
+    public static final int OFFSET_SERVO_POSITION = 4;
+    public static final double ELAPSED_TIME_MAX = 5.0;
+
     public static final byte PWM_DISABLE = (byte) -1;
     public static final byte PWM_ENABLE = (byte) 0;
-    public static final byte PWM_ENABLE_WITHOUT_TIMEOUT = (byte) -86;
+
     public static final int SERVO_POSITION_MAX = 255;
+
+    private ElapsedTime elapsedTime = new ElapsedTime(0);
+    private volatile boolean unknownResetCheck = true;
+
     private final ModernRoboticsUsbLegacyModule legacyModule;
     private final byte[] writeCache;
-    private final Lock readCache;
+    private final Lock writeCacheLock;
     private final int controllerPort;
-    private ElapsedTime elapsedTime;
-    private volatile boolean unknownResetCheck;
-
-    static {
-        OFFSET_SERVO_MAP = new byte[]{PWM_DISABLE, (byte) 4, (byte) 5, (byte) 6, (byte) 7, (byte) 8, (byte) 9};
-    }
 
     public HiTechnicNxtServoController(ModernRoboticsUsbLegacyModule legacyModule, int physicalPort) {
-        this.elapsedTime = new ElapsedTime(0);
-        this.unknownResetCheck = true;
         this.legacyModule = legacyModule;
         this.controllerPort = physicalPort;
         this.writeCache = legacyModule.getI2cWriteCache(physicalPort);
-        this.readCache = legacyModule.getI2cWriteCacheLock(physicalPort);
-        legacyModule.enableI2cWriteMode(physicalPort, I2C_ADDRESS, MEM_START_ADDRESS, OFFSET_SERVO4_POSITION);
+        this.writeCacheLock = legacyModule.getI2cWriteCacheLock(physicalPort);
+
+        legacyModule.enableI2cWriteMode(physicalPort, I2C_ADDRESS, START_ADDRESS, BUFFER_LENGTH);
         pwmDisable();
         legacyModule.setI2cPortActionFlag(physicalPort);
         legacyModule.writeI2cCacheToController(physicalPort);
@@ -54,41 +48,35 @@ public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoC
     }
 
     public String getConnectionInfo() {
-        return this.legacyModule.getConnectionInfo() + "; port " + this.controllerPort;
+        return String.format("%s; port %d", this.legacyModule.getConnectionInfo(), this.controllerPort);
     }
 
     public int getVersion() {
-        return 1;
+        return VERSION;
     }
 
     public void close() {
         pwmDisable();
     }
 
-    public void pwmEnable() {
+    private void pwmEnable(boolean enable) {
+        byte state = enable ? PWM_ENABLE : PWM_DISABLE;
         try {
-            this.readCache.lock();
-            if (this.writeCache[OFFSET_PWM] != 0) { //TODO originally was comparing to null. why
-                this.writeCache[OFFSET_PWM] = PWM_ENABLE;
+            this.writeCacheLock.lock();
+            if (this.writeCache[OFFSET_PWM] != state) {
+                this.writeCache[OFFSET_PWM] = state;
                 this.unknownResetCheck = true;
             }
-            this.readCache.unlock();
-        } catch (Throwable th) {
-            this.readCache.unlock();
+        } finally {
+            this.writeCacheLock.unlock();
         }
+    }
+    public void pwmEnable() {
+        pwmEnable(true);
     }
 
     public void pwmDisable() {
-        try {
-            this.readCache.lock();
-            if (OFFSET_UNUSED != this.writeCache[OFFSET_PWM]) {
-                this.writeCache[OFFSET_PWM] = PWM_DISABLE;
-                this.unknownResetCheck = true;
-            }
-            this.readCache.unlock();
-        } catch (Throwable th) {
-            this.readCache.unlock();
-        }
+        pwmEnable(false);
     }
 
     public PwmStatus getPwmStatus() {
@@ -98,17 +86,17 @@ public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoC
     public void setServoPosition(int channel, double position) {
         validateChannel(channel);
         Range.throwIfRangeIsInvalid(position, 0.0d, 1.0d);
-        byte b = (byte) ((int) (255.0d * position));
+        byte servoPosition = (byte) ((int) (SERVO_POSITION_MAX * position));
         try {
-            this.readCache.lock();
-            if (b != this.writeCache[OFFSET_SERVO_MAP[channel]]) {
+            this.writeCacheLock.lock();
+            int offsetServoPosition = getOffsetServoPosition(channel);
+            if (servoPosition != this.writeCache[offsetServoPosition]) {
                 this.unknownResetCheck = true;
-                this.writeCache[OFFSET_SERVO_MAP[channel]] = b;
+                this.writeCache[offsetServoPosition] = servoPosition;
                 this.writeCache[OFFSET_PWM] = PWM_ENABLE;
             }
-            this.readCache.unlock();
-        } catch (Throwable th) {
-            this.readCache.unlock();
+        } finally {
+            this.writeCacheLock.unlock();
         }
     }
 
@@ -117,20 +105,21 @@ public class HiTechnicNxtServoController implements I2cPortReadyCallback, ServoC
     }
 
     private void validateChannel(int channel) {
-        if (channel < 1 || channel > OFFSET_SERVO_MAP.length) {
-            Object[] objArr = new Object[I2C_ADDRESS];
-            objArr[0] = channel;
-            objArr[1] = OFFSET_SERVO3_POSITION;
-            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", objArr));
+        if (channel < 1 || channel > MAX_SERVOS) {
+            throw new IllegalArgumentException(String.format("Channel %d is invalid; valid channels are 1..%d", channel, MAX_SERVOS));
         }
     }
 
     public void portIsReady(int port) {
-        if (this.unknownResetCheck || this.elapsedTime.time() > 5.0d) {
+        if (this.unknownResetCheck || this.elapsedTime.time() > ELAPSED_TIME_MAX) {
             this.legacyModule.setI2cPortActionFlag(this.controllerPort);
             this.legacyModule.writeI2cCacheToController(this.controllerPort);
             this.elapsedTime.reset();
         }
         this.unknownResetCheck = false;
+    }
+
+    private int getOffsetServoPosition(int servo) {
+        return OFFSET_SERVO_POSITION + (servo - 1);
     }
 }
