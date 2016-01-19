@@ -13,7 +13,6 @@ public class MatrixI2cTransaction {
     public int value;
     public boolean write;
 
-    /* renamed from: com.qualcomm.hardware.MatrixI2cTransaction.a */
     enum MatrixI2cProperties {
         PROPERTY_MODE,
         PROPERTY_TARGET,
@@ -27,7 +26,6 @@ public class MatrixI2cTransaction {
         PROPERTY_TIMEOUT
     }
 
-    /* renamed from: com.qualcomm.hardware.MatrixI2cTransaction.b */
     enum MatrixI2cTransactionState {
         QUEUED,
         PENDING_I2C_READ,
@@ -97,14 +95,13 @@ public class MatrixI2cTransaction {
 
     public String toString() {
         if (this.property == MatrixI2cProperties.PROPERTY_MOTOR_BATCH) {
-            return "Matrix motor transaction: " + this.property + " motor " + this.motor + " write " + this.write + " speed " + this.speed + " target " + this.target + " mode " + this.mode;
+            return String.format("Matrix motor transaction: %s motor %d write %b change rate %d target %d", this.property.toString(), this.motor, this.write, this.speed, this.target);
+        } else if (this.property == MatrixI2cProperties.PROPERTY_SERVO) {
+            return String.format("Matrix servo transaction: %s servo %d write %b change rate %d target %d", this.property.toString(), this.servo, this.write, this.speed, this.target);
+        } else if (this.property == MatrixI2cProperties.PROPERTY_SERVO_ENABLE) {
+            return String.format("Matrix servo transaction: %s servo %d write %b value %d", this.property.toString(), this.servo, this.write, this.value);
+        } else {
+            return String.format("Matrix servo transaction: %s motor %d write %b value %d", this.property.toString(), this.motor, this.write, this.value);
         }
-        if (this.property == MatrixI2cProperties.PROPERTY_SERVO) {
-            return "Matrix servo transaction: " + this.property + " servo " + this.servo + " write " + this.write + " change rate " + this.speed + " target " + this.target;
-        }
-        if (this.property == MatrixI2cProperties.PROPERTY_SERVO_ENABLE) {
-            return "Matrix servo transaction: " + this.property + " servo " + this.servo + " write " + this.write + " value " + this.value;
-        }
-        return "Matrix motor transaction: " + this.property + " motor " + this.motor + " write " + this.write + " value " + this.value;
     }
 }
