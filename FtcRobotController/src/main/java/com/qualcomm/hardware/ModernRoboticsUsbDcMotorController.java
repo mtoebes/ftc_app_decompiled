@@ -25,13 +25,6 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     private static final int ADDRESS_MOTOR2_P_COEFFICIENT = 91;
     private static final int ADDRESS_MOTOR2_TARGET_ENCODER_VALUE = 72;
 
-    private static final int[] ADDRESS_MOTOR_CURRENT_ENCODER_VALUE_MAP = new int[]{ADDRESS_MOTOR1_CURRENT_ENCODER_VALUE, ADDRESS_MOTOR2_CURRENT_ENCODER_VALUE};
-    private static final int[] ADDRESS_MOTOR_GEAR_RATIO_MAP = new int[]{ADDRESS_MOTOR1_GEAR_RATIO, ADDRESS_MOTOR2_GEAR_RATIO};
-    private static final int[] ADDRESS_MOTOR_MODE_MAP = new int[]{ADDRESS_MOTOR1_MODE, ADDRESS_MOTOR2_MODE};
-    private static final int[] ADDRESS_MOTOR_POWER_MAP = new int[]{ADDRESS_MOTOR1_POWER, ADDRESS_MOTOR2_POWER};
-    private static final int[] ADDRESS_MOTOR_TARGET_ENCODER_VALUE_MAP = new int[]{ADDRESS_MOTOR1_TARGET_ENCODER_VALUE, ADDRESS_MOTOR2_TARGET_ENCODER_VALUE};
-    private static final int[] ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP = new int[]{ADDRESS_MOTOR1_P_COEFFICIENT, ADDRESS_MOTOR2_P_COEFFICIENT};
-
     private static final int ADDRESS_BATTERY_VOLTAGE = 84;
     private static final double BATTERY_MAX_MEASURABLE_VOLTAGE = 20.4d;
     private static final int BATTERY_MAX_MEASURABLE_VOLTAGE_INT = 1023;
@@ -47,6 +40,9 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     private static final byte DEFAULT_I_COEFFICIENT = (byte) 64;
     private static final byte DEFAULT_P_COEFFICIENT = Byte.MIN_VALUE;
     private static final int DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAX = 255;
+
+    private static final int MIN_MOTOR = 1;
+    private static final int MAX_MOTOR = 2;
 
     private static final int NUM_OF_MOTORS = 2;
 
@@ -146,7 +142,7 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
 
     public boolean isBusy(int motor) {
         validateMotor(motor);
-        return this.motorPositions[getIndex(motor)].hasMoved();
+        return this.motorPositions[motor-MIN_MOTOR].hasMoved();
     }
 
     public void setMotorPowerFloat(int motor) {
@@ -238,59 +234,74 @@ public class ModernRoboticsUsbDcMotorController extends ModernRoboticsUsbDevice 
     }
 
     private void setMotorsPowerFloat() {
-        for(int index = 0; index < NUM_OF_MOTORS; index++) {
-            setMotorPowerFloat(getMotor(index));
+        for(int motor = MAX_MOTOR; motor <= MAX_MOTOR; motor++) {
+            setMotorPowerFloat(motor);
         }
     }
 
     private void writeMotors() {
-        for (int index = 0; index < NUM_OF_MOTORS; index++) {
-            write(getDifferentialControlLoopAddress(getMotor(index)), new byte[]{DEFAULT_P_COEFFICIENT, DEFAULT_I_COEFFICIENT, DEFAULT_D_COEFFICIENT});
+        for (int motor = MIN_MOTOR; motor <= MAX_MOTOR; motor++) {
+            write(getDifferentialControlLoopAddress(motor), new byte[]{DEFAULT_P_COEFFICIENT, DEFAULT_I_COEFFICIENT, DEFAULT_D_COEFFICIENT});
         }
     }
 
     private void validateMotor(int motor) {
-        int index = getIndex(motor);
-        if (index < 0 || index >= NUM_OF_MOTORS) {
-            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are %d..%d", motor, getMotor(0), getMotor(NUM_OF_MOTORS -1)));
+        if (motor < 1 || motor > NUM_OF_MOTORS) {
+            throw new IllegalArgumentException(String.format("Motor %d is invalid; valid motors are %d..%d", motor, MIN_MOTOR, MAX_MOTOR));
         }
     }
 
     public void readComplete() throws InterruptedException {
-        for (int index = 0; index < NUM_OF_MOTORS; index++) {
-            this.motorPositions[index].addPosition(getMotorCurrentPosition(getMotor(index)));
+        for (int motor = MIN_MOTOR; motor <= MAX_MOTOR; motor++) {
+            this.motorPositions[motor].addPosition(getMotorCurrentPosition(motor));
         }
     }
 
-    private static int getIndex(int motor) {
-        return motor-1;
-    }
-
-    private static int getMotor(int index) {
-        return index+1;
-    }
-
     private static int getPowerAddress(int motor) {
-        return ADDRESS_MOTOR_POWER_MAP[getIndex(motor)];
+        if(motor == 1) {
+            return ADDRESS_MOTOR1_POWER;
+        } else {
+            return ADDRESS_MOTOR2_POWER;
+        }
     }
 
     private static int getModeAddress(int motor) {
-        return ADDRESS_MOTOR_MODE_MAP[getIndex(motor)];
+        if(motor == 1) {
+            return ADDRESS_MOTOR1_MODE;
+        } else {
+            return ADDRESS_MOTOR2_MODE;
+        }
     }
 
     private static int getTargetEncoderAddress(int motor) {
-        return ADDRESS_MOTOR_TARGET_ENCODER_VALUE_MAP[getIndex(motor)];
+        if(motor == 1) {
+            return ADDRESS_MOTOR1_TARGET_ENCODER_VALUE;
+        } else {
+            return ADDRESS_MOTOR2_TARGET_ENCODER_VALUE;
+        }
     }
 
     private static int getCurrentEncoderAddress(int motor) {
-        return ADDRESS_MOTOR_CURRENT_ENCODER_VALUE_MAP[getIndex(motor)];
+        if(motor == 1) {
+            return ADDRESS_MOTOR1_CURRENT_ENCODER_VALUE;
+        } else {
+            return ADDRESS_MOTOR2_CURRENT_ENCODER_VALUE;
+        }
     }
 
     private static int getGearRatioAddress(int motor) {
-        return ADDRESS_MOTOR_GEAR_RATIO_MAP[getIndex(motor)];
+        if(motor == 1) {
+            return ADDRESS_MOTOR1_GEAR_RATIO;
+        } else {
+            return ADDRESS_MOTOR2_GEAR_RATIO;
+        }
     }
 
     private static int getDifferentialControlLoopAddress(int motor) {
-        return ADDRESS_MAX_DIFFERENTIAL_CONTROL_LOOP_COEFFICIENT_MAP[getIndex(motor)];
+        if(motor == 1) {
+            return ADDRESS_MOTOR1_P_COEFFICIENT;
+        } else {
+            return ADDRESS_MOTOR2_P_COEFFICIENT;
+        }
     }
 }
