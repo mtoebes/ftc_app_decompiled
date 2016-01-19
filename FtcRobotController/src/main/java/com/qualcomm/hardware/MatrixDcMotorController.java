@@ -8,8 +8,6 @@ import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 public class MatrixDcMotorController implements DcMotorController {
@@ -23,7 +21,7 @@ public class MatrixDcMotorController implements DcMotorController {
     private static final byte BUSY_BIT_MASK = (byte) (1<<7);
     private static final byte UNKNOWN_BIT_MASK = (byte) (1<<3); //TODO what is this?
 
-    private static final int BYTES_IN_INT = 4;
+    private static final int BUFFER_SIZE = 4;
     private static final int START_ADDRESS = 4;
 
     private static final double POWER_MIN = -1.0d;
@@ -241,13 +239,13 @@ public class MatrixDcMotorController implements DcMotorController {
 
     public void handleReadPosition(MatrixI2cTransaction transaction, byte[] buffer) {
         MotorInfo motorInfo = getMotorInfo(transaction.motor);
-        motorInfo.position = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, START_ADDRESS, START_ADDRESS + BYTES_IN_INT));
+        motorInfo.position = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, START_ADDRESS, START_ADDRESS + BUFFER_SIZE));
         RobotLog.v("Position motor: " + transaction.motor + " " + motorInfo.position);
     }
 
     public void handleReadTargetPosition(MatrixI2cTransaction transaction, byte[] buffer) {
         MotorInfo motorInfo = getMotorInfo(transaction.motor);
-        motorInfo.targetPosition = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, START_ADDRESS, START_ADDRESS + BYTES_IN_INT));
+        motorInfo.targetPosition = TypeConversion.byteArrayToInt(Arrays.copyOfRange(buffer, START_ADDRESS, START_ADDRESS + BUFFER_SIZE));
         RobotLog.v("Target motor: " + transaction.motor + " " + motorInfo.targetPosition);
     }
 
