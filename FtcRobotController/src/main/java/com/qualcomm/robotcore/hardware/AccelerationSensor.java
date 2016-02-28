@@ -48,9 +48,7 @@ public abstract class AccelerationSensor implements HardwareDevice {
         }
 
         public Acceleration(double x, double y, double z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            this.x = x; this.y = y; this.z = z;
         }
 
         public String toString() {
