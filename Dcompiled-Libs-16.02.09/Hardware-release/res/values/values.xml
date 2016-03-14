@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From: file:/Users/tom/Documents/workspace/release/ftc_sdk/lib/Hardware/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string name="moduleDisplayNameCDIM">Modern Robotics USB Core Device Interface Module</string>
+    <string name="moduleDisplayNameLegacyModule">Modern Robotics USB Legacy Module</string>
+    <string name="moduleDisplayNameMotorController">Modern Robotics USB DC Motor Controller</string>
+    <string name="moduleDisplayNameServoController">Modern Robotics USB Servo Controller</string>
+    <string name="warningProblemCommunicatingWithUSBDevice">problem communicating with %s</string>
+    <string name="warningUnableToOpen">unable to open %s</string>
+</resources>
